@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.IO.Ports;
+using System.Threading;
 
 namespace YoonFactory.Comm.Serial
 {
@@ -16,6 +17,8 @@ namespace YoonFactory.Comm.Serial
             {
                 if (disposing)
                 {
+                    Close();
+                    Thread.Sleep(100);
                     _pSerial.Dispose();
                 }
                 _disposedValue = true;
@@ -33,31 +36,28 @@ namespace YoonFactory.Comm.Serial
 
         public string Port { get; set; }
 
-        public StringBuilder sbReceiveMessage { get; }
+        public StringBuilder ReceiveMessage { get; private set; }
         
         public YoonSerial()
         {
             //
         }
 
+        public YoonSerial(string strPort)
+        {
+            Port = strPort;
+        }
+        
         public void CopyFrom(IYoonComm pComm)
         {
-            throw new NotImplementedException();
+            if (pComm is not YoonSerial) return;
+            Port = pComm.Port;
         }
 
         public IYoonComm Clone()
         {
-            throw new NotImplementedException();
-        }
-
-        public bool Send(string strBuffer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Send(byte[] pBuffer)
-        {
-            throw new NotImplementedException();
+            Close();
+            return new YoonSerial(Port);
         }
 
         public bool Open()
@@ -118,92 +118,69 @@ namespace YoonFactory.Comm.Serial
             _pSerial.Dispose();
             _pSerial = null;
         }
-        /// <summary>
-        /// Write the data in the port
-        /// </summary>
-        /// <param name="data"></param>
-        public void WritePort(string data)
+
+
+        public bool Send(string strBuffer)
         {
-            if (_pSerial.IsOpen == false) return;
+            if (!_pSerial.IsOpen) return false;
 
             try
             {
-                _pSerial.Write(data);
+                _pSerial.Write(strBuffer);
+                return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
+
+            return false;
         }
-        public void WritePort(char[] data, int length)
+
+        public bool Send(byte[] pBuffer)
         {
-            if (_pSerial.IsOpen == false) return;
+            if (!_pSerial.IsOpen) return false;
 
             try
             {
-                _pSerial.Write(data, 0, length);
+                _pSerial.Write(pBuffer, 0, pBuffer.Length);
+                return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
+
+            return false;
         }
-        /// <summary>
-        /// Port에서 Data를 읽어온다.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public string ReadPort(int waitTime)
+
+        public string Receive(int nWaitTime)
         {
             if (_pSerial.IsOpen == false) return "";
 
-            int recieveSize = _pSerial.BytesToRead;
-            byte[] incommBuffer = new byte[recieveSize];
-            string resultData = "";
-            _pSerial.ReadTimeout = waitTime;
+            int nReceiveSize = _pSerial.BytesToRead;
+            byte[] pBufferIncoming = new byte[nReceiveSize];
+            _pSerial.ReadTimeout = nWaitTime;
+            string strReceiveMessage = "";
             try
             {
-                if (recieveSize != 0)
+                if (nReceiveSize != 0)
                 {
-                    resultData = "";
-                    _pSerial.Read(incommBuffer, 0, recieveSize);
-                    for (int i = 0; i < recieveSize; i++)
+                    _pSerial.Read(pBufferIncoming, 0, nReceiveSize);
+                    for (int i = 0; i < nReceiveSize; i++)
                     {
-                        resultData += Convert.ToChar(incommBuffer[i]);
+                        strReceiveMessage += Convert.ToChar(pBufferIncoming[i]);
                     }
+
+                    ReceiveMessage = new StringBuilder(strReceiveMessage);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
-            return resultData;
-        }
 
-        /// <summary>
-        /// 문자열을 ASCII 문자열로 변환한다.
-        /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
-        public string StringToHex(string text)
-        {
-            string resultHex = "";
-            byte[] arrayByteStr = Encoding.ASCII.GetBytes(text);
-            foreach (byte byteStr in arrayByteStr)
-            {
-                resultHex += string.Format("{0:x2}", byteStr);
-            }
-            return resultHex;
-        }
-        /// <summary>
-        /// 10진수를 ASCII 문자열로 변환한다.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public byte[] DecToHex(int data, int length)
-        {
-            return Encoding.ASCII.GetBytes(data.ToString().ToCharArray(), 0, length);
+            return strReceiveMessage;
         }
     }
 }

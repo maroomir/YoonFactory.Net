@@ -6,7 +6,7 @@ namespace YoonFactory.Comm
     public interface IYoonComm : IDisposable
     {
         string Port { get; set; }
-        StringBuilder sbReceiveMessage { get; }
+        StringBuilder ReceiveMessage { get; }
         
         void CopyFrom(IYoonComm pComm);
         IYoonComm Clone();

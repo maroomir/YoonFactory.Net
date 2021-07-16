@@ -1,9 +1,26 @@
 ﻿using System;
+using System.Text;
 
-namespace YoonFactory.Comm.TCP
+namespace YoonFactory.Comm
 {
-    public static class TCPFactory
+    public static class CommunicationFactory
     {
+        public static string ToHex(string text)
+        {
+            string resultHex = "";
+            byte[] arrayByteStr = Encoding.ASCII.GetBytes(text);
+            foreach (byte byteStr in arrayByteStr)
+            {
+                resultHex += $"{byteStr:x2}";
+            }
+            return resultHex;
+        }
+        
+        public static byte[] ToHex(int data, int length)
+        {
+            return Encoding.ASCII.GetBytes(data.ToString().ToCharArray(), 0, length);
+        }
+        
         public static int[] GetIPAddressArray(string strIPAddress)
         {
             const int MAX_IPV4_NUM = 4;
