@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <RootNamespace>YoonFactory.Net</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutputPath>../Debug/AnyCPU/</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <OutputPath>../Release/AnyCPU/</OutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="obj" />
+    </ItemGroup>
+
+</Project>
