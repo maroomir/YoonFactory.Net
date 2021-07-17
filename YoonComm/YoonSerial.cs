@@ -34,8 +34,10 @@ namespace YoonFactory.Comm.Serial
 
         private SerialPort _pSerial = new SerialPort();
 
+        public event ShowMessageCallback OnShowMessageEvent;
+        public event RecieveDataCallback OnShowReceiveDataEvent;
+        
         public string Port { get; set; }
-
         public StringBuilder ReceiveMessage { get; private set; }
         
         public YoonSerial()
@@ -78,14 +80,14 @@ namespace YoonFactory.Comm.Serial
             }
             catch
             {
-                Console.Write("Port Open Error!");
+                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Port Open Error!"));
                 return false;
             }
 
-            if (_pSerial.IsOpen)
-                Console.Write("Port Open Success : " + _pSerial.PortName);
-            else
-                Console.Write("Port Open Fail : " + _pSerial.PortName);
+            OnShowMessageEvent(this,
+                _pSerial.IsOpen
+                    ? new MessageArgs(eYoonStatus.Conform, "Port Open Success : " + _pSerial.PortName)
+                    : new MessageArgs(eYoonStatus.Error, "Port Open Fail : " + _pSerial.PortName));
             return true;
         }
 
@@ -101,9 +103,10 @@ namespace YoonFactory.Comm.Serial
             int nHeadLength = strPortName.IndexOf("COM", StringComparison.Ordinal);
             if (nHeadLength <= 0)
             {
-                Console.Write("Invalid Port Name : " + strPortName);
+                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Invalid Port Name : " + strPortName));
                 return false;
             }
+
             Port = strPortName;
             return Open();
         }

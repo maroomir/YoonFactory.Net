@@ -5,6 +5,9 @@ namespace YoonFactory.Comm
 {
     public interface IYoonComm : IDisposable
     {
+        event ShowMessageCallback OnShowMessageEvent;
+        event RecieveDataCallback OnShowReceiveDataEvent;
+        
         string Port { get; set; }
         StringBuilder ReceiveMessage { get; }
         
@@ -19,9 +22,6 @@ namespace YoonFactory.Comm
 
     public interface IYoonTcpIp : IYoonComm
     {
-        event ShowMessageCallback OnShowMessageEvent;
-        event RecieveDataCallback OnShowReceiveDataEvent;
-
         string RootDirectory { get; set; }
         string Address { get; set; }
         bool IsRetryOpen { get; }
