@@ -71,7 +71,7 @@ namespace YoonFactory.Comm.TCP
             ReceiveMessage = new StringBuilder(string.Empty);
 
             RootDirectory = strParamDirectory;
-            LoadParam();
+            LoadParameter();
         }
 
         protected class AsyncObject
@@ -81,7 +81,7 @@ namespace YoonFactory.Comm.TCP
 
             public AsyncObject(int nBufferSize)
             {
-                this.Buffer = new Byte[nBufferSize];
+                Buffer = new byte[nBufferSize];
             }
         }
 
@@ -94,21 +94,21 @@ namespace YoonFactory.Comm.TCP
 
         public string Address
         {
-            get => Param.IP;
+            get => Parameter.IP;
             set
             {
                 if (CommunicationFactory.VerifyIPAddress(value))
-                    Param.IP = value;
+                    Parameter.IP = value;
             }
         }
 
         public string Port
         {
-            get => Param.Port;
+            get => Parameter.Port;
             set
             {
                 if (CommunicationFactory.VerifyPort(value))
-                    Param.Port = value;
+                    Parameter.Port = value;
             }
         }
 
@@ -118,7 +118,7 @@ namespace YoonFactory.Comm.TCP
         private AsyncCallback _pReceiveHandler;
         private AsyncCallback _pSendHandler;
 
-        private struct Param
+        private struct Parameter
         {
             public static string IP = "127.0.0.1";
             public static string Port = "1234";
@@ -135,7 +135,7 @@ namespace YoonFactory.Comm.TCP
             if (pClient.IsConnected)
                 pClient.Disconnect();
 
-            LoadParam();
+            LoadParameter();
             Address = pClient.Address;
             Port = pClient.Port;
         }
@@ -145,7 +145,7 @@ namespace YoonFactory.Comm.TCP
             Disconnect();
 
             YoonClient pClient = new YoonClient();
-            pClient.LoadParam();
+            pClient.LoadParameter();
             pClient.Address = Address;
             pClient.Port = Port;
             return pClient;
@@ -154,52 +154,52 @@ namespace YoonFactory.Comm.TCP
         public void SetParam(string strIP, string strPort, string strRetryConnect, string strTimeout,
             string strRetryCount, string strElapsedTime)
         {
-            Param.IP = strIP;
-            Param.Port = strPort;
-            Param.RetryConnect = strRetryConnect;
-            Param.Timeout = strTimeout;
-            Param.RetryCount = strRetryCount;
-            Param.ElapsedTime = strElapsedTime;
+            Parameter.IP = strIP;
+            Parameter.Port = strPort;
+            Parameter.RetryConnect = strRetryConnect;
+            Parameter.Timeout = strTimeout;
+            Parameter.RetryCount = strRetryCount;
+            Parameter.ElapsedTime = strElapsedTime;
         }
 
         public void SetParam(string strIP, int nPort, bool bRetryConnect, int nTimeout, int nRetryCount,
             int nElapsedTime)
         {
-            Param.IP = strIP;
-            Param.Port = nPort.ToString();
-            Param.RetryConnect = bRetryConnect.ToString();
-            Param.Timeout = nTimeout.ToString();
-            Param.RetryCount = nRetryCount.ToString();
-            Param.ElapsedTime = nElapsedTime.ToString();
+            Parameter.IP = strIP;
+            Parameter.Port = nPort.ToString();
+            Parameter.RetryConnect = bRetryConnect.ToString();
+            Parameter.Timeout = nTimeout.ToString();
+            Parameter.RetryCount = nRetryCount.ToString();
+            Parameter.ElapsedTime = nElapsedTime.ToString();
         }
 
-        public void LoadParam()
+        public void LoadParameter()
         {
             string strFilePath = Path.Combine(RootDirectory, "IPClient.ini");
-            using (YoonIni ic = new YoonIni(strFilePath))
+            using (YoonIni pIni = new YoonIni(strFilePath))
             {
-                ic.LoadFile();
-                Param.IP = ic["Client"]["IP"].ToString("127.0.0.1");
-                Param.Port = ic["Client"]["Port"].ToString("1234");
-                Param.RetryConnect = ic["Client"]["RetryConnect"].ToString("true");
-                Param.RetryCount = ic["Client"]["RetryCount"].ToString("100");
-                Param.Timeout = ic["Client"]["TimeOut"].ToString("10000");
-                Param.ElapsedTime = ic["Client"]["ElapsedTime"].ToString("5000");
+                pIni.LoadFile();
+                Parameter.IP = pIni["Client"]["IP"].ToString("127.0.0.1");
+                Parameter.Port = pIni["Client"]["Port"].ToString("1234");
+                Parameter.RetryConnect = pIni["Client"]["RetryConnect"].ToString("true");
+                Parameter.RetryCount = pIni["Client"]["RetryCount"].ToString("100");
+                Parameter.Timeout = pIni["Client"]["TimeOut"].ToString("10000");
+                Parameter.ElapsedTime = pIni["Client"]["ElapsedTime"].ToString("5000");
             }
         }
 
-        public void SaveParam()
+        public void SaveParameter()
         {
             string strFilePath = Path.Combine(RootDirectory, "IPClient.ini");
-            using (YoonIni ic = new YoonIni(strFilePath))
+            using (YoonIni pIni = new YoonIni(strFilePath))
             {
-                ic["Client"]["IP"] = Param.IP;
-                ic["Client"]["Port"] = Param.Port;
-                ic["Client"]["RetryConnect"] = Param.RetryConnect;
-                ic["Client"]["RetryCount"] = Param.RetryCount;
-                ic["Client"]["TimeOut"] = Param.Timeout;
-                ic["Client"]["ElapsedTime"] = Param.ElapsedTime;
-                ic.SaveFile();
+                pIni["Client"]["IP"] = Parameter.IP;
+                pIni["Client"]["Port"] = Parameter.Port;
+                pIni["Client"]["RetryConnect"] = Parameter.RetryConnect;
+                pIni["Client"]["RetryCount"] = Parameter.RetryCount;
+                pIni["Client"]["TimeOut"] = Parameter.Timeout;
+                pIni["Client"]["ElapsedTime"] = Parameter.ElapsedTime;
+                pIni.SaveFile();
             }
         }
 
@@ -229,10 +229,10 @@ namespace YoonFactory.Comm.TCP
                 if (!IsRetryOpen)
                     OnShowMessageEvent(this,
                         new MessageArgs(eYoonStatus.Info,
-                            string.Format("Connection Attempt : {0}/{1}", Param.IP, Param.Port)));
-                IPAddress pIPAddress = IPAddress.Parse(Param.IP);
+                            string.Format("Connection Attempt : {0}/{1}", Parameter.IP, Parameter.Port)));
+                IPAddress pIPAddress = IPAddress.Parse(Parameter.IP);
                 IAsyncResult pResult =
-                    _pClientSocket.BeginConnect(new IPEndPoint(pIPAddress, int.Parse(Param.Port)), null, null);
+                    _pClientSocket.BeginConnect(new IPEndPoint(pIPAddress, int.Parse(Parameter.Port)), null, null);
                 if (pResult.AsyncWaitHandle.WaitOne(100, false))
                 {
                     _pClientSocket.EndConnect(pResult);
@@ -281,7 +281,7 @@ namespace YoonFactory.Comm.TCP
             if (_pClientSocket.Connected != true) return _pClientSocket.Connected;
             IsRetryOpen = false;
             OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, "Connection Success"));
-            SaveParam();
+            SaveParameter();
 
             return _pClientSocket.Connected;
         }
@@ -294,17 +294,17 @@ namespace YoonFactory.Comm.TCP
             {
                 _pClientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
 
-                Param.IP = strIp;
-                Param.Port = strPort;
+                Parameter.IP = strIp;
+                Parameter.Port = strPort;
 
                 if (!IsRetryOpen)
                     OnShowMessageEvent(this,
                         new MessageArgs(eYoonStatus.Info,
-                            string.Format("Connection Attempt : {0}/{1}", Param.IP, Param.Port)));
+                            string.Format("Connection Attempt : {0}/{1}", Parameter.IP, Parameter.Port)));
                 //IPHostEntry ipHostInfo = Dns.Resolve(Param.fIP);
-                IPAddress ipAddress = IPAddress.Parse(Param.IP);
+                IPAddress ipAddress = IPAddress.Parse(Parameter.IP);
                 IAsyncResult asyncResult =
-                    _pClientSocket.BeginConnect(new IPEndPoint(ipAddress, int.Parse(Param.Port)), null, null);
+                    _pClientSocket.BeginConnect(new IPEndPoint(ipAddress, int.Parse(Parameter.Port)), null, null);
                 if (asyncResult.AsyncWaitHandle.WaitOne(100, false))
                 {
                     _pClientSocket.EndConnect(asyncResult);
@@ -353,7 +353,7 @@ namespace YoonFactory.Comm.TCP
             if (_pClientSocket.Connected != true) return _pClientSocket.Connected;
             IsRetryOpen = false;
             OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, "Connection Success"));
-            SaveParam();
+            SaveParameter();
 
             return _pClientSocket.Connected;
         }
@@ -388,7 +388,7 @@ namespace YoonFactory.Comm.TCP
         /// </summary>
         public void OnRetryThreadStart()
         {
-            if (Param.RetryConnect == Boolean.FalseString)
+            if (Parameter.RetryConnect == Boolean.FalseString)
                 return;
 
             _pThreadRetryConnect = new Thread(new ThreadStart(ProcessRetry)) {Name = "Retry Connect"};
@@ -411,8 +411,8 @@ namespace YoonFactory.Comm.TCP
             _pStopWatch.Start();
 
             OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, "Connection Retry Start"));
-            int nCount = Convert.ToInt32(Param.RetryCount);
-            int nTimeOut = Convert.ToInt32(Param.Timeout);
+            int nCount = Convert.ToInt32(Parameter.RetryCount);
+            int nTimeOut = Convert.ToInt32(Parameter.Timeout);
 
             for (int iRetry = 0; iRetry < nCount; iRetry++)
             {
@@ -509,9 +509,9 @@ namespace YoonFactory.Comm.TCP
 
             AsyncObject pObject = new AsyncObject(1);
 
-            string strBuff = Encoding.ASCII.GetString(pBuffer);
+            string strBuffer = Encoding.ASCII.GetString(pBuffer);
             // Convert the byte buffer to ASCII
-            pObject.Buffer = Encoding.ASCII.GetBytes(strBuff);
+            pObject.Buffer = Encoding.ASCII.GetBytes(strBuffer);
             pObject.WorkingSocket = _pClientSocket;
 
             try
@@ -521,7 +521,7 @@ namespace YoonFactory.Comm.TCP
                 //strBuff.Replace("\0", "");
                 //strBuff = "[S] " + strBuff;
                 OnShowMessageEvent(this,
-                    new MessageArgs(eYoonStatus.Send, string.Format("Send Message To String : " + strBuff)));
+                    new MessageArgs(eYoonStatus.Send, string.Format("Send Message To String : " + strBuffer)));
                 return true;
             }
             catch (Exception ex)

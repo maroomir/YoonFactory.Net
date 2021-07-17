@@ -15,6 +15,7 @@
     <ItemGroup>
       <ProjectReference Include="..\YoonFactory\YoonFactory.csproj" />
       <ProjectReference Include="..\YoonFile\YoonFile.csproj" />
+      <ProjectReference Include="..\YoonParameter\YoonParameter.csproj" />
     </ItemGroup>
 
     <ItemGroup>

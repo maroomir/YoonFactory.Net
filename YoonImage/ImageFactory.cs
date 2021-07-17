@@ -17,16 +17,16 @@ namespace YoonFactory.Image
         private const uint MAX_PICK_NUM = 100;
         private const uint MAX_FILL_NUM = 1000;
 
-        public static IYoonObject FindPatternAsBinary(this YoonImage pSourceImage, YoonImage pPatternImage) =>
+        public static YoonObject FindPatternAsBinary(this YoonImage pSourceImage, YoonImage pPatternImage) =>
             PatternMatch.FindPatternAsBinary(pPatternImage, pSourceImage);
 
-        public static IYoonObject FindPatternAsBinary(this YoonImage pSourceImage, YoonRect2N scanArea,
+        public static YoonObject FindPatternAsBinary(this YoonImage pSourceImage, YoonRect2N scanArea,
             YoonImage pPatternImage) => PatternMatch.FindPatternAsBinary(scanArea, pPatternImage, pSourceImage);
 
-        public static IYoonObject FindPattern(this YoonImage pSourceImage, YoonImage pPatternImage,
+        public static YoonObject FindPattern(this YoonImage pSourceImage, YoonImage pPatternImage,
             int nDiffThreshold = 10) => PatternMatch.FindPattern(pPatternImage, pSourceImage, nDiffThreshold);
 
-        public static IYoonObject FindPattern(this YoonImage pSourceImage, YoonRect2N scanArea, YoonImage pPatternImage,
+        public static YoonObject FindPattern(this YoonImage pSourceImage, YoonRect2N scanArea, YoonImage pPatternImage,
             int nDiffThreshold = 10) => PatternMatch.FindPattern(scanArea, pPatternImage, pSourceImage, nDiffThreshold);
 
         public static YoonImage Combine(this YoonImage pSourceImage, YoonImage pObjectImage) =>
@@ -61,10 +61,10 @@ namespace YoonFactory.Image
         public static YoonImage Smooth2D(this YoonImage pSourceImage, int nStep = 5) =>
             Filter.Smooth2D(pSourceImage, nStep);
 
-        public static IYoonObject FindMaxBlob(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128,
+        public static YoonObject FindMaxBlob(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128,
             bool bWhite = false) => Blob.FindMaxBlob(pSourceImage, scanArea, nThreshold, bWhite);
 
-        public static IYoonObject
+        public static YoonObject
             FindMaxBlob(this YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false) =>
             Blob.FindMaxBlob(pSourceImage, nThreshold, bWhite);
 
@@ -280,7 +280,7 @@ namespace YoonFactory.Image
         // Pattern Match
         public static class PatternMatch
         {
-            public static IYoonObject FindPatternAsBinary(YoonImage pPatternImage, YoonImage pSourceImage)
+            public static YoonObject FindPatternAsBinary(YoonImage pPatternImage, YoonImage pSourceImage)
             {
                 if (pPatternImage.Format != PixelFormat.Format8bppIndexed ||
                     pSourceImage.Format != PixelFormat.Format8bppIndexed)
@@ -378,7 +378,7 @@ namespace YoonFactory.Image
                 return pFindRect;
             }
 
-            public static IYoonObject FindPatternAsBinary(YoonRect2N pScanArea, YoonImage pPatternImage,
+            public static YoonObject FindPatternAsBinary(YoonRect2N pScanArea, YoonImage pPatternImage,
                 YoonImage pSourceImage)
             {
                 if (pPatternImage.Format != PixelFormat.Format8bppIndexed ||
@@ -467,7 +467,7 @@ namespace YoonFactory.Image
                 return findRect;
             }
 
-            public static IYoonObject FindPattern(YoonImage pPatternImage, YoonImage pSourceImage,
+            public static YoonObject FindPattern(YoonImage pPatternImage, YoonImage pSourceImage,
                 int nDiffThreshold = 10)
             {
                 if (pPatternImage.Plane == 1 && pSourceImage.Plane == 1)
@@ -608,7 +608,7 @@ namespace YoonFactory.Image
                 return findRect;
             }
 
-            public static IYoonObject FindPattern(YoonRect2N scanArea, YoonImage pPatternImage, YoonImage pSourceImage,
+            public static YoonObject FindPattern(YoonRect2N scanArea, YoonImage pPatternImage, YoonImage pSourceImage,
                 int nDiffThreshold)
             {
                 if (pPatternImage.Format != PixelFormat.Format8bppIndexed ||
@@ -1955,7 +1955,7 @@ namespace YoonFactory.Image
 
         public static class Blob
         {
-            public static IYoonObject FindMaxBlob(YoonImage pSourceImage, YoonRect2N pScanArea, byte nThreshold = 128,
+            public static YoonObject FindMaxBlob(YoonImage pSourceImage, YoonRect2N pScanArea, byte nThreshold = 128,
                 bool bWhite = false)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
@@ -1963,7 +1963,7 @@ namespace YoonFactory.Image
                 return FindMaxBlob(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea, nThreshold, bWhite);
             }
 
-            public static IYoonObject FindMaxBlob(byte[] pBuffer, int nImageWidth, YoonRect2N pScanArea,
+            public static YoonObject FindMaxBlob(byte[] pBuffer, int nImageWidth, YoonRect2N pScanArea,
                 byte nThreshold, bool bWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
                 YoonImage pMaxImage = new YoonImage(1, 1, 1);
@@ -2017,7 +2017,7 @@ namespace YoonFactory.Image
                 return new YoonObject(nMaxLabel, pMaxArea, (YoonImage) pMaxImage.Clone(), dMaxScore, nMaxLength);
             }
 
-            public static IYoonObject FindMaxBlob(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
+            public static YoonObject FindMaxBlob(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
@@ -2025,7 +2025,7 @@ namespace YoonFactory.Image
                     bWhite);
             }
 
-            public static IYoonObject FindMaxBlob(byte[] pBuffer, int nImageWidth, int imageHeight, byte nThreshold,
+            public static YoonObject FindMaxBlob(byte[] pBuffer, int nImageWidth, int imageHeight, byte nThreshold,
                 bool isWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
                 // Save found blobs as list
@@ -2202,7 +2202,7 @@ namespace YoonFactory.Image
                 Finish,
             }
 
-            private static IYoonObject ProcessBind(byte[] pBuffer, int nWidth, int nHeight, eYoonDir2D nDir,
+            private static YoonObject ProcessBind(byte[] pBuffer, int nWidth, int nHeight, eYoonDir2D nDir,
                 YoonVector2N pStartVector, byte nThreshold, bool bWhite)
             {
                 int nPixelCount = 0;

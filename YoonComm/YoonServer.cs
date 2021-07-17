@@ -21,7 +21,7 @@ namespace YoonFactory.Comm.TCP
             if (!_disposedValue)
             {
                 // Save Last setting
-                SaveParam();
+                SaveParameter();
                 SaveTarget();
 
                 if (disposing)
@@ -66,7 +66,7 @@ namespace YoonFactory.Comm.TCP
         public YoonServer(string strParamDirectory)
         {
             RootDirectory = strParamDirectory;
-            LoadParam();
+            LoadParameter();
             LoadTarget();
 
             ReceiveMessage = new StringBuilder(string.Empty);
@@ -110,11 +110,11 @@ namespace YoonFactory.Comm.TCP
 
         public string Port
         {
-            get => Param.Port;
+            get => Parameter.Port;
             set
             {
                 if (CommunicationFactory.VerifyPort(value))
-                    Param.Port = value;
+                    Parameter.Port = value;
             }
         }
 
@@ -125,7 +125,7 @@ namespace YoonFactory.Comm.TCP
             if (pServer.IsConnected)
                 pServer.Close();
 
-            LoadParam();
+            LoadParameter();
             Port = pServer.Port;
         }
 
@@ -134,7 +134,7 @@ namespace YoonFactory.Comm.TCP
             Close();
 
             YoonServer pServer = new YoonServer();
-            pServer.LoadParam();
+            pServer.LoadParameter();
             pServer.Port = Port;
             return pServer;
         }
@@ -148,7 +148,7 @@ namespace YoonFactory.Comm.TCP
         private AsyncCallback _pSendHandler;
         private List<string> _pListClientIP = null;
 
-        private struct Param
+        private struct Parameter
         {
             public static string Port = "1234";
             public static string Backlog = "5";
@@ -157,50 +157,50 @@ namespace YoonFactory.Comm.TCP
             public static string Timeout = "10000";
         }
 
-        public void SetParam(string strPort, string strBacklog, string strRetryListen, string strTimeout,
+        public void SetParameter(string strPort, string strBacklog, string strRetryListen, string strTimeout,
             string strRetryCount)
         {
-            Param.Port = strPort;
-            Param.Backlog = strBacklog;
-            Param.RetryCount = strRetryCount;
-            Param.RetryListen = strRetryListen;
-            Param.Timeout = strTimeout;
+            Parameter.Port = strPort;
+            Parameter.Backlog = strBacklog;
+            Parameter.RetryCount = strRetryCount;
+            Parameter.RetryListen = strRetryListen;
+            Parameter.Timeout = strTimeout;
         }
 
-        public void SetParam(int strPort, int nBacklog, bool bRetryListen, int nTimeout, int nRetryCount)
+        public void SetParameter(int strPort, int nBacklog, bool bRetryListen, int nTimeout, int nRetryCount)
         {
-            Param.Port = strPort.ToString();
-            Param.Backlog = nBacklog.ToString();
-            Param.RetryListen = bRetryListen.ToString();
-            Param.Timeout = nTimeout.ToString();
-            Param.RetryCount = nRetryCount.ToString();
+            Parameter.Port = strPort.ToString();
+            Parameter.Backlog = nBacklog.ToString();
+            Parameter.RetryListen = bRetryListen.ToString();
+            Parameter.Timeout = nTimeout.ToString();
+            Parameter.RetryCount = nRetryCount.ToString();
         }
 
-        public void LoadParam()
+        public void LoadParameter()
         {
             string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
-            using (YoonIni ic = new YoonIni(strParamFilePath))
+            using (YoonIni pIni = new YoonIni(strParamFilePath))
             {
-                ic.LoadFile();
-                Param.Port = ic["Server"]["Port"].ToString("1234");
-                Param.Backlog = ic["Server"]["Backlog"].ToString("5");
-                Param.RetryListen = ic["Server"]["RetryListen"].ToString("true");
-                Param.RetryCount = ic["Server"]["RetryCount"].ToString("10");
-                Param.Timeout = ic["Server"]["TimeOut"].ToString("10000");
+                pIni.LoadFile();
+                Parameter.Port = pIni["Server"]["Port"].ToString("1234");
+                Parameter.Backlog = pIni["Server"]["Backlog"].ToString("5");
+                Parameter.RetryListen = pIni["Server"]["RetryListen"].ToString("true");
+                Parameter.RetryCount = pIni["Server"]["RetryCount"].ToString("10");
+                Parameter.Timeout = pIni["Server"]["TimeOut"].ToString("10000");
             }
         }
 
-        public void SaveParam()
+        public void SaveParameter()
         {
             string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
-            using (YoonIni ic = new YoonIni(strParamFilePath))
+            using (YoonIni pIni = new YoonIni(strParamFilePath))
             {
-                ic["Server"]["Port"] = Param.Port;
-                ic["Server"]["Backlog"] = Param.Backlog;
-                ic["Server"]["RetryListen"] = Param.RetryListen;
-                ic["Server"]["RetryCount"] = Param.RetryCount;
-                ic["Server"]["TimeOut"] = Param.Timeout;
-                ic.SaveFile();
+                pIni["Server"]["Port"] = Parameter.Port;
+                pIni["Server"]["Backlog"] = Parameter.Backlog;
+                pIni["Server"]["RetryListen"] = Parameter.RetryListen;
+                pIni["Server"]["RetryCount"] = Parameter.RetryCount;
+                pIni["Server"]["TimeOut"] = Parameter.Timeout;
+                pIni.SaveFile();
             }
         }
 
@@ -209,9 +209,9 @@ namespace YoonFactory.Comm.TCP
             try
             {
                 string strTargetPath = Path.Combine(RootDirectory, "IPTarget.xml");
-                YoonXml xc = new YoonXml(strTargetPath);
+                YoonXml pXml = new YoonXml(strTargetPath);
                 object pTargetParam;
-                if (xc.LoadFile(out pTargetParam, typeof(List<string>)))
+                if (pXml.LoadFile(out pTargetParam, typeof(List<string>)))
                     _pListClientIP = (List<string>) pTargetParam;
                 else if (_pListClientIP == null)
                 {
@@ -237,8 +237,8 @@ namespace YoonFactory.Comm.TCP
             try
             {
                 string strTargetPath = Path.Combine(RootDirectory, "IPTarget.xml");
-                YoonXml xc = new YoonXml(strTargetPath);
-                xc.SaveFile(_pListClientIP, typeof(List<string>));
+                YoonXml pXml = new YoonXml(strTargetPath);
+                pXml.SaveFile(_pListClientIP, typeof(List<string>));
             }
             catch (Exception ex)
             {
@@ -264,10 +264,10 @@ namespace YoonFactory.Comm.TCP
                 _pServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
                 if (!IsRetryOpen)
                     OnShowMessageEvent(this,
-                        new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.Port)));
+                        new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Parameter.Port)));
                 // Binding port and Listening per backlogging
-                _pServerSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.Port)));
-                _pServerSocket.Listen(int.Parse(Param.Backlog));
+                _pServerSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Parameter.Port)));
+                _pServerSocket.Listen(int.Parse(Parameter.Backlog));
                 // Associate the connection request
                 IAsyncResult pResult = _pServerSocket.BeginAccept(_pAcceptHandler, null);
             }
@@ -286,7 +286,7 @@ namespace YoonFactory.Comm.TCP
             if (_pServerSocket.IsBound == true)
             {
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Success")));
-                SaveParam();
+                SaveParameter();
                 IsRetryOpen = false;
             }
             else
@@ -308,14 +308,14 @@ namespace YoonFactory.Comm.TCP
             {
                 _pServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
 
-                Param.Port = strPort;
+                Parameter.Port = strPort;
 
                 if (!IsRetryOpen)
                     OnShowMessageEvent(this,
-                        new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.Port)));
+                        new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Parameter.Port)));
                 // Binding Port and Listening per backlogging
-                _pServerSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.Port)));
-                _pServerSocket.Listen(int.Parse(Param.Backlog));
+                _pServerSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Parameter.Port)));
+                _pServerSocket.Listen(int.Parse(Parameter.Backlog));
                 // Associate the connection request
                 IAsyncResult asyncResult = _pServerSocket.BeginAccept(_pAcceptHandler, null);
             }
@@ -339,7 +339,7 @@ namespace YoonFactory.Comm.TCP
             {
                 IsRetryOpen = false;
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Success")));
-                SaveParam();
+                SaveParameter();
             }
             else
             {
@@ -425,7 +425,7 @@ namespace YoonFactory.Comm.TCP
 
         public void OnRetryThreadStart()
         {
-            if (Param.RetryListen == bool.FalseString)
+            if (Parameter.RetryListen == bool.FalseString)
                 return;
             _pThreadRetryListen = new Thread(new ThreadStart(ProcessRetry)) {Name = "Retry Listen"};
             _pThreadRetryListen.Start();
@@ -447,8 +447,8 @@ namespace YoonFactory.Comm.TCP
             _pStopWatch.Start();
 
             OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Retry Start")));
-            int nCount = Convert.ToInt32(Param.RetryCount);
-            int nTimeOut = Convert.ToInt32(Param.Timeout);
+            int nCount = Convert.ToInt32(Parameter.RetryCount);
+            int nTimeOut = Convert.ToInt32(Parameter.Timeout);
 
             for (int iRetry = 0; iRetry < nCount; iRetry++)
             {

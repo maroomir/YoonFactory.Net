@@ -28,7 +28,7 @@ namespace YoonFactory.Comm
         bool IsSend { get; }
         bool IsConnected { get; }
 
-        void LoadParam();
-        void SaveParam();
+        void LoadParameter();
+        void SaveParameter();
     }
 }
