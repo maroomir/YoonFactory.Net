@@ -6,8 +6,8 @@ namespace YoonFactory.Param
 {
     public class YoonParameter
     {
-        public IYoonParameter Parameter { get; set; }
-        public Type ParameterType { get; private set; }
+        public IYoonParameter Parameter { get; private set; } = null;
+        public Type ParameterType { get; private set; } = null;
 
         public string RootDirectory { get; set; }
 
@@ -27,6 +27,7 @@ namespace YoonFactory.Param
 
         public void SetParameter(IYoonParameter pParam, Type pType)
         {
+            if (ParameterType != null && ParameterType != pType) return;
             Parameter = pParam.Clone();
             ParameterType = pType;
         }
@@ -60,7 +61,7 @@ namespace YoonFactory.Param
         {
             if (RootDirectory == string.Empty || Parameter == null) return false;
 
-            string strFilePath = Path.Combine(RootDirectory, string.Format(@"{0}.xml", strFileName));
+            string strFilePath = Path.Combine(RootDirectory, $@"{strFileName}.xml");
             IYoonParameter pParamBk = Parameter.Clone();
             YoonXml pXml = new YoonXml(strFilePath);
             if (!pXml.LoadFile(out object pParam, ParameterType)) return false;

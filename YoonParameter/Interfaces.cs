@@ -13,6 +13,7 @@ namespace YoonFactory
     public interface IYoonResult
     {
         string Combine(string strDelimiter);
+        bool Insert(string strCombine, string strDelimiter);
 
         bool Equals(IYoonResult pResult);
         void CopyFrom(IYoonResult pResult);
