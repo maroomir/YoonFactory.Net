@@ -113,7 +113,7 @@ namespace YoonFactory.Comm.TCP
             get => Parameter.Port;
             set
             {
-                if (CommunicationFactory.VerifyPort(value))
+                if (CommunicationFactory.VerifyTCPPort(value))
                     Parameter.Port = value;
             }
         }
@@ -436,7 +436,11 @@ namespace YoonFactory.Comm.TCP
             if (_pThreadRetryListen == null) return;
 
             if (_pThreadRetryListen.IsAlive)
+            {
                 _pThreadRetryListen.Interrupt();
+                Thread.Sleep(100);
+            }
+
             _pThreadRetryListen = null;
         }
 

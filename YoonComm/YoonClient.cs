@@ -89,7 +89,7 @@ namespace YoonFactory.Comm.TCP
         public event RecieveDataCallback OnShowReceiveDataEvent;
         public bool IsRetryOpen { get; private set; } = false;
         public bool IsSend { get; private set; } = false;
-        public StringBuilder ReceiveMessage { get; private set; } = null;
+        public StringBuilder ReceiveMessage { get; private set; }
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
 
         public string Address
@@ -107,7 +107,7 @@ namespace YoonFactory.Comm.TCP
             get => Parameter.Port;
             set
             {
-                if (CommunicationFactory.VerifyPort(value))
+                if (CommunicationFactory.VerifyTCPPort(value))
                     Parameter.Port = value;
             }
         }
@@ -135,6 +135,7 @@ namespace YoonFactory.Comm.TCP
             if (pClient.IsConnected)
                 pClient.Disconnect();
 
+            RootDirectory = pClient.RootDirectory;
             LoadParameter();
             Address = pClient.Address;
             Port = pClient.Port;
@@ -145,13 +146,14 @@ namespace YoonFactory.Comm.TCP
             Disconnect();
 
             YoonClient pClient = new YoonClient();
+            pClient.RootDirectory = RootDirectory;
             pClient.LoadParameter();
             pClient.Address = Address;
             pClient.Port = Port;
             return pClient;
         }
 
-        public void SetParam(string strIP, string strPort, string strRetryConnect, string strTimeout,
+        public void SetParameter(string strIP, string strPort, string strRetryConnect, string strTimeout,
             string strRetryCount, string strElapsedTime)
         {
             Parameter.IP = strIP;
@@ -162,7 +164,7 @@ namespace YoonFactory.Comm.TCP
             Parameter.ElapsedTime = strElapsedTime;
         }
 
-        public void SetParam(string strIP, int nPort, bool bRetryConnect, int nTimeout, int nRetryCount,
+        public void SetParameter(string strIP, int nPort, bool bRetryConnect, int nTimeout, int nRetryCount,
             int nElapsedTime)
         {
             Parameter.IP = strIP;
@@ -187,7 +189,7 @@ namespace YoonFactory.Comm.TCP
                 Parameter.ElapsedTime = pIni["Client"]["ElapsedTime"].ToString("5000");
             }
         }
-
+        
         public void SaveParameter()
         {
             string strFilePath = Path.Combine(RootDirectory, "IPClient.ini");
@@ -203,14 +205,7 @@ namespace YoonFactory.Comm.TCP
             }
         }
 
-        public bool IsConnected
-        {
-            get
-            {
-                if (_pClientSocket == null) return false;
-                return _pClientSocket.Connected;
-            }
-        }
+        public bool IsConnected => _pClientSocket is {Connected: true};
 
         public bool Open()
         {
@@ -400,7 +395,11 @@ namespace YoonFactory.Comm.TCP
             if (_pThreadRetryConnect == null) return;
 
             if (_pThreadRetryConnect.IsAlive)
+            {
                 _pThreadRetryConnect.Interrupt();
+                Thread.Sleep(100);
+            }
+
             _pThreadRetryConnect = null;
         }
 
@@ -425,14 +424,11 @@ namespace YoonFactory.Comm.TCP
                     break;
 
                 ////  Success to connect
-                if (_pClientSocket != null)
+                if (_pClientSocket is {Connected: true})
                 {
-                    if (_pClientSocket.Connected == true)
-                    {
-                        OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, "Connection Retry Success"));
-                        IsRetryOpen = false;
-                        break;
-                    }
+                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, "Connection Retry Success"));
+                    IsRetryOpen = false;
+                    break;
                 }
 
                 //m_clientSocket.Connect(m_strIP, m_nPort);

@@ -77,7 +77,7 @@ namespace YoonFactory.Comm
             return true;
         }
 
-        public static bool VerifyPort(string strPort)
+        public static bool VerifyTCPPort(string strPort)
         {
             try
             {
@@ -91,6 +91,11 @@ namespace YoonFactory.Comm
                 return false;
             }
             return true;
+        }
+
+        public static bool VerifySerialPort(string strPort)
+        {
+            return !(strPort.IndexOf("COM", StringComparison.Ordinal) <= 0);
         }
     }
 

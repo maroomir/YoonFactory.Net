@@ -33,7 +33,7 @@ namespace YoonSample.ConsoleComm
         {
             _pCommModule = new YoonServer();
             string strPort = "";
-            while (!CommunicationFactory.VerifyPort(strPort))
+            while (!CommunicationFactory.VerifyTCPPort(strPort))
             {
                 _pClm.Write("Port >> ");
                 strPort = Console.ReadLine();

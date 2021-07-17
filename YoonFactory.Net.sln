@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonImage", "YoonImage\Yoon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonComm", "YoonComm\YoonComm.csproj", "{04E69B4F-C723-4334-8920-9F4ADACA250F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonSample.ConsoleComm", "YoonSample.ConsoleComm\YoonSample.ConsoleComm.csproj", "{D02C7D36-5CAB-46FE-A8CD-FD1B7991D60F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonSample.TestComm", "YoonSample.TestComm\YoonSample.TestComm.csproj", "{D02C7D36-5CAB-46FE-A8CD-FD1B7991D60F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
