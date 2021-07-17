@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonImage", "YoonImage\Yoon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonComm", "YoonComm\YoonComm.csproj", "{04E69B4F-C723-4334-8920-9F4ADACA250F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonSample.ConsoleComm", "YoonSample.ConsoleComm\YoonSample.ConsoleComm.csproj", "{D02C7D36-5CAB-46FE-A8CD-FD1B7991D60F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +44,9 @@ Global
 		{04E69B4F-C723-4334-8920-9F4ADACA250F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04E69B4F-C723-4334-8920-9F4ADACA250F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04E69B4F-C723-4334-8920-9F4ADACA250F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D02C7D36-5CAB-46FE-A8CD-FD1B7991D60F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D02C7D36-5CAB-46FE-A8CD-FD1B7991D60F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D02C7D36-5CAB-46FE-A8CD-FD1B7991D60F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D02C7D36-5CAB-46FE-A8CD-FD1B7991D60F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

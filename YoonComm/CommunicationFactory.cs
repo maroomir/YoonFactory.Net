@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace YoonFactory.Comm
@@ -85,8 +86,8 @@ namespace YoonFactory.Comm
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Port Num Invalid : Port No / " + strPort);
-                Console.WriteLine(ex.ToString());
+                Debug.WriteLine("Port Num Invalid : Port No / " + strPort);
+                Debug.WriteLine(ex.ToString());
                 return false;
             }
             return true;
