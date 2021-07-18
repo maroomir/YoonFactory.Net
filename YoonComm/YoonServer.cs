@@ -89,7 +89,7 @@ namespace YoonFactory.Comm.TCP
 
         #endregion
 
-        protected class AsyncObject
+        private class AsyncObject
         {
             public byte[] Buffer;
             public Socket WorkingSocket;

@@ -24,17 +24,17 @@ namespace YoonFactory.Files
         public static bool VerifyFilePath(string strPath, bool bCreateFile = true)
         {
             if (string.IsNullOrEmpty(strPath)) return false;
-            FileInfo fi = new FileInfo(strPath);
-            if (!VerifyDirectory(fi.DirectoryName))
+            FileInfo pFile = new FileInfo(strPath);
+            if (!VerifyDirectory(pFile.DirectoryName))
                 return false;
 
             try
             {
-                if (!fi.Exists)
+                if (!pFile.Exists)
                 {
                     if (!bCreateFile) return false;
-                    FileStream fs = fi.Create();
-                    fs.Close();
+                    FileStream pStream = pFile.Create();
+                    pStream.Close();
                     return true;
                 }
                 else
@@ -48,33 +48,24 @@ namespace YoonFactory.Files
             return false;
         }
 
-        /// <summary>
-        /// VerifyFileExtension
-        /// </summary>
-        /// <param name="strPath"> File Path </param>
-        /// <param name="strExt"> Extension string as like ".Ext" </param>
-        /// <param name="bChangeExtension"> To change the extension as strExt </param>
-        /// <returns></returns>
         public static bool VerifyFileExtension(ref string strPath, string strExt, bool bChangeExtension = false,
             bool bCreateFile = false)
         {
             if (!VerifyFilePath(strPath, bCreateFile)) return false;
-            FileInfo fi = new FileInfo(strPath);
-            if (fi.Extension != strExt)
-            {
-                if (!bChangeExtension) return false;
-                string strFilePath = Path.Combine(fi.DirectoryName, Path.GetFileNameWithoutExtension(strPath) + strExt);
-                if (!VerifyFilePath(strFilePath, bCreateFile)) return false;
-                strPath = strFilePath;
-            }
+            FileInfo pFile = new FileInfo(strPath);
+            if (pFile.Extension == strExt) return true;
+            if (!bChangeExtension) return false;
+            string strFilePath = Path.Combine(pFile.DirectoryName!, Path.GetFileNameWithoutExtension(strPath) + strExt);
+            if (!VerifyFilePath(strFilePath, bCreateFile)) return false;
+            strPath = strFilePath;
 
             return true;
         }
 
         public static bool IsFileExist(string strPath)
         {
-            System.IO.FileInfo fi = new System.IO.FileInfo(strPath);
-            return fi.Exists;
+            FileInfo pFile = new FileInfo(strPath);
+            return pFile.Exists;
         }
 
         public static List<string> GetFileListInDir(string strRoot, List<string> pListFile)
@@ -85,23 +76,23 @@ namespace YoonFactory.Files
             // If root path is Directory
             if ((fAttribute & FileAttributes.Directory) == FileAttributes.Directory)
             {
-                DirectoryInfo di = new DirectoryInfo(strRoot);
+                DirectoryInfo pRootDir = new DirectoryInfo(strRoot);
                 // continues abstract subdirectory
-                foreach (DirectoryInfo dir in di.GetDirectories())
+                foreach (DirectoryInfo pDir in pRootDir.GetDirectories())
                 {
-                    GetFileListInDir(dir.FullName, pListFile);
+                    GetFileListInDir(pDir.FullName, pListFile);
                 }
 
                 // abstract sub-files
-                foreach (FileInfo fir in di.GetFiles())
+                foreach (FileInfo pFile in pRootDir.GetFiles())
                 {
-                    GetFileListInDir(fir.FullName, pListFile);
+                    GetFileListInDir(pFile.FullName, pListFile);
                 }
             }
             else
             {
-                FileInfo fi = new FileInfo(strRoot);
-                pListFile.Add(fi.FullName);
+                FileInfo pFile = new FileInfo(strRoot);
+                pListFile.Add(pFile.FullName);
             }
 
             return pListFile;
@@ -109,22 +100,22 @@ namespace YoonFactory.Files
 
         public static string GetTextFromFile(string strPath)
         {
-            FileStream pStream = null;
+            FileStream pStream;
             try
             {
                 pStream = new FileStream(strPath, FileMode.Open);
             }
             catch
             {
-                Console.WriteLine(string.Format("Error opening file ({0}) !", strPath));
+                Console.WriteLine($"Error opening file ({strPath}) !");
                 return string.Empty;
             }
 
             string strComplete = string.Empty;
-            using (StreamReader sr = new StreamReader(pStream))
+            using (StreamReader pReader = new StreamReader(pStream))
             {
                 string strLine;
-                while ((strLine = sr.ReadLine()) != null)
+                while ((strLine = pReader.ReadLine()) != null)
                     strComplete += strLine;
             }
 
@@ -133,10 +124,10 @@ namespace YoonFactory.Files
 
         public static List<string> GetTextLinesFromFile(string strPath)
         {
-            FileStream fs = null;
+            FileStream pStream;
             try
             {
-                fs = new FileStream(strPath, FileMode.Open);
+                pStream = new FileStream(strPath, FileMode.Open);
             }
             catch
             {
@@ -145,10 +136,10 @@ namespace YoonFactory.Files
             }
 
             List<string> pListTextComplete = new List<string>();
-            using (StreamReader sr = new StreamReader(fs))
+            using (StreamReader pReader = new StreamReader(pStream))
             {
                 string strLine;
-                while ((strLine = sr.ReadLine()) != null)
+                while ((strLine = pReader.ReadLine()) != null)
                     pListTextComplete.Add(strLine);
             }
 
@@ -157,11 +148,11 @@ namespace YoonFactory.Files
 
         public static bool AppendTextToFile(string strPath, string strData)
         {
-            FileStream fs = null;
+            FileStream pStream = null;
 
             try
             {
-                fs = new FileStream(strPath, FileMode.Append);
+                pStream = new FileStream(strPath, FileMode.Append);
             }
             catch
             {
@@ -169,9 +160,9 @@ namespace YoonFactory.Files
                 return false;
             }
 
-            StreamWriter sw = new StreamWriter(fs);
-            sw.WriteLine(strData);
-            sw.Close();
+            StreamWriter pWriter = new StreamWriter(pStream);
+            pWriter.WriteLine(strData);
+            pWriter.Close();
             return true;
         }
 
@@ -185,12 +176,9 @@ namespace YoonFactory.Files
             try
             {
                 if (pFile.Exists)
-                {
                     pFile.Delete();
-                    return true;
-                }
-                else
-                    return true;
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -203,43 +191,43 @@ namespace YoonFactory.Files
         public static void DeleteExtensionFilesInDirectory(string strRoot, string strExt)
         {
             if (!VerifyDirectory(strRoot)) return;
-            DirectoryInfo dirInfo = new DirectoryInfo(strRoot);
+            DirectoryInfo pRootDir = new DirectoryInfo(strRoot);
             // File Clear in DirPath
-            foreach (FileInfo file in dirInfo.GetFiles())
+            foreach (FileInfo pFile in pRootDir.GetFiles())
             {
-                if (file.Extension == strExt)
-                    file.Delete();
+                if (pFile.Extension == strExt)
+                    pFile.Delete();
             }
 
             // Directory clear in DirPath
-            foreach (DirectoryInfo dir in dirInfo.GetDirectories())
-                DeleteExtensionFilesInDirectory(dir.FullName, strExt);
+            foreach (DirectoryInfo pDir in pRootDir.GetDirectories())
+                DeleteExtensionFilesInDirectory(pDir.FullName, strExt);
         }
 
         public static void DeleteIncludeSpecificInDirectory(string strRoot, string strSpecific,
             bool bCheckFileNameOnly = false)
         {
             if (!VerifyDirectory(strRoot)) return;
-            DirectoryInfo dirInfo = new DirectoryInfo(strRoot);
+            DirectoryInfo pRootDir = new DirectoryInfo(strRoot);
             // File Clear in DirPath
-            foreach (FileInfo file in dirInfo.GetFiles())
+            foreach (FileInfo pFile in pRootDir.GetFiles())
             {
                 if (bCheckFileNameOnly)
                 {
-                    string strFileName = file.Name + "." + file.Extension;
+                    string strFileName = pFile.Name + "." + pFile.Extension;
                     if (strFileName.Contains(strSpecific))
-                        file.Delete();
+                        pFile.Delete();
                 }
                 else
                 {
-                    if (file.FullName.Contains(strSpecific))
-                        file.Delete();
+                    if (pFile.FullName.Contains(strSpecific))
+                        pFile.Delete();
                 }
             }
 
             // Directory clear in DirPath
-            foreach (DirectoryInfo dir in dirInfo.GetDirectories())
-                DeleteExtensionFilesInDirectory(dir.FullName, strSpecific);
+            foreach (DirectoryInfo pDir in pRootDir.GetDirectories())
+                DeleteExtensionFilesInDirectory(pDir.FullName, strSpecific);
         }
 
         public static void DeleteOldFilesInDirectory(string strPath, int nDateSpan)

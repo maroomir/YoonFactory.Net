@@ -213,6 +213,16 @@ namespace YoonFactory.Comm.Serial
             _pSerial = null;
         }
 
+        public bool Send(byte[] pBuffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Send(string strBuffer)
+        {
+            throw new NotImplementedException();
+        }
+
         private bool OnSendEvent(string strBuffer)
         {
             if (!_pSerial.IsOpen) return false;

@@ -37,7 +37,7 @@ namespace YoonFactory.Log
 
         public event LogProcessCallback OnProcessLogEvent;
         private readonly int _nDirectoryFileExistDays = 1; // DO NOT USE 0
-        private static readonly object _logLock = new object();
+        private static readonly object _pLogLock = new();
         private const int MAX_DAY_SPAN = 30;
 
         public YoonDisplayer()
@@ -81,7 +81,7 @@ namespace YoonFactory.Log
 
         private string DisplayMessage(eYoonStatus index, string strMessage)
         {
-            lock (_logLock)
+            lock (_pLogLock)
             {
                 DateTime pNow = DateTime.Now;
                 string nowTime = $"{pNow:yyyy-MM-dd HH:mm:ss:fff}"; //현재 시간 가져오기
@@ -90,35 +90,35 @@ namespace YoonFactory.Log
                 {
                     case eYoonStatus.Normal:
                         strMessageLine = "[" + nowTime + "] " + strMessage + "\n";
-                        OnProcessLogEvent(this, new LogDisplayerArgs(Color.White, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.White, strMessageLine));
                         break;
                     case eYoonStatus.Conform:
                         strMessageLine = "[" + nowTime + "]  CONFIRM : " + strMessage + "\n";
-                        OnProcessLogEvent(this, new LogDisplayerArgs(Color.Khaki, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Khaki, strMessageLine));
                         break;
                     case eYoonStatus.Send:
                         strMessageLine = "[" + nowTime + "]  SEND : " + strMessage + "\n";
-                        OnProcessLogEvent(this, new LogDisplayerArgs(Color.Lavender, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Lavender, strMessageLine));
                         break;
                     case eYoonStatus.Receive:
                         strMessageLine = "[" + nowTime + "]  RECEIVE : " + strMessage + "\n";
-                        OnProcessLogEvent(this, new LogDisplayerArgs(Color.Lavender, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Lavender, strMessageLine));
                         break;
                     case eYoonStatus.User:
                         strMessageLine = "[" + nowTime + "]  USER : " + strMessage + "\n";
-                        OnProcessLogEvent(this, new LogDisplayerArgs(Color.Lime, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Lime, strMessageLine));
                         break;
                     case eYoonStatus.Inspect:
                         strMessageLine = "[" + nowTime + "]  INSPECT : " + strMessage + "\n";
-                        OnProcessLogEvent(this, new LogDisplayerArgs(Color.Lime, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Lime, strMessageLine));
                         break;
                     case eYoonStatus.Error:
                         strMessageLine = "[" + nowTime + "]  ERROR : " + strMessage + "\n";
-                        OnProcessLogEvent(this, new LogDisplayerArgs(Color.Salmon, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Salmon, strMessageLine));
                         break;
                     case eYoonStatus.Info:
                         strMessageLine = "[" + nowTime + "]  INFO : " + strMessage + "\n";
-                        OnProcessLogEvent(this, new LogDisplayerArgs(Color.Khaki, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Khaki, strMessageLine));
                         break;
                 }
 
