@@ -9,7 +9,7 @@ using YoonFactory.Files;
 
 namespace YoonFactory.Comm.TCP
 {
-    public class YoonClient : IYoonTcpIp
+    public class YoonClient : IYoonComm
     {
 
         #region IDisposable Support

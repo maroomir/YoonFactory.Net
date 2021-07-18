@@ -8,4 +8,10 @@
         TCPClient,
         TCPServer,
     }
+
+    public enum eYoonBufferMode : int
+    {
+        String,
+        ByteArray,
+    }
 }

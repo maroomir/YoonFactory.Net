@@ -9,6 +9,7 @@ namespace YoonFactory.Comm
         event RecieveDataCallback OnShowReceiveDataEvent;
         
         string RootDirectory { get; set; }
+        string Address { get; set; }
         string Port { get; set; }
         StringBuilder ReceiveMessage { get; }
         
@@ -21,14 +22,9 @@ namespace YoonFactory.Comm
         bool Send(byte[] pBuffer);
         bool IsSend { get; }
         bool IsConnected { get; }
+        bool IsRetryOpen { get; }
 
         void LoadParameter();
         void SaveParameter();
-    }
-
-    public interface IYoonTcpIp : IYoonComm
-    {
-        string Address { get; set; }
-        bool IsRetryOpen { get; }
     }
 }

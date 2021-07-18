@@ -16,20 +16,22 @@ namespace YoonFactory.Comm
 
     public class BufferArgs : EventArgs
     {
-        public string StringData { get; set; }
-
-        public byte[] ArrayData { get; set; }
+        public eYoonBufferMode Mode { get; private set; }
+        public string StringData { get; private set; }
+        public byte[] ArrayData { get; private set; }
 
         public BufferArgs(string data)
         {
-            this.StringData = data;
-            this.ArrayData = Encoding.ASCII.GetBytes(data);
+            Mode = eYoonBufferMode.String;
+            StringData = data;
+            ArrayData = Encoding.ASCII.GetBytes(data);
         }
 
         public BufferArgs(byte[] data)
         {
-            this.StringData = Encoding.ASCII.GetString(data);
-            this.ArrayData = data;
+            Mode = eYoonBufferMode.ByteArray;
+            StringData = Encoding.ASCII.GetString(data);
+            ArrayData = data;
         }
     }
 

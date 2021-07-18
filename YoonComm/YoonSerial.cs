@@ -31,7 +31,7 @@ namespace YoonFactory.Comm.Serial
         }
 
         #endregion
-
+        
         public YoonSerial()
         {
             // Initialize message parameter
@@ -50,9 +50,10 @@ namespace YoonFactory.Comm.Serial
         public event ShowMessageCallback OnShowMessageEvent;
         public event RecieveDataCallback OnShowReceiveDataEvent;
         public bool IsSend { get; private set; } = false;
+        public bool IsRetryOpen { get; private set; } = false;
         public StringBuilder ReceiveMessage { get; private set; }
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
-        
+        public string Address { get; set; } = string.Empty;
         public string Port
         {
             get => Parameter.Port;
@@ -212,27 +213,27 @@ namespace YoonFactory.Comm.Serial
             _pSerial = null;
         }
 
-        public bool Send(string strBuffer)
+        private bool OnSendEvent(string strBuffer)
         {
             if (!_pSerial.IsOpen) return false;
-
+            IsSend = false;
             try
             {
                 _pSerial.Write(strBuffer);
-                return true;
+                IsSend = true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
 
-            return false;
+            return IsSend;
         }
 
-        public bool Send(byte[] pBuffer)
+        private bool OnSendEvent(byte[] pBuffer)
         {
             if (!_pSerial.IsOpen) return false;
-
+            IsSend = false;
             try
             {
                 _pSerial.Write(pBuffer, 0, pBuffer.Length);
@@ -246,7 +247,7 @@ namespace YoonFactory.Comm.Serial
             return false;
         }
 
-        public string Receive(int nWaitTime)
+        private string OnReceiveEvent()
         {
             if (_pSerial.IsOpen == false) return "";
 
