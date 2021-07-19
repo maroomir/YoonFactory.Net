@@ -8,11 +8,11 @@ namespace YoonFactory.Log
         public string Message;
     }
 
-    public class LogDisplayerArgs : LogArgs
+    public class LogDisplayArgs : LogArgs
     {
         public Color BackColor;
 
-        public LogDisplayerArgs(Color pColor, string strMessage)
+        public LogDisplayArgs(Color pColor, string strMessage)
         {
             BackColor = pColor;
             Message = strMessage;

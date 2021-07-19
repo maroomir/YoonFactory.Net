@@ -90,35 +90,35 @@ namespace YoonFactory.Log
                 {
                     case eYoonStatus.Normal:
                         strMessageLine = "[" + nowTime + "] " + strMessage + "\n";
-                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.White, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayArgs(Color.White, strMessageLine));
                         break;
                     case eYoonStatus.Conform:
                         strMessageLine = "[" + nowTime + "]  CONFIRM : " + strMessage + "\n";
-                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Khaki, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayArgs(Color.Khaki, strMessageLine));
                         break;
                     case eYoonStatus.Send:
                         strMessageLine = "[" + nowTime + "]  SEND : " + strMessage + "\n";
-                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Lavender, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayArgs(Color.Lavender, strMessageLine));
                         break;
                     case eYoonStatus.Receive:
                         strMessageLine = "[" + nowTime + "]  RECEIVE : " + strMessage + "\n";
-                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Lavender, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayArgs(Color.Lavender, strMessageLine));
                         break;
                     case eYoonStatus.User:
                         strMessageLine = "[" + nowTime + "]  USER : " + strMessage + "\n";
-                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Lime, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayArgs(Color.Lime, strMessageLine));
                         break;
                     case eYoonStatus.Inspect:
                         strMessageLine = "[" + nowTime + "]  INSPECT : " + strMessage + "\n";
-                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Lime, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayArgs(Color.Lime, strMessageLine));
                         break;
                     case eYoonStatus.Error:
                         strMessageLine = "[" + nowTime + "]  ERROR : " + strMessage + "\n";
-                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Salmon, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayArgs(Color.Salmon, strMessageLine));
                         break;
                     case eYoonStatus.Info:
                         strMessageLine = "[" + nowTime + "]  INFO : " + strMessage + "\n";
-                        OnProcessLogEvent?.Invoke(this, new LogDisplayerArgs(Color.Khaki, strMessageLine));
+                        OnProcessLogEvent?.Invoke(this, new LogDisplayArgs(Color.Khaki, strMessageLine));
                         break;
                 }
 

@@ -26,5 +26,7 @@ namespace YoonFactory.Comm
 
         void LoadParameter();
         void SaveParameter();
+        void OnRetryThreadStart();
+        void OnRetryThreadStop();
     }
 }

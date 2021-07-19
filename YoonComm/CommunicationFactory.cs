@@ -95,7 +95,7 @@ namespace YoonFactory.Comm
 
         public static bool VerifySerialPort(string strPort)
         {
-            return !(strPort.IndexOf("COM", StringComparison.Ordinal) <= 0);
+            return strPort.IndexOf("COM", StringComparison.Ordinal) >= 0;
         }
     }
 
