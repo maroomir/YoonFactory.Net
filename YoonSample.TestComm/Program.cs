@@ -17,17 +17,17 @@ namespace YoonSample.ConsoleComm
         {
             Console.Write("Typing the module (TCPServer, TCPClient, Serial) >> ");
             string strSelectModule = Console.ReadLine();
-            switch (strSelectModule)
+            switch (strSelectModule?.ToLower())
             {
-                case "TCPServer":
+                case "tcpserver":
                     _pClm.Write("Start TCPServer Module");
                     ProcessServer();
                     break;
-                case "TCPClient":
+                case "tcpclient":
                     _pClm.Write("Start TCPClient Module");
                     ProcessClient();
                     break;
-                case "Serial":
+                case "serial":
                     _pClm.Write("Start Serial Module");
                     ProcessSerial();
                     break;
@@ -40,6 +40,7 @@ namespace YoonSample.ConsoleComm
         static void ProcessServer()
         {
             _pCommModule = new YoonServer();
+            _pCommModule.LoadParameter();
             string strPort = "";
             while (!CommunicationFactory.VerifyTCPPort(strPort))
             {
@@ -48,6 +49,7 @@ namespace YoonSample.ConsoleComm
             }
 
             _pCommModule.Port = strPort;
+            _pCommModule.SaveParameter();
             _pClm.Write($"Ready to {strPort} Port");
             _pCommModule.OnShowMessageEvent += (sender, args) => _pClm.Write(args.Message);
             _pCommModule.OnShowReceiveDataEvent += (sender, args) => Console.WriteLine(args.StringData);
@@ -69,6 +71,7 @@ namespace YoonSample.ConsoleComm
         static void ProcessClient()
         {
             _pCommModule = new YoonClient();
+            _pCommModule.LoadParameter();
             string strAddress = "";
             string strPort = "";
             while (!CommunicationFactory.VerifyIPAddress(strAddress))
@@ -85,6 +88,7 @@ namespace YoonSample.ConsoleComm
 
             _pCommModule.Address = strAddress;
             _pCommModule.Port = strPort;
+            _pCommModule.SaveParameter();
             _pClm.Write($"Ready to {strAddress} : {strPort}");
             _pCommModule.OnShowMessageEvent += (sender, args) => _pClm.Write(args.Message);
             _pCommModule.OnShowReceiveDataEvent += (sender, args) => Console.WriteLine(args.StringData);
@@ -105,6 +109,7 @@ namespace YoonSample.ConsoleComm
         static void ProcessSerial()
         {
             _pCommModule = new YoonSerial();
+            _pCommModule.LoadParameter();
             string strPort = "";
             while (!CommunicationFactory.VerifySerialPort(strPort))
             {
@@ -113,6 +118,7 @@ namespace YoonSample.ConsoleComm
             }
 
             _pCommModule.Port = strPort;
+            _pCommModule.SaveParameter();
             _pClm.Write($"Ready to {strPort} Port");
             _pCommModule.OnShowMessageEvent += (sender, args) => _pClm.Write(args.Message);
             _pCommModule.OnShowReceiveDataEvent += (sender, args) => Console.WriteLine(args.StringData);

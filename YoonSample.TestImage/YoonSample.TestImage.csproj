@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\YoonFactory\YoonFactory.csproj" />
+      <ProjectReference Include="..\YoonFile\YoonFile.csproj" />
+      <ProjectReference Include="..\YoonImage\YoonImage.csproj" />
+      <ProjectReference Include="..\YoonLog\YoonLog.csproj" />
+    </ItemGroup>
+
+</Project>

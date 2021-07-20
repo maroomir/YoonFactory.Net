@@ -97,11 +97,6 @@ namespace YoonFactory.Image
         {
         }
 
-        public YoonImage(IntPtr ptrAddress)
-            : this(DEFAULT_WIDTH, DEFAULT_HEIGHT, PixelFormat.Format8bppIndexed)
-        {
-        }
-
         public YoonImage(int nWidth, int nHeight, int nPlane)
         {
             if (nWidth <= 0 || nHeight <= 0)
@@ -410,9 +405,20 @@ namespace YoonFactory.Image
             return (pArea.Left >= 0 && pArea.Top >= 0 && pArea.Right <= Bitmap.Width && pArea.Bottom <= Bitmap.Height);
         }
 
+        public static List<YoonImage> LoadImages(string strRoot)
+        {
+            if (FileFactory.VerifyDirectory(strRoot)) return null;
+            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, "bmp", "jpg", "tiff"))
+            {
+                // TODO : Add Functions
+            }
+
+            return null;
+        }
+
         public virtual bool LoadImage(string strPath)
         {
-            if (IsFileExist()) return false;
+            if (!IsFileExist()) return false;
             try
             {
                 Bitmap = (Bitmap) System.Drawing.Image.FromFile(strPath);

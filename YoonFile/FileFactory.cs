@@ -48,6 +48,19 @@ namespace YoonFactory.Files
             return false;
         }
 
+        public static bool VerifyFileExtensions(ref string strPath, params string[] pArgs)
+        {
+            if (!VerifyFilePath(strPath, false)) return false;
+            bool bResult = false;
+            foreach (string strExt in pArgs)
+            {
+                bResult = VerifyFileExtension(ref strPath, strExt, false, false);
+                if (bResult) break;
+            }
+
+            return bResult;
+        }
+
         public static bool VerifyFileExtension(ref string strPath, string strExt, bool bChangeExtension = false,
             bool bCreateFile = false)
         {
@@ -68,10 +81,9 @@ namespace YoonFactory.Files
             return pFile.Exists;
         }
 
-        public static List<string> GetFileListInDir(string strRoot, List<string> pListFile)
+        public static List<string> GetFilePaths(string strRoot)
         {
-            if (pListFile == null)
-                return null;
+            List<string> pListFile = new List<string>();
             FileAttributes fAttribute = File.GetAttributes(strRoot);
             // If root path is Directory
             if ((fAttribute & FileAttributes.Directory) == FileAttributes.Directory)
@@ -80,13 +92,13 @@ namespace YoonFactory.Files
                 // continues abstract subdirectory
                 foreach (DirectoryInfo pDir in pRootDir.GetDirectories())
                 {
-                    GetFileListInDir(pDir.FullName, pListFile);
+                    pListFile.AddRange(GetFilePaths(pDir.FullName));
                 }
 
                 // abstract sub-files
                 foreach (FileInfo pFile in pRootDir.GetFiles())
                 {
-                    GetFileListInDir(pFile.FullName, pListFile);
+                    pListFile.AddRange(GetFilePaths(pFile.FullName));
                 }
             }
             else
@@ -96,6 +108,18 @@ namespace YoonFactory.Files
             }
 
             return pListFile;
+        }
+
+        public static List<string> GetExtensionFilePaths(string strRoot, string strExt)
+        {
+            // TODO : Construct the File Paths
+            return null;
+        }
+
+        public static List<string> GetExtensionFilePaths(string strRoot, params string[] pArgs)
+        {
+            // TODO : Construct the File Paths
+            return null;
         }
 
         public static string GetTextFromFile(string strPath)

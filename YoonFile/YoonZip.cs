@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
@@ -31,7 +30,7 @@ namespace YoonFactory.Files
             if (!FileFactory.VerifyDirectory(DirectoryPath))
                 return;
 
-            List<string> fListFile = FileFactory.GetFileListInDir(DirectoryPath, new List<String>());
+            List<string> fListFile = FileFactory.GetFilePaths(DirectoryPath);
             using (FileStream pStream = new FileStream(ZipFilePath, FileMode.Create, FileAccess.ReadWrite))
             {
                 using (ZipArchive pArchive = new ZipArchive(pStream, ZipArchiveMode.Create))
@@ -50,7 +49,7 @@ namespace YoonFactory.Files
             if (!FileFactory.VerifyDirectory(strDirPath))
                 return;
 
-            List<string> fListFile = FileFactory.GetFileListInDir(strDirPath, new List<String>());
+            List<string> fListFile = FileFactory.GetFilePaths(strDirPath);
             using (FileStream pStream = new FileStream(ZipFilePath, FileMode.Create, FileAccess.ReadWrite))
             {
                 using (ZipArchive pArchive = new ZipArchive(pStream, ZipArchiveMode.Create))
@@ -71,7 +70,7 @@ namespace YoonFactory.Files
                 Directory.CreateDirectory(DirectoryPath);
             }
 
-            using (ZipArchive pArchive = System.IO.Compression.ZipFile.OpenRead(ZipFilePath))
+            using (ZipArchive pArchive = ZipFile.OpenRead(ZipFilePath))
             {
                 foreach (ZipArchiveEntry pArchiveEntry in pArchive.Entries)
                 {
@@ -94,7 +93,7 @@ namespace YoonFactory.Files
                 Directory.CreateDirectory(strRoot);
             }
 
-            using (ZipArchive pArchive = System.IO.Compression.ZipFile.OpenRead(ZipFilePath))
+            using (ZipArchive pArchive = ZipFile.OpenRead(ZipFilePath))
             {
                 foreach (ZipArchiveEntry pArchiveEntry in pArchive.Entries)
                 {
