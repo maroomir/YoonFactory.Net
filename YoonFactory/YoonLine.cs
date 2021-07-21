@@ -72,7 +72,7 @@ namespace YoonFactory
         {
             _dSlope = dSlope;
             _dIntercept = dIntercept;
-            StartPos = new YoonVector2N(-1, Y(1));
+            StartPos = new YoonVector2N(-1, Y(-1));
             EndPos = new YoonVector2N(1, Y(1));
         }
 
@@ -160,6 +160,11 @@ namespace YoonFactory
             return Clone();
         }
 
+        public YoonLine2D ToLine2D()
+        {
+            return new YoonLine2D(StartPos.X, StartPos.Y, EndPos.X, EndPos.Y);
+        }
+
         public static bool operator ==(YoonLine2N l1, YoonLine2N l2)
         {
             return l1?.Equals(l2) == true;
@@ -234,7 +239,7 @@ namespace YoonFactory
         {
             _dSlope = dSlope;
             _dIntercept = dIntercept;
-            StartPos = new YoonVector2D(-1, Y(1));
+            StartPos = new YoonVector2D(-1, Y(-1));
             EndPos = new YoonVector2D(1, Y(1));
         }
 
@@ -317,6 +322,11 @@ namespace YoonFactory
         IYoonFigure IYoonFigure.Clone()
         {
             return Clone();
+        }
+
+        public YoonLine2N ToLine2N()
+        {
+            return new YoonLine2N((int) StartPos.X, (int) StartPos.Y, (int) EndPos.X, (int) EndPos.Y);
         }
 
         public static bool operator ==(YoonLine2D l1, YoonLine2D l2)

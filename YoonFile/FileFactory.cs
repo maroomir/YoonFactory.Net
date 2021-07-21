@@ -48,7 +48,7 @@ namespace YoonFactory.Files
             return false;
         }
 
-        public static bool VerifyFileExtensions(ref string strPath, params string[] pArgs)
+        public static bool VerifyFileExtensions(string strPath, params string[] pArgs)
         {
             if (!VerifyFilePath(strPath, false)) return false;
             bool bResult = false;
@@ -113,13 +113,64 @@ namespace YoonFactory.Files
         public static List<string> GetExtensionFilePaths(string strRoot, string strExt)
         {
             // TODO : Construct the File Paths
-            return null;
+            List<string> pListFile = new List<string>();
+            FileAttributes fAttribute = File.GetAttributes(strRoot);
+            // If root path is Directory
+            if ((fAttribute & FileAttributes.Directory) == FileAttributes.Directory)
+            {
+                DirectoryInfo pRootDir = new DirectoryInfo(strRoot);
+                // continues abstract subdirectory
+                foreach (DirectoryInfo pDir in pRootDir.GetDirectories())
+                {
+                    pListFile.AddRange(GetExtensionFilePaths(pDir.FullName, strExt));
+                }
+
+                // abstract sub-files
+                foreach (FileInfo pFile in pRootDir.GetFiles())
+                {
+                    pListFile.AddRange(GetExtensionFilePaths(pFile.FullName, strExt));
+                }
+            }
+            else
+            {
+                FileInfo pFile = new FileInfo(strRoot);
+                if (pFile.Extension == strExt)
+                    pListFile.Add(pFile.FullName);
+            }
+
+            return pListFile;
         }
 
         public static List<string> GetExtensionFilePaths(string strRoot, params string[] pArgs)
         {
             // TODO : Construct the File Paths
-            return null;
+            List<string> pListFile = new List<string>();
+            FileAttributes fAttribute = File.GetAttributes(strRoot);
+            // If root path is Directory
+            if ((fAttribute & FileAttributes.Directory) == FileAttributes.Directory)
+            {
+                DirectoryInfo pRootDir = new DirectoryInfo(strRoot);
+                // continues abstract subdirectory
+                foreach (DirectoryInfo pDir in pRootDir.GetDirectories())
+                {
+                    pListFile.AddRange(GetExtensionFilePaths(pDir.FullName, pArgs));
+                }
+
+                // abstract sub-files
+                foreach (FileInfo pFile in pRootDir.GetFiles())
+                {
+                    pListFile.AddRange(GetExtensionFilePaths(pFile.FullName, pArgs));
+                }
+            }
+            else
+            {
+                FileInfo pFile = new FileInfo(strRoot);
+                foreach (string strExt in pArgs)
+                    if (pFile.Extension == strExt)
+                        pListFile.Add(pFile.FullName);
+            }
+
+            return pListFile;
         }
 
         public static string GetTextFromFile(string strPath)

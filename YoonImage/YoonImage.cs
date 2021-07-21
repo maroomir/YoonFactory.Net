@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using YoonFactory.Files;
@@ -95,6 +96,11 @@ namespace YoonFactory.Image
         public YoonImage()
             : this(DEFAULT_WIDTH, DEFAULT_HEIGHT, PixelFormat.Format8bppIndexed)
         {
+        }
+
+        public YoonImage(string strImagePath)
+        {
+            LoadImage(strImagePath);
         }
 
         public YoonImage(int nWidth, int nHeight, int nPlane)
@@ -408,12 +414,21 @@ namespace YoonFactory.Image
         public static List<YoonImage> LoadImages(string strRoot)
         {
             if (FileFactory.VerifyDirectory(strRoot)) return null;
-            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, "bmp", "jpg", "tiff"))
-            {
-                // TODO : Add Functions
-            }
+            List<YoonImage> pListImage = new List<YoonImage>();
+            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".png"))
+                pListImage.Add(new YoonImage(strFilePath));
+            return pListImage;
+        }
 
-            return null;
+        public static int SaveImages(string strRoot, List<YoonImage> pListImage)
+        {
+            if (FileFactory.VerifyDirectory(strRoot)) return -1;
+            int nCountSave = 0;
+            for (int iCount = 0; iCount < pListImage.Count; iCount++)
+                if (pListImage[iCount]?.SaveImage(Path.Combine(strRoot, $"{iCount}.bmp")) == true)
+                    nCountSave++;
+
+            return nCountSave;
         }
 
         public virtual bool LoadImage(string strPath)
@@ -421,8 +436,12 @@ namespace YoonFactory.Image
             if (!IsFileExist()) return false;
             try
             {
-                Bitmap = (Bitmap) System.Drawing.Image.FromFile(strPath);
-                return true;
+                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png"))
+                {
+                    FilePath = strPath;
+                    Bitmap = (Bitmap) System.Drawing.Image.FromFile(FilePath);
+                    return true;
+                }
             }
             catch (Exception ex)
             {
@@ -436,8 +455,12 @@ namespace YoonFactory.Image
         {
             try
             {
-                Bitmap.Save(strPath);
-                return true;
+                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png"))
+                {
+                    FilePath = strPath;
+                    Bitmap.Save(strPath);
+                    return true;
+                }
             }
             catch (Exception ex)
             {
@@ -661,7 +684,33 @@ namespace YoonFactory.Image
             }
         }
 
-        public void DrawTriangle(int nX, int nY, int nSize, eYoonDir2D nDir, Color pColor, int nPenWidth, double dZoom)
+        public void DrawFigure(IYoonFigure pFigure, Color pColor, int nPenWidth = 1, double dZoom = 1.0)
+        {
+            switch (pFigure)
+            {
+                case YoonRect2N pRect2N:
+                    DrawRect(pRect2N, pColor, nPenWidth, dZoom);
+                    break;
+                case YoonRect2D pRect2D:
+                    DrawRect(pRect2D.ToRect2N(), pColor, nPenWidth, dZoom);
+                    break;
+                case YoonLine2N pLine2N:
+                    DrawLine(pLine2N, pColor, nPenWidth, dZoom);
+                    break;
+                case YoonLine2D pLine2D:
+                    DrawLine(pLine2D.ToLine2N(), pColor, nPenWidth, dZoom);
+                    break;
+                case YoonRectAffine2D pRectAffine2D:
+                    DrawPolygon(pColor, nPenWidth, dZoom,
+                        (YoonVector2D) pRectAffine2D.GetPosition(eYoonDir2D.TopLeft),
+                        (YoonVector2D) pRectAffine2D.GetPosition(eYoonDir2D.TopRight),
+                        (YoonVector2D) pRectAffine2D.GetPosition(eYoonDir2D.BottomRight),
+                        (YoonVector2D) pRectAffine2D.GetPosition(eYoonDir2D.BottomLeft));
+                    break;
+            }
+        }
+
+        public void DrawTriangle(int nX, int nY, int nSize, eYoonDir2D nDir, Color pColor, int nPenWidth = 1, double dZoom = 1.0)
         {
             PointF[] pIYoonVector = new PointF[3];
             pIYoonVector[0].X = (float) (nX * dZoom);
@@ -713,8 +762,8 @@ namespace YoonFactory.Image
             DrawLine((YoonVector2N) pRect.TopLeft, (YoonVector2N) pRect.BottomLeft, pColor, nPenWidth, dRatio);
         }
 
-        public void DrawRect(int nCenterX, int nCenterY, int nWidth, int nHeight, Color pColor, int nPenWidth,
-            double dRatio)
+        public void DrawRect(int nCenterX, int nCenterY, int nWidth, int nHeight, Color pColor, int nPenWidth = 1,
+            double dRatio = 1.0)
         {
             if (nWidth <= 0 || nHeight <= 0)
                 return;
@@ -728,7 +777,16 @@ namespace YoonFactory.Image
                 pColor, nPenWidth, dRatio);
         }
 
-        public void DrawLine(YoonVector2N pVector1, YoonVector2N pVector2, Color pColor, int nPenWidth,
+        public void DrawLine(YoonLine2N pLine, Color pColor, int nPenWidth = 1, double dRatio = 1.0)
+        {
+            int nX1 = Math.Max(pLine.X(0), 0);
+            int nY1 = pLine.Y(nX1);
+            int nX2 = Math.Min(pLine.X(Width), Height);
+            int nY2 = pLine.Y(nX2);
+            DrawLine(nX1, nY1, nX2, nY2, pColor, nPenWidth, dRatio);
+        }
+        
+        public void DrawLine(YoonVector2N pVector1, YoonVector2N pVector2, Color pColor, int nPenWidth = 1,
             double dRatio = 1.0)
         {
             double dDeltaX1 = pVector1.X * dRatio;
@@ -743,7 +801,7 @@ namespace YoonFactory.Image
             }
         }
 
-        public void DrawLine(int nX1, int nY1, int nX2, int nY2, Color pColor, int nPenWidth, double dZoom)
+        public void DrawLine(int nX1, int nY1, int nX2, int nY2, Color pColor, int nPenWidth = 1, double dZoom = 1.0)
         {
             double dDeltaX1 = (double) nX1 * dZoom;
             double dDeltaY1 = (double) nY1 * dZoom;
@@ -772,7 +830,7 @@ namespace YoonFactory.Image
             }
         }
 
-        public void DrawCross(YoonVector2N pVector, Color pColor, int nSize, int nPenWidth = 1, double dRatio = 1.0)
+        public void DrawCross(YoonVector2N pVector, Color pColor, int nSize = 10, int nPenWidth = 1, double dRatio = 1.0)
         {
             float dDeltaX = (float) (pVector.X * dRatio);
             float dDeltaY = (float) (pVector.Y * dRatio);
@@ -801,6 +859,54 @@ namespace YoonFactory.Image
             }
         }
 
+        public void DrawPolygon(YoonVector2N[] pArrayPoint, Color pColor, int nPenWidth = 1, double dRatio = 1.0)
+        {
+            PointF[] pArrayDraw = new PointF[pArrayPoint.Length];
+            for (int iPoint = 0; iPoint < pArrayPoint.Length; iPoint++)
+            {
+                pArrayDraw[iPoint].X = pArrayPoint[iPoint].X * (float) dRatio;
+                pArrayDraw[iPoint].Y = pArrayPoint[iPoint].Y * (float) dRatio;
+            }
+
+            using (Graphics graph = Graphics.FromImage(Bitmap))
+            {
+                Pen pPen = new Pen(pColor, (float) nPenWidth);
+                graph.DrawPolygon(pPen, pArrayDraw);
+            }
+        }
+        
+        public void DrawPolygon(Color pColor, int nPenWidth = 1, double dRatio = 1.0, params YoonVector2N[] pArgs)
+        {
+            PointF[] pArrayDraw = new PointF[pArgs.Length];
+            for (int iPoint = 0; iPoint < pArgs.Length; iPoint++)
+            {
+                pArrayDraw[iPoint].X = pArgs[iPoint].X * (float) dRatio;
+                pArrayDraw[iPoint].Y = pArgs[iPoint].Y * (float) dRatio;
+            }
+
+            using (Graphics graph = Graphics.FromImage(Bitmap))
+            {
+                Pen pPen = new Pen(pColor, (float) nPenWidth);
+                graph.DrawPolygon(pPen, pArrayDraw);
+            }
+        }
+        
+        public void DrawPolygon(Color pColor, int nPenWidth = 1, double dRatio = 1.0, params YoonVector2D[] pArgs)
+        {
+            PointF[] pArrayDraw = new PointF[pArgs.Length];
+            for (int iPoint = 0; iPoint < pArgs.Length; iPoint++)
+            {
+                pArrayDraw[iPoint].X = (float) pArgs[iPoint].X * (float) dRatio;
+                pArrayDraw[iPoint].Y = (float) pArgs[iPoint].Y * (float) dRatio;
+            }
+
+            using (Graphics graph = Graphics.FromImage(Bitmap))
+            {
+                Pen pPen = new Pen(pColor, (float) nPenWidth);
+                graph.DrawPolygon(pPen, pArrayDraw);
+            }
+        }
+        
         public bool SetOffset(byte offset)
         {
             if (Bitmap.Width <= 0 || Bitmap.Height <= 0)

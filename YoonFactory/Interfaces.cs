@@ -65,10 +65,10 @@ namespace YoonFactory
         T X { get; set; }
         T Y { get; set; }
         T[] Array { get; set; }
-        double Angle2D(IYoonVector pVector);
+        double Angle2D(IYoonVector pObjectVector);
         eYoonDir2D Direction { get; set; }
         IYoonCartesian<T> Cartesian { get; set; }
-        eYoonDir2D DirectionTo(IYoonVector pVector);
+        eYoonDir2D DirectionTo(IYoonVector pObjectVector);
         IYoonVector GetScaleVector(T nScaleX, T nScaleY);
         IYoonVector GetNextVector(T nMoveX, T nMoveY);
         IYoonVector GetNextVector(IYoonVector pVector);

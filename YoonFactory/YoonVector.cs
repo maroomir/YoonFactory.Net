@@ -198,9 +198,9 @@ namespace YoonFactory
                 return 0.0;
         }
 
-        public eYoonDir2D DirectionTo(IYoonVector pVector)
+        public eYoonDir2D DirectionTo(IYoonVector pObjectVector)
         {
-            if (pVector is YoonVector2N pVector2N)
+            if (pObjectVector is YoonVector2N pVector2N)
             {
                 YoonVector2N pVecDiff = this - pVector2N;
                 return pVecDiff.Direction;
@@ -209,9 +209,9 @@ namespace YoonFactory
                 return eYoonDir2D.None;
         }
 
-        public double Angle2D(IYoonVector pVector)
+        public double Angle2D(IYoonVector pObjectVector)
         {
-            if (pVector is YoonVector2N pVector2N)
+            if (pObjectVector is YoonVector2N pVector2N)
             {
                 return Math.Atan2(pVector2N.Y - Y, pVector2N.X - X);
             }
@@ -547,14 +547,14 @@ namespace YoonFactory
             Y = 0;
             W = 1;
         }
-        public YoonVector2D(IYoonVector p)
+        public YoonVector2D(IYoonVector pVector)
         {
-            CopyFrom(p);
+            CopyFrom(pVector);
         }
-        public YoonVector2D(double dx, double dy)
+        public YoonVector2D(double dX, double dY)
         {
-            X = dx;
-            Y = dy;
+            X = dX;
+            Y = dY;
             W = 1;
         }
         public YoonVector2D(eYoonDir2D nDir)
@@ -584,34 +584,34 @@ namespace YoonFactory
             return this;
         }
 
-        public double Distance(IYoonVector p)
+        public double Distance(IYoonVector pVector)
         {
-            if (p is YoonVector2D vec)
+            if (pVector is YoonVector2D pVector2D)
             {
-                double dx = this.X - vec.X;
-                double dy = this.Y - vec.Y;
+                double dx = this.X - pVector2D.X;
+                double dy = this.Y - pVector2D.Y;
                 return Math.Sqrt(dx * dx + dy * dy);
             }
             else
                 return 0.0;
         }
 
-        public eYoonDir2D DirectionTo(IYoonVector pPos)
+        public eYoonDir2D DirectionTo(IYoonVector pObjectVector)
         {
-            if (pPos is YoonVector2D vec)
+            if (pObjectVector is YoonVector2D pVector2D)
             {
-                YoonVector2D pVecDiff = this - vec;
+                YoonVector2D pVecDiff = this - pVector2D;
                 return pVecDiff.Direction;
             }
             else
                 return eYoonDir2D.None;
         }
 
-        public double Angle2D(IYoonVector pPosObject)
+        public double Angle2D(IYoonVector pObjectVector)
         {
-            if (pPosObject is YoonVector2D vec)
+            if (pObjectVector is YoonVector2D pVector2D)
             {
-                return Math.Atan2(vec.Y - Y, vec.X - X);
+                return Math.Atan2(pVector2D.Y - Y, pVector2D.X - X);
             }
             else
                 return 0.0;

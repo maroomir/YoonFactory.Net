@@ -350,18 +350,18 @@ namespace YoonFactory
             Height = 0;
         }
 
-        public YoonRect2D(YoonVector2D pos, double dw, double dh)
+        public YoonRect2D(YoonVector2D pVector, double dWidth, double dHeight)
         {
-            CenterPos = new YoonVector2D {X = pos.X, Y = pos.Y};
-            Width = dw;
-            Height = dh;
+            CenterPos = new YoonVector2D {X = pVector.X, Y = pVector.Y};
+            Width = dWidth;
+            Height = dHeight;
         }
 
-        public YoonRect2D(double dx, double dy, double dw, double dh)
+        public YoonRect2D(double dX, double dY, double dWidth, double dHeight)
         {
-            CenterPos = new YoonVector2D {X = dx, Y = dy};
-            Width = dw;
-            Height = dh;
+            CenterPos = new YoonVector2D {X = dX, Y = dY};
+            Width = dWidth;
+            Height = dHeight;
         }
 
         public YoonRect2D(eYoonDir2D nDir1, YoonVector2D pVector1, eYoonDir2D nDir2, YoonVector2D pVector2)
