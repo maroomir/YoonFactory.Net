@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutputPath>../Debug/AnyCPU</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <OutputPath>../Release/AnyCPU</OutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="OpenCvSharp4" Version="4.5.2.20210404" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\YoonFactory\YoonFactory.csproj" />
+      <ProjectReference Include="..\YoonFile\YoonFile.csproj" />
+      <ProjectReference Include="..\YoonImage\YoonImage.csproj" />
+    </ItemGroup>
+
+</Project>
