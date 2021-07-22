@@ -9,59 +9,28 @@ namespace YoonFactory.CV
 {
     public class CVImage : YoonImage
     {
-        #region IDisposable Support
-        private bool _disposedValue = false;
-
-        protected override void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    base.Bitmap.Dispose();
-                    Matrix.Dispose();
-                }
-                base.Bitmap = null;
-                Matrix = null;
-
-                _disposedValue = true;
-            }
-        }
-
-        ~CVImage()
-        {
-            Dispose(false);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
-
-        public Mat Matrix { get; private set; } = null;
+        public Mat Matrix => Bitmap.ToMat();
 
         public CVImage() : base()
         {
-            Matrix = BitmapConverter.ToMat(base.Bitmap);
+            //
         }
 
         public CVImage(Mat pMatrix) : this()
         {
-            Task pTask = Task.Factory.StartNew(() =>base.Bitmap = pMatrix.ToBitmap());
-            Matrix = pMatrix.Clone();
-            pTask.Wait();
+            Bitmap = pMatrix.ToBitmap();
         }
 
         public CVImage(YoonImage pImage)
         {
-            Task pTask = Task.Factory.StartNew(() => Matrix = pImage.Bitmap.ToMat());
             Bitmap = pImage.CopyBitmap();
-            pTask.Wait();
         }
 
         public override bool LoadImage(string strPath)
         {
             FilePath = strPath;
             if (!IsFileExist()) return false;
-            Matrix = Cv2.ImRead(strPath);
-            Bitmap = Matrix.ToBitmap();
+            Bitmap = Cv2.ImRead(strPath).ToBitmap();
             return true;
         }
 
@@ -69,8 +38,7 @@ namespace YoonFactory.CV
         {
             FilePath = strPath;
             if (!IsFileExist()) return false;
-            Matrix = Cv2.ImRead(strPath, nMode);
-            Bitmap = Matrix.ToBitmap();
+            Bitmap = Cv2.ImRead(strPath, nMode).ToBitmap();
             return true;
         }
 

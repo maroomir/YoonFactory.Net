@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using YoonFactory;
+using YoonFactory.CV;
 using YoonFactory.Files;
 using YoonFactory.Image;
 using YoonFactory.Log;
@@ -11,12 +12,14 @@ namespace YoonSample.TestImage
 {
     class Program
     {
-        public static string _strRootDir = Path.Combine(Directory.GetCurrentDirectory(), @"../../../../Sample/Image"); 
+        public static string _strRootDir = Path.Combine(FileFactory.GetParants(Directory.GetCurrentDirectory(), 4),
+            @"Sample", @"Image");
+
         public static YoonConsoler _pClm = new YoonConsoler();
-        
+
         static void Main(string[] args)
         {
-            Console.Write("Select the processing mode (Align, Drops, Glass)");
+            Console.Write("Select the processing mode (Align, Drops, Glass) >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -68,9 +71,10 @@ namespace YoonSample.TestImage
                 {
                     YoonVector2N pVectorFeature = (pDataset[iObject].ReferencePosition is YoonVector2D pVector2D)
                         ? pVector2D.ToVector2N()
-                        : (YoonVector2N)pDataset[iObject].ReferencePosition;
+                        : (YoonVector2N) pDataset[iObject].ReferencePosition;
                     pResultImage.DrawFigure(pDataset[iObject].Feature, Color.Yellow);
                     pResultImage.DrawCross(pVectorFeature, Color.Yellow);
+                    CVImage.ShowImage(pResultImage, "Drop");
                 }
             }
         }

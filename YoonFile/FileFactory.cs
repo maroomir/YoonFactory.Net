@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace YoonFactory.Files
@@ -81,12 +82,40 @@ namespace YoonFactory.Files
             return pFile.Exists;
         }
 
+        public static string GetParants(string strPath, int nStep = 1)
+        {
+            FileAttributes pAttribute = File.GetAttributes(strPath);
+            if ((pAttribute & FileAttributes.Directory) == FileAttributes.Directory)
+            {
+                DirectoryInfo pDir = new DirectoryInfo(strPath);
+                for (int iStep = 0; iStep < nStep; iStep++)
+                {
+                    Debug.Assert(pDir.Parent != null, "pDir.Parent != null");
+                    pDir = pDir.Parent;
+                }
+
+                return pDir.FullName;
+            }
+            else
+            {
+                FileInfo pFile = new FileInfo(strPath);
+                DirectoryInfo pDir = pFile.Directory;
+                for (int iStep = 0; iStep < nStep - 1; iStep++)
+                {
+                    Debug.Assert(pDir != null, nameof(pDir) + " != null");
+                    pDir = pDir.Parent;
+                }
+
+                return pDir.FullName;
+            }
+        }
+
         public static List<string> GetFilePaths(string strRoot)
         {
             List<string> pListFile = new List<string>();
-            FileAttributes fAttribute = File.GetAttributes(strRoot);
+            FileAttributes pAttribute = File.GetAttributes(strRoot);
             // If root path is Directory
-            if ((fAttribute & FileAttributes.Directory) == FileAttributes.Directory)
+            if ((pAttribute & FileAttributes.Directory) == FileAttributes.Directory)
             {
                 DirectoryInfo pRootDir = new DirectoryInfo(strRoot);
                 // continues abstract subdirectory

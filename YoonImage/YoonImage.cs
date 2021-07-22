@@ -417,7 +417,7 @@ namespace YoonFactory.Image
 
         public static List<YoonImage> LoadImages(string strRoot)
         {
-            if (FileFactory.VerifyDirectory(strRoot)) return null;
+            if (!FileFactory.VerifyDirectory(strRoot)) return null;
             List<YoonImage> pListImage = new List<YoonImage>();
             foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".png"))
                 pListImage.Add(new YoonImage(strFilePath));
