@@ -106,6 +106,12 @@ namespace YoonFactory.CV
             return new CVImage(Matrix.SubMat(cropArea.ToCVRect()));
         }
 
+        public static void ShowImage(YoonImage pImage, string strTitle)
+        {
+            CVImage pCvImage = new CVImage(pImage);
+            pCvImage.ShowImage(strTitle);
+        }
+
         public void ShowImage(string strTitle)
         {
             Cv2.NamedWindow(strTitle, WindowFlags.AutoSize);
