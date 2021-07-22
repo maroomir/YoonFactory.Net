@@ -64,10 +64,13 @@ namespace YoonSample.TestImage
             {
                 YoonImage pResultImage = pImage.ToGrayImage();
                 YoonDataset pDataset = pResultImage.FindBlobs(90, false);
-                List<IYoonFigure> pListFigures = pDataset.Features;
-                foreach (IYoonFigure pFigure in pListFigures)
+                for (int iObject = 0; iObject < pDataset.Count; iObject++)
                 {
-                    pResultImage.DrawFigure(pFigure, Color.Yellow);
+                    YoonVector2N pVectorFeature = (pDataset[iObject].ReferencePosition is YoonVector2D pVector2D)
+                        ? pVector2D.ToVector2N()
+                        : (YoonVector2N)pDataset[iObject].ReferencePosition;
+                    pResultImage.DrawFigure(pDataset[iObject].Feature, Color.Yellow);
+                    pResultImage.DrawCross(pVectorFeature, Color.Yellow);
                 }
             }
         }

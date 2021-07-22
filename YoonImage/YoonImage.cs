@@ -6,6 +6,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using YoonFactory.Files;
+using Color = System.Drawing.Color;
+using FileFactory = YoonFactory.Files.FileFactory;
+using Point = System.Drawing.Point;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace YoonFactory.Image
 {
@@ -469,7 +473,7 @@ namespace YoonFactory.Image
 
             return false;
         }
-
+        
         public Bitmap CopyBitmap()
         {
             if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
@@ -532,10 +536,10 @@ namespace YoonFactory.Image
                     {
                         for (int i = 0; i < Bitmap.Width; i++)
                         {
+                            // ITU-RBT.709, YPrPb
                             pByte[j * Bitmap.Width + i] = (byte) (0.299f * pBufferRGB[j * Bitmap.Width + i, 0] +
                                                                   0.587f * pBufferRGB[j * Bitmap.Width + i, 1] +
-                                                                  0.114f * pBufferRGB[j * Bitmap.Width + i,
-                                                                      2]); // ITU-RBT.709, YPrPb
+                                                                  0.114f * pBufferRGB[j * Bitmap.Width + i, 2]); 
                         }
                     }
 
@@ -545,11 +549,11 @@ namespace YoonFactory.Image
                     for (int j = 0; j < Bitmap.Height; j++)
                     {
                         for (int i = 0; i < Bitmap.Width; i++)
-                        {
+                        { 
+                            // ITU-RBT.709, YPrPb
                             pByte[j * Bitmap.Width + i] = (byte) (0.299f * pBufferARGB[j * Bitmap.Width + i, 1] +
                                                                   0.587f * pBufferARGB[j * Bitmap.Width + i, 2] +
-                                                                  0.114f * pBufferARGB[j * Bitmap.Width + i,
-                                                                      3]); // ITU-RBT.709, YPrPb
+                                                                  0.114f * pBufferARGB[j * Bitmap.Width + i, 3]);
                         }
                     }
 
@@ -1002,7 +1006,6 @@ namespace YoonFactory.Image
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             int[] pHistogram = new int[256];
             Array.Clear(pHistogram, 0, pHistogram.Length);
-            ////  Histogram 그래프를 만든다.
             for (int iY = 0; iY < Bitmap.Height; iY++)
             {
                 for (int iX = 0; iX < Bitmap.Width; iX++)
