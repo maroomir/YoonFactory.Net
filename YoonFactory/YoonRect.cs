@@ -59,6 +59,23 @@ namespace YoonFactory
 
         public IYoonVector2D<int> BottomRight => new YoonVector2N(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
 
+        public void SetVerifiedArea(int nMinX, int nMinY, int nMaxX, int nMaxY)
+        {
+            int nLeft = (Left > nMinX) ? Left : nMinX;
+            int nRight = (Right <= nMaxX) ? Right : nMaxX;
+            int nTop = (Top > nMinY) ? Top : nMinY;
+            int nBottom = (Bottom <= nMaxY) ? Bottom : nMaxY;
+            CenterPos.X = (nLeft + nRight) / 2;
+            CenterPos.Y = (nTop + nBottom) / 2;
+            Width = nRight - nLeft;
+            Height = nBottom - nTop;
+        }
+
+        public void SetVerifiedArea(IYoonVector2D<int> pMinVector, IYoonVector2D<int> pMaxVector)
+        {
+            SetVerifiedArea(pMinVector.X, pMinVector.Y, pMaxVector.X, pMaxVector.Y);
+        }
+
         public YoonRect2N()
         {
             CenterPos = new YoonVector2N {X = 0, Y = 0};
@@ -342,6 +359,23 @@ namespace YoonFactory
         public IYoonVector2D<double> BottomLeft => new YoonVector2D(CenterPos.X - Width / 2, CenterPos.Y + Height / 2);
 
         public IYoonVector2D<double> BottomRight => new YoonVector2D(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
+
+        public void SetVerifiedArea(double dMinX, double dMinY, double dMaxX, double dMaxY)
+        {
+            double dLeft = (Left > dMinX) ? Left : dMinX;
+            double dRight = (Right <= dMaxX) ? Right : dMaxX;
+            double dTop = (Top > dMinY) ? Top : dMinY;
+            double dBottom = (Bottom <= dMaxY) ? Bottom : dMaxY;
+            CenterPos.X = (dLeft + dRight) / 2;
+            CenterPos.Y = (dTop + dBottom) / 2;
+            Width = dRight - dLeft;
+            Height = dBottom - dTop;
+        }
+
+        public void SetVerifiedArea(IYoonVector2D<double> pMinVector, IYoonVector2D<double> pMaxVector)
+        {
+            SetVerifiedArea(pMinVector.X, pMinVector.Y, pMaxVector.X, pMaxVector.Y);
+        }
 
         public YoonRect2D()
         {

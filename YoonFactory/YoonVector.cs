@@ -209,6 +209,29 @@ namespace YoonFactory
                 return eYoonDir2D.None;
         }
 
+        public void SetMinValue(int nMinX, int nMinY)
+        {
+            X = (X > nMinX) ? X : nMinX;
+            Y = (Y > nMinY) ? Y : nMinY;
+        }
+
+        public void SetMaxValue(int nMaxX, int nMaxY)
+        {
+            X = (X < nMaxX) ? X : nMaxX;
+            Y = (Y < nMaxY) ? Y : nMaxY;
+        }
+
+        public void SetMinMaxValue(int nMinX, int nMinY, int nMaxX, int nMaxY)
+        {
+            X = (X > nMinX) ? (X < nMaxX) ? X : nMaxX : nMinX;
+            Y = (Y > nMinY) ? (Y < nMaxY) ? Y : nMaxY : nMinY;
+        }
+
+        public bool VerifyMinMax(int nMinX, int nMinY, int nMaxX, int nMaxY)
+        {
+            return (X <= nMaxX && X >= nMinX && Y <= nMaxY && Y >= nMinY);
+        }
+
         public double Angle2D(IYoonVector pObjectVector)
         {
             if (pObjectVector is YoonVector2N pVector2N)
@@ -219,17 +242,17 @@ namespace YoonFactory
                 return 0.0;
         }
 
-        public IYoonVector GetScaleVector(int nScaleX, int nScaleY)
+        public IYoonVector GetScaleVector(int scaleX, int scaleY)
         {
             YoonMatrix2N pMatrix = new YoonMatrix2N();
-            pMatrix.SetScaleUnit(nScaleX, nScaleY);
+            pMatrix.SetScaleUnit(scaleX, scaleY);
             return pMatrix * this;
         }
 
-        public IYoonVector GetNextVector(int nMoveX, int nMoveY)
+        public IYoonVector GetNextVector(int moveX, int moveY)
         {
             YoonMatrix2N pMatrix = new YoonMatrix2N();
-            pMatrix.SetMovementUnit(nMoveX, nMoveY);
+            pMatrix.SetMovementUnit(moveX, moveY);
             return pMatrix * this;
         }
 
@@ -607,6 +630,30 @@ namespace YoonFactory
                 return eYoonDir2D.None;
         }
 
+        
+        public void SetMinValue(double dMinX, double dMinY)
+        {
+            X = (X > dMinX) ? X : dMinX;
+            Y = (Y > dMinY) ? Y : dMinY;
+        }
+
+        public void SetMaxValue(double dMaxX, double dMaxY)
+        {
+            X = (X < dMaxX) ? X : dMaxX;
+            Y = (Y < dMaxY) ? Y : dMaxY;
+        }
+
+        public void SetMinMaxValue(double dMinX, double dMinY, double dMaxX, double dMaxY)
+        {
+            X = (X > dMinX) ? (X < dMaxX) ? X : dMaxX : dMinX;
+            Y = (Y > dMinY) ? (Y < dMaxY) ? Y : dMaxY : dMinY;
+        }
+
+        public bool VerifyMinMax(double dMinX, double dMinY, double dMaxX, double dMaxY)
+        {
+            return (X < dMaxX && X >= dMinX && Y < dMaxY && Y >= dMinY);
+        }
+
         public double Angle2D(IYoonVector pObjectVector)
         {
             if (pObjectVector is YoonVector2D pVector2D)
@@ -617,17 +664,17 @@ namespace YoonFactory
                 return 0.0;
         }
 
-        public IYoonVector GetScaleVector(double nScaleX, double nScaleY)
+        public IYoonVector GetScaleVector(double scaleX, double scaleY)
         {
             YoonMatrix2D pMatrix = new YoonMatrix2D();
-            pMatrix.SetScaleUnit(nScaleX, nScaleY);
+            pMatrix.SetScaleUnit(scaleX, scaleY);
             return pMatrix * this;
         }
 
-        public IYoonVector GetNextVector(double nMoveX, double nMoveY)
+        public IYoonVector GetNextVector(double moveX, double moveY)
         {
             YoonMatrix2D pMatrix = new YoonMatrix2D();
-            pMatrix.SetMovementUnit(nMoveX, nMoveY);
+            pMatrix.SetMovementUnit(moveX, moveY);
             return pMatrix * this;
         }
 

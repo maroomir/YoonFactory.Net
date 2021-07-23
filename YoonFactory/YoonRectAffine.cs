@@ -133,6 +133,23 @@ namespace YoonFactory
 
         public IYoonVector2D<double> BottomRight => _pCornerRotateBottomRight;
 
+        public void SetVerifiedArea(double dMinX, double dMinY, double dMaxX, double dMaxY)
+        {
+            double dLeft = (Left > dMinX) ? Left : dMinX;
+            double dRight = (Right <= dMaxX) ? Right : dMaxX;
+            double dTop = (Top > dMinY) ? Top : dMinY;
+            double dBottom = (Bottom <= dMaxY) ? Bottom : dMaxY;
+            CenterPos.X = (dLeft + dRight) / 2;
+            CenterPos.Y = (dTop + dBottom) / 2;
+            Width = dRight - dLeft;
+            Height = dBottom - dTop;
+        }
+
+        public void SetVerifiedArea(IYoonVector2D<double> pMinVector, IYoonVector2D<double> pMaxVector)
+        {
+            SetVerifiedArea(pMinVector.X, pMinVector.Y, pMaxVector.X, pMaxVector.Y);
+        }
+
         public YoonRectAffine2D()
         {
             CenterPos = new YoonVector2D {X = 0, Y = 0};

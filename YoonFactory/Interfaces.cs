@@ -69,8 +69,12 @@ namespace YoonFactory
         eYoonDir2D Direction { get; set; }
         IYoonCartesian<T> Cartesian { get; set; }
         eYoonDir2D DirectionTo(IYoonVector pObjectVector);
-        IYoonVector GetScaleVector(T nScaleX, T nScaleY);
-        IYoonVector GetNextVector(T nMoveX, T nMoveY);
+        void SetMinValue(T minX, T minY);
+        void SetMaxValue(T maxX, T maxY);
+        void SetMinMaxValue(T minX, T minY, T maxX, T maxY);
+        bool VerifyMinMax(T minX, T minY, T maxX, T maxY);
+        IYoonVector GetScaleVector(T scaleX, T scaleY);
+        IYoonVector GetNextVector(T moveX, T moveY);
         IYoonVector GetNextVector(IYoonVector pVector);
         IYoonVector GetNextVector(eYoonDir2D nDir);
         IYoonVector GetRotateVector(double dAngle);
@@ -191,6 +195,8 @@ namespace YoonFactory
         IYoonVector2D<T> BottomLeft { get; }
         IYoonVector2D<T> BottomRight { get; }
 
+        void SetVerifiedArea(T minX, T minY, T maxX, T maxY);
+        void SetVerifiedArea(IYoonVector2D<T> pMinVector, IYoonVector2D<T> pMaxVector);
         IYoonVector2D<T> GetPosition(eYoonDir2D nDir);
     }
 

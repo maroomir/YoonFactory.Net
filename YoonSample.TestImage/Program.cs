@@ -12,7 +12,7 @@ namespace YoonSample.TestImage
 {
     class Program
     {
-        public static string _strRootDir = Path.Combine(FileFactory.GetParants(Directory.GetCurrentDirectory(), 4),
+        public static string _strRootDir = Path.Combine(FileFactory.GetParantsRoot(Directory.GetCurrentDirectory(), 4),
             @"Sample", @"Image");
 
         public static YoonConsoler _pClm = new YoonConsoler();
@@ -46,6 +46,7 @@ namespace YoonSample.TestImage
             Dictionary<string, YoonImage> pDicLeftImage = new Dictionary<string, YoonImage>();
             Dictionary<string, YoonImage> pDicRightImage = new Dictionary<string, YoonImage>();
             List<string> pListFilePath = FileFactory.GetExtensionFilePaths(_strRootDir, ".bmp");
+            _pClm.Write("Image Load Completed");
             foreach (string strFilePath in pListFilePath)
             {
                 FileInfo pFile = new FileInfo(strFilePath);
@@ -62,11 +63,12 @@ namespace YoonSample.TestImage
             // Parsing
             _strRootDir = Path.Combine(_strRootDir, @"Drops");
             List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
+            _pClm.Write("Image Load Completed");
             // Image Processing
             foreach (YoonImage pImage in pListImage)
             {
                 YoonImage pResultImage = pImage.ToGrayImage();
-                YoonDataset pDataset = pResultImage.FindBlobs(90, false);
+                YoonDataset pDataset = pResultImage.FindBlobs(30, false);
                 for (int iObject = 0; iObject < pDataset.Count; iObject++)
                 {
                     YoonVector2N pVectorFeature = (pDataset[iObject].ReferencePosition is YoonVector2D pVector2D)
@@ -74,8 +76,8 @@ namespace YoonSample.TestImage
                         : (YoonVector2N) pDataset[iObject].ReferencePosition;
                     pResultImage.DrawFigure(pDataset[iObject].Feature, Color.Yellow);
                     pResultImage.DrawCross(pVectorFeature, Color.Yellow);
-                    CVImage.ShowImage(pResultImage, "Drop");
                 }
+                CVImage.ShowImage(pResultImage, pImage.FilePath);
             }
         }
     }

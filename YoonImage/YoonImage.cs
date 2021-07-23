@@ -437,12 +437,12 @@ namespace YoonFactory.Image
 
         public virtual bool LoadImage(string strPath)
         {
+            FilePath = strPath;
             if (!IsFileExist()) return false;
             try
             {
                 if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png"))
                 {
-                    FilePath = strPath;
                     Bitmap = (Bitmap) System.Drawing.Image.FromFile(FilePath);
                     return true;
                 }
@@ -575,21 +575,89 @@ namespace YoonFactory.Image
                 ? pImageResult
                 : new YoonImage(Width, Height, PixelFormat.Format24bppRgb);
         }
-
+        
         public virtual YoonImage ToARGBImage()
         {
             if (Plane != 1)
                 throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
             byte[] pBuffer = GetGrayBuffer();
             YoonImage pImageResult = new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
-            if (pImageResult.SetARGBImageWithPlane(pBuffer, pBuffer, pBuffer))
-                return pImageResult;
-            else
-                return new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
+            return pImageResult.SetARGBImageWithPlane(pBuffer, pBuffer, pBuffer)
+                ? pImageResult
+                : new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
+        }
+
+        private async Task ConvertGrey()
+        {
+            await Task.Run(() =>
+            {
+                if (Plane == 1) return;
+                byte[] pByte = new byte[Width * Height];
+                switch (Format)
+                {
+                    case PixelFormat.Format24bppRgb:
+                        byte[,] pBufferRGB = Scan24bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size));
+                        for (int j = 0; j < Bitmap.Height; j++)
+                        {
+                            for (int i = 0; i < Bitmap.Width; i++)
+                            {
+                                // ITU-RBT.709, YPrPb
+                                pByte[j * Bitmap.Width + i] = (byte) (0.299f * pBufferRGB[j * Bitmap.Width + i, 0] +
+                                                                      0.587f * pBufferRGB[j * Bitmap.Width + i, 1] +
+                                                                      0.114f * pBufferRGB[j * Bitmap.Width + i, 2]);
+                            }
+                        }
+
+                        break;
+                    case PixelFormat.Format32bppArgb:
+                        byte[,] pBufferARGB = Scan32bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size));
+                        for (int j = 0; j < Bitmap.Height; j++)
+                        {
+                            for (int i = 0; i < Bitmap.Width; i++)
+                            {
+                                // ITU-RBT.709, YPrPb
+                                pByte[j * Bitmap.Width + i] = (byte) (0.299f * pBufferARGB[j * Bitmap.Width + i, 1] +
+                                                                      0.587f * pBufferARGB[j * Bitmap.Width + i, 2] +
+                                                                      0.114f * pBufferARGB[j * Bitmap.Width + i, 3]);
+                            }
+                        }
+
+                        break;
+                    default:
+                        throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
+                }
+
+                Bitmap = new Bitmap(Width, Height, PixelFormat.Format8bppIndexed);
+                SetGrayImage(pByte);
+            });
+        }
+
+        private async Task ConvertRGB()
+        {
+            await Task.Run(() =>
+            {
+                if (Plane != 1) return;
+                byte[] pBuffer = GetGrayBuffer();
+                Bitmap = new Bitmap(Width, Height, PixelFormat.Format24bppRgb);
+                SetRGBImageWithPlane(pBuffer, pBuffer, pBuffer);
+            });
+        }
+
+        private async Task ConvertARGB()
+        {
+            await Task.Run(() =>
+            {
+                if (Plane != 1) return;
+                byte[] pBuffer = GetGrayBuffer();
+                Bitmap = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
+                SetARGBImageWithPlane(pBuffer, pBuffer, pBuffer);
+            });
         }
 
         public void FillTriangle(int nX, int nY, int nSize, eYoonDir2D nDir, Color pColor, double dZoom)
         {
+            Task pTaskConvert = ConvertARGB();
+
             PointF[] pPoint = new PointF[3];
             pPoint[0].X = (float) (nX * dZoom);
             pPoint[0].Y = (float) (nY * dZoom);
@@ -621,6 +689,7 @@ namespace YoonFactory.Image
                     break;
             }
 
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(pColor);
@@ -630,8 +699,11 @@ namespace YoonFactory.Image
 
         public void FillRect(YoonRect2N pRect, Color pColor, double dRatio = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             float startX = (float) (pRect.CenterPos.X - pRect.Width / 2) * (float) dRatio;
             float startY = (float) (pRect.CenterPos.Y - pRect.Height / 2) * (float) dRatio;
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(pColor);
@@ -641,8 +713,11 @@ namespace YoonFactory.Image
 
         public void FillRect(YoonRect2D pRect, Color pColor, double dRatio = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             float startX = (float) (pRect.CenterPos.X - pRect.Width / 2) * (float) dRatio;
             float startY = (float) (pRect.CenterPos.Y - pRect.Height / 2) * (float) dRatio;
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(pColor);
@@ -652,8 +727,11 @@ namespace YoonFactory.Image
 
         public void FillRect(int nCenterX, int nCenterY, int nWidth, int nHeight, Color pColor, double dZoom)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             float startX = (float) (nCenterX - nWidth / 2) * (float) dZoom;
             float startY = (float) (nCenterY - nHeight / 2) * (float) dZoom;
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(pColor);
@@ -663,12 +741,16 @@ namespace YoonFactory.Image
 
         public void FillPolygon(YoonVector2N[] pArrayPoint, Color pColor, double dRatio = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             PointF[] pArrayDraw = new PointF[pArrayPoint.Length];
             for (int iPoint = 0; iPoint < pArrayPoint.Length; iPoint++)
             {
                 pArrayDraw[iPoint].X = (float) pArrayPoint[iPoint].X * (float) dRatio;
                 pArrayDraw[iPoint].Y = (float) pArrayPoint[iPoint].Y * (float) dRatio;
             }
+
+            pTaskConvert.Wait();
 
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
@@ -679,7 +761,10 @@ namespace YoonFactory.Image
 
         public void FillCanvas(Color pColor)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             Rectangle pRectCanvas = new Rectangle(0, 0, Bitmap.Width, Bitmap.Height);
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(pColor);
@@ -716,6 +801,8 @@ namespace YoonFactory.Image
 
         public void DrawTriangle(int nX, int nY, int nSize, eYoonDir2D nDir, Color pColor, int nPenWidth = 1, double dZoom = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             PointF[] pIYoonVector = new PointF[3];
             pIYoonVector[0].X = (float) (nX * dZoom);
             pIYoonVector[0].Y = (float) (nY * dZoom);
@@ -747,6 +834,7 @@ namespace YoonFactory.Image
                     break;
             }
 
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pen = new Pen(pColor, (float) nPenWidth);
@@ -793,10 +881,13 @@ namespace YoonFactory.Image
         public void DrawLine(YoonVector2N pVector1, YoonVector2N pVector2, Color pColor, int nPenWidth = 1,
             double dRatio = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             double dDeltaX1 = pVector1.X * dRatio;
             double dDeltaY1 = pVector1.Y * dRatio;
             double dDeltaX2 = pVector2.X * dRatio;
             double dDeltaY2 = pVector2.Y * dRatio;
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pen = new Pen(pColor, nPenWidth);
@@ -807,10 +898,13 @@ namespace YoonFactory.Image
 
         public void DrawLine(int nX1, int nY1, int nX2, int nY2, Color pColor, int nPenWidth = 1, double dZoom = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             double dDeltaX1 = (double) nX1 * dZoom;
             double dDeltaY1 = (double) nY1 * dZoom;
             double dDeltaX2 = (double) nX2 * dZoom;
             double dDeltaY2 = (double) nY2 * dZoom;
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pPen = new Pen(pColor, nPenWidth);
@@ -821,10 +915,13 @@ namespace YoonFactory.Image
 
         public void DrawText(YoonVector2N pVector, Color pColor, string strText, int nFontSize = 8, double dRatio = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             float dDeltaX = (float) (pVector.X * dRatio);
             float dDeltaY = (float) (pVector.Y * dRatio);
             float dSize = (float) nFontSize;
             if (dSize < 10) dSize = 10;
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Brush brush = new SolidBrush(pColor);
@@ -836,12 +933,15 @@ namespace YoonFactory.Image
 
         public void DrawCross(YoonVector2N pVector, Color pColor, int nSize = 10, int nPenWidth = 1, double dRatio = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             float dDeltaX = (float) (pVector.X * dRatio);
             float dDeltaY = (float) (pVector.Y * dRatio);
             float dX1 = dDeltaX - nSize;
             float dX2 = dDeltaX + nSize;
             float dY1 = dDeltaY - nSize;
             float dY2 = dDeltaY + nSize;
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pPen = new Pen(pColor, (float) nPenWidth);
@@ -852,10 +952,13 @@ namespace YoonFactory.Image
 
         public void DrawEllipse(YoonRect2N pRect, Color pColor, int nPenWidth = 1, double dRatio = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             int nX1 = (int) Math.Round(pRect.Left * dRatio);
             int nY1 = (int) Math.Round(pRect.Top * dRatio);
             int nX2 = (int) Math.Round(pRect.Right * dRatio);
             int nY2 = (int) Math.Round(pRect.Bottom * dRatio);
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pPen = new Pen(pColor, (float) nPenWidth);
@@ -865,6 +968,8 @@ namespace YoonFactory.Image
 
         public void DrawPolygon(YoonVector2N[] pArrayPoint, Color pColor, int nPenWidth = 1, double dRatio = 1.0)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             PointF[] pArrayDraw = new PointF[pArrayPoint.Length];
             for (int iPoint = 0; iPoint < pArrayPoint.Length; iPoint++)
             {
@@ -872,6 +977,7 @@ namespace YoonFactory.Image
                 pArrayDraw[iPoint].Y = pArrayPoint[iPoint].Y * (float) dRatio;
             }
 
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pPen = new Pen(pColor, (float) nPenWidth);
@@ -881,6 +987,8 @@ namespace YoonFactory.Image
         
         public void DrawPolygon(Color pColor, int nPenWidth = 1, double dRatio = 1.0, params YoonVector2N[] pArgs)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             PointF[] pArrayDraw = new PointF[pArgs.Length];
             for (int iPoint = 0; iPoint < pArgs.Length; iPoint++)
             {
@@ -888,6 +996,7 @@ namespace YoonFactory.Image
                 pArrayDraw[iPoint].Y = pArgs[iPoint].Y * (float) dRatio;
             }
 
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pPen = new Pen(pColor, (float) nPenWidth);
@@ -897,6 +1006,8 @@ namespace YoonFactory.Image
         
         public void DrawPolygon(Color pColor, int nPenWidth = 1, double dRatio = 1.0, params YoonVector2D[] pArgs)
         {
+            Task pTaskConvert = ConvertARGB();
+            
             PointF[] pArrayDraw = new PointF[pArgs.Length];
             for (int iPoint = 0; iPoint < pArgs.Length; iPoint++)
             {
@@ -904,6 +1015,7 @@ namespace YoonFactory.Image
                 pArrayDraw[iPoint].Y = (float) pArgs[iPoint].Y * (float) dRatio;
             }
 
+            pTaskConvert.Wait();
             using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pPen = new Pen(pColor, (float) nPenWidth);

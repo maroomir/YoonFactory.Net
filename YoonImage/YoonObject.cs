@@ -368,7 +368,7 @@ namespace YoonFactory
 
         public bool Equals(YoonObject other)
         {
-            return Equals(other);
+            return Equals((object) other);
         }
 
         public static bool operator ==(YoonObject pObjectSource, YoonObject pObjectOther)

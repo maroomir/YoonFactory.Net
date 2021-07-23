@@ -82,7 +82,7 @@ namespace YoonFactory.Files
             return pFile.Exists;
         }
 
-        public static string GetParants(string strPath, int nStep = 1)
+        public static string GetParantsRoot(string strPath, int nStep = 1)
         {
             FileAttributes pAttribute = File.GetAttributes(strPath);
             if ((pAttribute & FileAttributes.Directory) == FileAttributes.Directory)
