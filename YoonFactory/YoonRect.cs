@@ -67,8 +67,8 @@ namespace YoonFactory
             int nBottom = (Bottom <= nMaxY) ? Bottom : nMaxY;
             CenterPos.X = (nLeft + nRight) / 2;
             CenterPos.Y = (nTop + nBottom) / 2;
-            Width = nRight - nLeft;
-            Height = nBottom - nTop;
+            Width = Math.Abs(nRight - nLeft);
+            Height = Math.Abs(nBottom - nTop);
         }
 
         public void SetVerifiedArea(IYoonVector2D<int> pMinVector, IYoonVector2D<int> pMaxVector)
@@ -465,8 +465,8 @@ namespace YoonFactory
             double dBottom = (Bottom <= dMaxY) ? Bottom : dMaxY;
             CenterPos.X = (dLeft + dRight) / 2;
             CenterPos.Y = (dTop + dBottom) / 2;
-            Width = dRight - dLeft;
-            Height = dBottom - dTop;
+            Width = Math.Abs(dRight - dLeft);
+            Height = Math.Abs(dBottom - dTop);
         }
 
         public void SetVerifiedArea(IYoonVector2D<double> pMinVector, IYoonVector2D<double> pMaxVector)

@@ -2105,10 +2105,12 @@ namespace YoonFactory.Image
                     ? Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 0)
                     : Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 255);
                 // Repeat the function until all blob are found
+                int nStepSearch = 5;
+                eYoonDir2D nDirSearch = eYoonDir2D.Right;
                 while (true)
                 {
                     // Get start position
-                    YoonVector2N pResultVector = Scanner.Scan2D(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right,
+                    YoonVector2N pResultVector = Scanner.Scan2D(pTempBuffer, nWidth, nHeight, nDirSearch,
                         pStartVector, nThreshold, bWhite) as YoonVector2N;
                     Debug.Assert(pResultVector != null, nameof(pResultVector) + " != null");
                     // If the scanner is stop on the boundary
@@ -2120,14 +2122,35 @@ namespace YoonFactory.Image
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     YoonRect2N pFeature = pObject.Feature as YoonRect2N;
                     Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
-                    // Control the start vector before the error detect
-                    pStartVector = (YoonVector2N) pFeature.BottomRight + new YoonVector2N(1, 1);
-                    // Error in edge detection
-                    if (pFeature.Left == 0 || pFeature.Top == 0 || pFeature.Right == 0 || pFeature.Bottom == 0)
-                        continue;
+                    // Error in the edge detection, or
                     // Erase the rect when the blob is constructed only one pixel
-                    if (pFeature.Left == -1 || pFeature.Top == -1 || pFeature.Right == -1 || pFeature.Bottom == -1)
+                    if (pFeature.Left <= 0 || pFeature.Top <= 0 || pFeature.Right <= 0 || pFeature.Bottom <= 0 ||
+                        pFeature.Width <= 0 || pFeature.Height <= 0)
+                    {
+                        pStartVector = pResultVector + new YoonVector2N(nDirSearch);
+                        if (pStartVector.X >= nWidth - 1 || pStartVector.X < 0)
+                        {
+                            nDirSearch.ReverseY();
+                            pStartVector += new YoonVector2N(nDirSearch);
+                            pStartVector.Y += nStepSearch;
+                            nStepSearch = 5;
+                        }
+
                         continue;
+                    }
+
+                    // Move the pipeline vector
+                    pStartVector =
+                        (YoonVector2N) (nDirSearch == eYoonDir2D.Right ? pFeature.TopRight : pFeature.TopLeft);
+                    nStepSearch = Math.Max(nStepSearch, pFeature.Height);
+                    if (pStartVector.X >= nWidth - 1 || pStartVector.X < 0)
+                    {
+                        nDirSearch.ReverseY();
+                        pStartVector += new YoonVector2N(nDirSearch);
+                        pStartVector.Y += nStepSearch;
+                        nStepSearch = 5;
+                    }
+
                     // Save the blob in the list
                     pObject.Label = nLabelNo++;
                     pResultSet.Add(pObject);
@@ -2157,34 +2180,59 @@ namespace YoonFactory.Image
                 pTempBuffer = bWhite
                     ? Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 0)
                     : Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 255);
+                // Repeat the function until all blob are found
+                int nStepSearch = 5;
+                eYoonDir2D nDirSearch = eYoonDir2D.Right;
                 while (true)
                 {
-                    YoonVector2N pResultVector = Scanner.Scan2D(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right,
+                    // Get start position
+                    YoonVector2N pResultVector = Scanner.Scan2D(pTempBuffer, nWidth, nHeight, nDirSearch,
                         pStartVector, nThreshold, bWhite) as YoonVector2N;
                     Debug.Assert(pResultVector != null, nameof(pResultVector) + " != null");
+                    // If the scanner is stop on the boundary
                     if (pResultVector.X == -1 && pResultVector.Y == -1)
                         break;
+                    // Bind the blob
                     YoonObject pObject =
                         ProcessBind(pTempBuffer, nWidth, nHeight, pResultVector, nThreshold, bWhite) as YoonObject;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     YoonRect2N pFeature = pObject.Feature as YoonRect2N;
                     Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
-                    pStartVector = (YoonVector2N) pFeature.BottomRight + new YoonVector2N(1, 1);
-                    if (pFeature.Left == 0 || pFeature.Top == 0 || pFeature.Right == 0 || pFeature.Bottom == 0)
-                        continue;
-                    if (pFeature.Left == -1 || pFeature.Top == -1 || pFeature.Right == -1 || pFeature.Bottom == -1)
-                        continue;
-                    pObject.Label = nLabelNo++;
-                    pResultSet.Add(pObject);
-                    if (pResultSet.Count > MAX_OBJECT || pObject.Label > MAX_LABEL)
-                        break;
+                    // Error in the edge detection, or
+                    // Erase the rect when the blob is constructed only one pixel
+                    if (pFeature.Left <= 0 || pFeature.Top <= 0 || pFeature.Right <= 0 || pFeature.Bottom <= 0 ||
+                        pFeature.Width <= 0 || pFeature.Height <= 0)
+                    {
+                        pStartVector = pResultVector + new YoonVector2N(nDirSearch);
+                    }
+                    else
+                    {
+                        // Move the searching vector
+                        pStartVector =
+                            (YoonVector2N) (nDirSearch == eYoonDir2D.Right ? pFeature.TopRight : pFeature.TopLeft);
+                        nStepSearch = Math.Max(nStepSearch, pFeature.Height);
+                        // Save the blob in the list
+                        pObject.Label = nLabelNo++;
+                        pResultSet.Add(pObject);
+                        if (pResultSet.Count > MAX_OBJECT || pObject.Label > MAX_LABEL)
+                            break;
+                    }
+
+                    // Revise the searching vector if has over-size
+                    if (pStartVector.X >= nWidth - 1 || pStartVector.X < 0)
+                    {
+                        nDirSearch.ReverseY();
+                        pStartVector += new YoonVector2N(nDirSearch);
+                        pStartVector.Y += nStepSearch;
+                        nStepSearch = 5;
+                    }
                 }
 
                 return pResultSet;
             }
 
             private static YoonObject ProcessBind(byte[] pBuffer, int nWidth, int nHeight, YoonVector2N pStartVector,
-                byte nThreshold, bool bWhite)
+                byte nThreshold, bool bWhite, int nBindCount = 10)
             {
                 // Search the binding vectors to move the default vector
                 eYoonDir2D[] pArrayDirection = YoonDirFactory.GetClockDirections();
@@ -2193,21 +2241,44 @@ namespace YoonFactory.Image
                 {
                     foreach (eYoonDir2D nDir in pArrayDirection)
                     {
+                        bool bAddList = false;
+                        // Add the vector to binding blob with similar levels
                         YoonVector2N pPipelineVector = new YoonVector2N(pListBindings[iIndex]);
                         pPipelineVector.Move(nDir);
-                        if (pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
+                        if (!pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
                             continue;
                         if (bWhite && pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] > nThreshold &&
                             !pListBindings.Contains(pPipelineVector))
-                            pListBindings.Add(pPipelineVector.Clone() as YoonVector2N);
+                            bAddList = true;
                         else if (!bWhite && pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] <= nThreshold &&
                                  !pListBindings.Contains(pPipelineVector))
-                            pListBindings.Add(pPipelineVector.Clone() as YoonVector2N);
+                            bAddList = true;
+                        if (bAddList)
+                        {
+                            // Pass the duplicated vector
+                            bool bDuplicatedList = false;
+                            foreach (YoonVector2N pVector in pListBindings)
+                            {
+                                if (pPipelineVector.X == pVector.X && pPipelineVector.Y == pVector.Y)
+                                {
+                                    bDuplicatedList = true;
+                                    break;
+                                }
+                            }
+
+                            if (!bDuplicatedList)
+                                pListBindings.Add(pPipelineVector.Clone() as YoonVector2N);
+                        }
                     }
                 }
-                // Concrete the rectangle from the binding points
-                YoonRect2N pResultRect = new YoonRect2N(pListBindings);
+
+                // Erase the small drops less then the binding counts
+                YoonRect2N pResultRect = new YoonRect2N(-1, -1, -1, -1);
                 YoonImage pResultImage = new YoonImage(1, 1, 1);
+                if (pListBindings.Count < nBindCount)
+                    return new YoonObject(0, pResultRect, pResultImage, pListBindings.Count);
+                // Concrete the rectangle from the binding points
+                pResultRect = new YoonRect2N(pListBindings);
                 pResultRect.SetVerifiedArea(0, 0, nWidth, nHeight);
                 if (pResultRect.Width == 0 || pResultRect.Height == 0)
                     return new YoonObject(0, pResultRect, pResultImage, pListBindings.Count);
