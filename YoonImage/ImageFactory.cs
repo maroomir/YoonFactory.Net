@@ -1969,16 +1969,15 @@ namespace YoonFactory.Image
                 YoonImage pMaxImage = new YoonImage(1, 1, 1);
                 int nMaxLength = 0;
                 int nMaxLabel = 0;
-                int nWidth, nHeight, nLength;
                 double dMaxScore = 0.0;
                 YoonDataset pDataset = FindBlobs(pBuffer, nImageWidth, pScanArea, nThreshold, bWhite);
                 YoonRect2N pMaxArea = new YoonRect2N(0, 0, 0, 0);
                 for (int iObject = 0; iObject < pDataset.Count; iObject++)
                 {
                     YoonRect2N pRectFeature = (YoonRect2N) pDataset[iObject].Feature;
-                    nWidth = pRectFeature.Width;
-                    nHeight = pRectFeature.Height;
-                    nLength = pDataset[iObject].PixelCount;
+                    int nWidth = pRectFeature.Width;
+                    int nHeight = pRectFeature.Height;
+                    int nLength = pDataset[iObject].PixelCount;
                     // Only count the square rect blob
                     if (bSquareOnly)
                     {
@@ -2117,8 +2116,7 @@ namespace YoonFactory.Image
                         break;
                     // Bind the blob
                     YoonObject pObject =
-                        ProcessBind(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right, pResultVector, nThreshold,
-                            bWhite) as YoonObject;
+                        ProcessBind(pTempBuffer, nWidth, nHeight, pResultVector, nThreshold, bWhite) as YoonObject;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     YoonRect2N pFeature = pObject.Feature as YoonRect2N;
                     Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
@@ -2167,8 +2165,7 @@ namespace YoonFactory.Image
                     if (pResultVector.X == -1 && pResultVector.Y == -1)
                         break;
                     YoonObject pObject =
-                        ProcessBind(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right, pResultVector, nThreshold,
-                            bWhite) as YoonObject;
+                        ProcessBind(pTempBuffer, nWidth, nHeight, pResultVector, nThreshold, bWhite) as YoonObject;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     YoonRect2N pFeature = pObject.Feature as YoonRect2N;
                     Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
@@ -2186,112 +2183,34 @@ namespace YoonFactory.Image
                 return pResultSet;
             }
 
-            private enum eYoonStepBinding
+            private static YoonObject ProcessBind(byte[] pBuffer, int nWidth, int nHeight, YoonVector2N pStartVector,
+                byte nThreshold, bool bWhite)
             {
-                Init,
-                Check,
-                Go,
-                Stack,
-                Rotate,
-                Error,
-                Finish,
-            }
-
-            private static YoonObject ProcessBind(byte[] pBuffer, int nWidth, int nHeight, eYoonDir2D nDir,
-                YoonVector2N pStartVector, byte nThreshold, bool bWhite)
-            {
-                int nPixelCount = 0;
-                bool bRun = true;
-                YoonRect2N pResultRect = new YoonRect2N(pStartVector.X, pStartVector.Y, 0, 0);
-                eYoonDir2D nDirSearch = nDir;
-                eYoonDir2DMode nDirMode = eYoonDir2DMode.Clock4;
-                YoonVector2N pCurrentVector = new YoonVector2N(pStartVector);
-                eYoonStepBinding nJobStep = eYoonStepBinding.Init;
-                eYoonStepBinding nJobStepBK = nJobStep;
-                while (bRun)
+                // Search the binding vectors to move the default vector
+                eYoonDir2D[] pArrayDirection = YoonDirFactory.GetClockDirections();
+                List<YoonVector2N> pListBindings = new List<YoonVector2N> {pStartVector.Clone() as YoonVector2N};
+                for (int iIndex = 0; iIndex < pListBindings.Count; iIndex++)
                 {
-                    switch (nJobStep)
+                    foreach (eYoonDir2D nDir in pArrayDirection)
                     {
-                        case eYoonStepBinding.Init:
-                            switch (nDir)
-                            {
-                                case eYoonDir2D.Top:
-                                    nDirMode = eYoonDir2DMode.Clock4;
-                                    nJobStep = eYoonStepBinding.Go;
-                                    break;
-                                case eYoonDir2D.Right:
-                                    nDirMode = eYoonDir2DMode.AntiClock4;
-                                    nJobStep = eYoonStepBinding.Go;
-                                    break;
-                                case eYoonDir2D.Bottom:
-                                    nDirMode = eYoonDir2DMode.Clock4;
-                                    nJobStep = eYoonStepBinding.Go;
-                                    break;
-                                case eYoonDir2D.Left:
-                                    nDirMode = eYoonDir2DMode.Clock4;
-                                    nJobStep = eYoonStepBinding.Go;
-                                    break;
-                                default:
-                                    nJobStep = eYoonStepBinding.Error;
-                                    break;
-                            }
-
-                            break;
-                        case eYoonStepBinding.Check:
-                            byte value = pBuffer[pCurrentVector.Y * nWidth + pCurrentVector.X];
-                            if (bWhite && value >= nThreshold)
-                                nJobStep = eYoonStepBinding.Stack;
-                            else if (!bWhite && value <= nThreshold)
-                                nJobStep = eYoonStepBinding.Stack;
-                            else
-                            {
-                                if (nJobStepBK == eYoonStepBinding.Stack)
-                                    nJobStep = eYoonStepBinding.Rotate;
-                                else
-                                    nJobStep = eYoonStepBinding.Error;
-                            }
-
-                            break;
-                        case eYoonStepBinding.Go:
-                            pCurrentVector.Move(nDirSearch);
-                            nJobStep = eYoonStepBinding.Check;
-                            break;
-                        case eYoonStepBinding.Stack:
-                            nJobStepBK = nJobStep;
-                            nPixelCount++;
-                            if (pCurrentVector.X < pResultRect.Left)
-                                pResultRect.CenterPos.X = pCurrentVector.X + pResultRect.Width / 2;
-                            if (pCurrentVector.X > pResultRect.Right)
-                                pResultRect.Width = pCurrentVector.X - pResultRect.Left;
-                            if (pCurrentVector.Y < pResultRect.Top)
-                                pResultRect.CenterPos.Y = pCurrentVector.Y + pResultRect.Height / 2;
-                            if (pCurrentVector.Y > pResultRect.Bottom)
-                                pResultRect.Height = pCurrentVector.Y - pResultRect.Top;
-                            nJobStep = eYoonStepBinding.Go;
-                            break;
-                        case eYoonStepBinding.Rotate:
-                            nDirSearch = nDirSearch.Go(nDirMode);
-                            if (nDirSearch == nDir)
-                                nJobStep = eYoonStepBinding.Finish;
-                            else
-                                nJobStep = eYoonStepBinding.Go;
-                            break;
-                        case eYoonStepBinding.Error:
-                            pResultRect = new YoonRect2N(-1, -1, 0, 0);
-                            bRun = false;
-                            break;
-                        case eYoonStepBinding.Finish:
-                            bRun = false;
-                            break;
+                        YoonVector2N pPipelineVector = new YoonVector2N(pListBindings[iIndex]);
+                        pPipelineVector.Move(nDir);
+                        if (pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
+                            continue;
+                        if (bWhite && pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] > nThreshold &&
+                            !pListBindings.Contains(pPipelineVector))
+                            pListBindings.Add(pPipelineVector.Clone() as YoonVector2N);
+                        else if (!bWhite && pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] <= nThreshold &&
+                                 !pListBindings.Contains(pPipelineVector))
+                            pListBindings.Add(pPipelineVector.Clone() as YoonVector2N);
                     }
                 }
-
+                // Concrete the rectangle from the binding points
+                YoonRect2N pResultRect = new YoonRect2N(pListBindings);
                 YoonImage pResultImage = new YoonImage(1, 1, 1);
-                if (pResultRect.CenterPos.X == -1 || pResultRect.CenterPos.Y == -1)
-                    return new YoonObject(0, pResultRect, pResultImage, nPixelCount);
                 pResultRect.SetVerifiedArea(0, 0, nWidth, nHeight);
                 if (pResultRect.Width == 0 || pResultRect.Height == 0)
-                    return new YoonObject(0, pResultRect, pResultImage, nPixelCount);
+                    return new YoonObject(0, pResultRect, pResultImage, pListBindings.Count);
                 byte[] pBufferCrop = new byte[pResultRect.Width * pResultRect.Height];
                 for (int iY = 0; iY < pResultRect.Height; iY++)
                 {
@@ -2306,7 +2225,7 @@ namespace YoonFactory.Image
                 pResultImage = new YoonImage(pBufferCrop, pResultRect.Width, pResultRect.Height,
                     PixelFormat.Format8bppIndexed);
 
-                return new YoonObject(0, pResultRect, pResultImage, nPixelCount);
+                return new YoonObject(0, pResultRect, pResultImage, pListBindings.Count);
             }
         }
 

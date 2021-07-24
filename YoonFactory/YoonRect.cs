@@ -128,9 +128,106 @@ namespace YoonFactory
                 throw new ArgumentException("[YOONCOMMON] Direction Argument is not correct");
         }
 
+        public YoonRect2N(List<YoonVector2N> pList)
+        {
+            if (pList.Count < 2)
+            {
+                CenterPos = pList[0].Clone() as YoonVector2N;
+                Width = 0;
+                Height = 0;
+            }
+            else
+            {
+                int nInitLeft = (pList[0].X > pList[1].X) ? pList[1].X : pList[0].X;
+                int nInitRight = (pList[0].X < pList[1].X) ? pList[1].X : pList[0].X;
+                int nInitTop = (pList[0].Y > pList[1].Y) ? pList[1].Y : pList[0].Y;
+                int nInitBottom = (pList[0].Y < pList[1].Y) ? pList[1].Y : pList[0].Y;
+                YoonVector2N pPosTopLeft = new YoonVector2N(nInitLeft, nInitTop);
+                YoonVector2N pPosBottomRight = new YoonVector2N(nInitRight, nInitBottom);
+                for (int iParam = 2; iParam < pList.Count; iParam++)
+                {
+                    eYoonDir2D nDirDiffTopLeft = pPosTopLeft.DirectionTo(pList[iParam]);
+                    eYoonDir2D nDirDiffBottomRight = pPosBottomRight.DirectionTo(pList[iParam]);
+                    switch (nDirDiffTopLeft)
+                    {
+                        case eYoonDir2D.TopLeft:
+                            pPosTopLeft.X = pList[iParam].X;
+                            pPosTopLeft.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.Top:
+                            pPosTopLeft.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.TopRight:
+                            pPosTopLeft.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.Left:
+                            pPosTopLeft.X = pList[iParam].X;
+                            break;
+                        case eYoonDir2D.BottomLeft:
+                            pPosTopLeft.X = pList[iParam].X;
+                            break;
+                        case eYoonDir2D.None:
+                            break;
+                        case eYoonDir2D.Center:
+                            break;
+                        case eYoonDir2D.Right:
+                            break;
+                        case eYoonDir2D.BottomRight:
+                            break;
+                        case eYoonDir2D.Bottom:
+                            break;
+                        default:
+                            break;
+                    }
+
+                    switch (nDirDiffBottomRight)
+                    {
+                        case eYoonDir2D.TopRight:
+                            pPosBottomRight.X = pList[iParam].X;
+                            break;
+                        case eYoonDir2D.Right:
+                            pPosBottomRight.X = pList[iParam].X;
+                            break;
+                        case eYoonDir2D.BottomLeft:
+                            pPosBottomRight.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.Bottom:
+                            pPosBottomRight.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.BottomRight:
+                            pPosBottomRight.X = pList[iParam].X;
+                            pPosBottomRight.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.None:
+                            break;
+                        case eYoonDir2D.Center:
+                            break;
+                        case eYoonDir2D.TopLeft:
+                            break;
+                        case eYoonDir2D.Top:
+                            break;
+                        case eYoonDir2D.Left:
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                CenterPos = (pPosTopLeft + pPosBottomRight) / 2;
+                Width = (pPosBottomRight - pPosTopLeft).X;
+                Height = (pPosBottomRight - pPosTopLeft).Y;
+            }
+        }
+
         public YoonRect2N(params YoonVector2N[] pArgs)
         {
-            if (pArgs.Length >= 2)
+            if (pArgs.Length < 2)
+            {
+                CenterPos = pArgs[0].Clone() as YoonVector2N;
+                Width = 0;
+                Height = 0;
+            }
+            else
             {
                 int nInitLeft = (pArgs[0].X > pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
                 int nInitRight = (pArgs[0].X < pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
@@ -431,87 +528,186 @@ namespace YoonFactory
             }
         }
 
+        public YoonRect2D(List<YoonVector2D> pList)
+        {
+            if (pList.Count < 2)
+            {
+                CenterPos = pList[0].Clone() as YoonVector2D;
+                Width = 0;
+                Height = 0;
+            }
+            else
+            {
+                double dInitLeft = (pList[0].X > pList[1].X) ? pList[1].X : pList[0].X;
+                double dInitRight = (pList[0].X < pList[1].X) ? pList[1].X : pList[0].X;
+                double dInitTop = (pList[0].Y > pList[1].Y) ? pList[1].Y : pList[0].Y;
+                double dInitBottom = (pList[0].Y < pList[1].Y) ? pList[1].Y : pList[0].Y;
+                YoonVector2D pVectorTopLeft = new YoonVector2D(dInitLeft, dInitTop);
+                YoonVector2D pVectorBottomRight = new YoonVector2D(dInitRight, dInitBottom);
+                for (int iParam = 2; iParam < pList.Count; iParam++)
+                {
+                    eYoonDir2D nDirDiffTopLeft = pVectorTopLeft.DirectionTo(pList[iParam]);
+                    eYoonDir2D nDirDiffBottomRight = pVectorBottomRight.DirectionTo(pList[iParam]);
+                    switch (nDirDiffTopLeft)
+                    {
+                        case eYoonDir2D.TopLeft:
+                            pVectorTopLeft.X = pList[iParam].X;
+                            pVectorTopLeft.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.Top:
+                            pVectorTopLeft.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.TopRight:
+                            pVectorTopLeft.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.Left:
+                            pVectorTopLeft.X = pList[iParam].X;
+                            break;
+                        case eYoonDir2D.BottomLeft:
+                            pVectorTopLeft.X = pList[iParam].X;
+                            break;
+                        case eYoonDir2D.None:
+                            break;
+                        case eYoonDir2D.Center:
+                            break;
+                        case eYoonDir2D.Right:
+                            break;
+                        case eYoonDir2D.BottomRight:
+                            break;
+                        case eYoonDir2D.Bottom:
+                            break;
+                        default:
+                            break;
+                    }
+
+                    switch (nDirDiffBottomRight)
+                    {
+                        case eYoonDir2D.TopRight:
+                            pVectorBottomRight.X = pList[iParam].X;
+                            break;
+                        case eYoonDir2D.Right:
+                            pVectorBottomRight.X = pList[iParam].X;
+                            break;
+                        case eYoonDir2D.BottomLeft:
+                            pVectorBottomRight.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.Bottom:
+                            pVectorBottomRight.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.BottomRight:
+                            pVectorBottomRight.X = pList[iParam].X;
+                            pVectorBottomRight.Y = pList[iParam].Y;
+                            break;
+                        case eYoonDir2D.None:
+                            break;
+                        case eYoonDir2D.Center:
+                            break;
+                        case eYoonDir2D.TopLeft:
+                            break;
+                        case eYoonDir2D.Top:
+                            break;
+                        case eYoonDir2D.Left:
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                CenterPos = (pVectorTopLeft + pVectorBottomRight) / 2;
+                Width = (pVectorBottomRight - pVectorTopLeft).X;
+                Height = (pVectorBottomRight - pVectorTopLeft).Y;
+            }
+        }
+
         public YoonRect2D(params YoonVector2D[] pArgs)
         {
-            if (pArgs.Length < 2) return;
-            double dInitLeft = (pArgs[0].X > pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
-            double dInitRight = (pArgs[0].X < pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
-            double dInitTop = (pArgs[0].Y > pArgs[1].Y) ? pArgs[1].Y : pArgs[0].Y;
-            double dInitBottom = (pArgs[0].Y < pArgs[1].Y) ? pArgs[1].Y : pArgs[0].Y;
-            YoonVector2D pVectorTopLeft = new YoonVector2D(dInitLeft, dInitTop);
-            YoonVector2D pVectorBottomRight = new YoonVector2D(dInitRight, dInitBottom);
-            for (int iParam = 2; iParam < pArgs.Length; iParam++)
+            if (pArgs.Length < 2)
             {
-                eYoonDir2D nDirDiffTopLeft = pVectorTopLeft.DirectionTo(pArgs[iParam]);
-                eYoonDir2D nDirDiffBottomRight = pVectorBottomRight.DirectionTo(pArgs[iParam]);
-                switch (nDirDiffTopLeft)
-                {
-                    case eYoonDir2D.TopLeft:
-                        pVectorTopLeft.X = pArgs[iParam].X;
-                        pVectorTopLeft.Y = pArgs[iParam].Y;
-                        break;
-                    case eYoonDir2D.Top:
-                        pVectorTopLeft.Y = pArgs[iParam].Y;
-                        break;
-                    case eYoonDir2D.TopRight:
-                        pVectorTopLeft.Y = pArgs[iParam].Y;
-                        break;
-                    case eYoonDir2D.Left:
-                        pVectorTopLeft.X = pArgs[iParam].X;
-                        break;
-                    case eYoonDir2D.BottomLeft:
-                        pVectorTopLeft.X = pArgs[iParam].X;
-                        break;
-                    case eYoonDir2D.None:
-                        break;
-                    case eYoonDir2D.Center:
-                        break;
-                    case eYoonDir2D.Right:
-                        break;
-                    case eYoonDir2D.BottomRight:
-                        break;
-                    case eYoonDir2D.Bottom:
-                        break;
-                    default:
-                        break;
-                }
-
-                switch (nDirDiffBottomRight)
-                {
-                    case eYoonDir2D.TopRight:
-                        pVectorBottomRight.X = pArgs[iParam].X;
-                        break;
-                    case eYoonDir2D.Right:
-                        pVectorBottomRight.X = pArgs[iParam].X;
-                        break;
-                    case eYoonDir2D.BottomLeft:
-                        pVectorBottomRight.Y = pArgs[iParam].Y;
-                        break;
-                    case eYoonDir2D.Bottom:
-                        pVectorBottomRight.Y = pArgs[iParam].Y;
-                        break;
-                    case eYoonDir2D.BottomRight:
-                        pVectorBottomRight.X = pArgs[iParam].X;
-                        pVectorBottomRight.Y = pArgs[iParam].Y;
-                        break;
-                    case eYoonDir2D.None:
-                        break;
-                    case eYoonDir2D.Center:
-                        break;
-                    case eYoonDir2D.TopLeft:
-                        break;
-                    case eYoonDir2D.Top:
-                        break;
-                    case eYoonDir2D.Left:
-                        break;
-                    default:
-                        break;
-                }
+                CenterPos = pArgs[0].Clone() as YoonVector2D;
+                Width = 0;
+                Height = 0;
             }
+            else
+            {
+                double dInitLeft = (pArgs[0].X > pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
+                double dInitRight = (pArgs[0].X < pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
+                double dInitTop = (pArgs[0].Y > pArgs[1].Y) ? pArgs[1].Y : pArgs[0].Y;
+                double dInitBottom = (pArgs[0].Y < pArgs[1].Y) ? pArgs[1].Y : pArgs[0].Y;
+                YoonVector2D pVectorTopLeft = new YoonVector2D(dInitLeft, dInitTop);
+                YoonVector2D pVectorBottomRight = new YoonVector2D(dInitRight, dInitBottom);
+                for (int iParam = 2; iParam < pArgs.Length; iParam++)
+                {
+                    eYoonDir2D nDirDiffTopLeft = pVectorTopLeft.DirectionTo(pArgs[iParam]);
+                    eYoonDir2D nDirDiffBottomRight = pVectorBottomRight.DirectionTo(pArgs[iParam]);
+                    switch (nDirDiffTopLeft)
+                    {
+                        case eYoonDir2D.TopLeft:
+                            pVectorTopLeft.X = pArgs[iParam].X;
+                            pVectorTopLeft.Y = pArgs[iParam].Y;
+                            break;
+                        case eYoonDir2D.Top:
+                            pVectorTopLeft.Y = pArgs[iParam].Y;
+                            break;
+                        case eYoonDir2D.TopRight:
+                            pVectorTopLeft.Y = pArgs[iParam].Y;
+                            break;
+                        case eYoonDir2D.Left:
+                            pVectorTopLeft.X = pArgs[iParam].X;
+                            break;
+                        case eYoonDir2D.BottomLeft:
+                            pVectorTopLeft.X = pArgs[iParam].X;
+                            break;
+                        case eYoonDir2D.None:
+                            break;
+                        case eYoonDir2D.Center:
+                            break;
+                        case eYoonDir2D.Right:
+                            break;
+                        case eYoonDir2D.BottomRight:
+                            break;
+                        case eYoonDir2D.Bottom:
+                            break;
+                        default:
+                            break;
+                    }
 
-            CenterPos = (pVectorTopLeft + pVectorBottomRight) / 2;
-            Width = (pVectorBottomRight - pVectorTopLeft).X;
-            Height = (pVectorBottomRight - pVectorTopLeft).Y;
+                    switch (nDirDiffBottomRight)
+                    {
+                        case eYoonDir2D.TopRight:
+                            pVectorBottomRight.X = pArgs[iParam].X;
+                            break;
+                        case eYoonDir2D.Right:
+                            pVectorBottomRight.X = pArgs[iParam].X;
+                            break;
+                        case eYoonDir2D.BottomLeft:
+                            pVectorBottomRight.Y = pArgs[iParam].Y;
+                            break;
+                        case eYoonDir2D.Bottom:
+                            pVectorBottomRight.Y = pArgs[iParam].Y;
+                            break;
+                        case eYoonDir2D.BottomRight:
+                            pVectorBottomRight.X = pArgs[iParam].X;
+                            pVectorBottomRight.Y = pArgs[iParam].Y;
+                            break;
+                        case eYoonDir2D.None:
+                            break;
+                        case eYoonDir2D.Center:
+                            break;
+                        case eYoonDir2D.TopLeft:
+                            break;
+                        case eYoonDir2D.Top:
+                            break;
+                        case eYoonDir2D.Left:
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                CenterPos = (pVectorTopLeft + pVectorBottomRight) / 2;
+                Width = (pVectorBottomRight - pVectorTopLeft).X;
+                Height = (pVectorBottomRight - pVectorTopLeft).Y;
+            }
         }
 
         public bool IsContain(IYoonVector pVector)
