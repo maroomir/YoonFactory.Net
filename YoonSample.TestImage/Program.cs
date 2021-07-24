@@ -71,9 +71,7 @@ namespace YoonSample.TestImage
                 YoonDataset pDataset = pResultImage.FindBlobs(90, false);
                 for (int iObject = 0; iObject < pDataset.Count; iObject++)
                 {
-                    YoonVector2N pVectorFeature = (pDataset[iObject].ReferencePosition is YoonVector2D pVector2D)
-                        ? pVector2D.ToVector2N()
-                        : (YoonVector2N) pDataset[iObject].ReferencePosition;
+                    YoonVector2N pVectorFeature = (YoonVector2N) pDataset[iObject].ReferencePosition;
                     pResultImage.DrawFigure(pDataset[iObject].Feature, Color.Yellow);
                     pResultImage.DrawCross(pVectorFeature, Color.Yellow);
                 }

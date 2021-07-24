@@ -2105,20 +2105,21 @@ namespace YoonFactory.Image
                     ? Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 0)
                     : Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 255);
                 // Repeat the function until all blob are found
+                int nMaxHeight = 0;
                 int nStepSearch = 5;
-                eYoonDir2D nDirSearch = eYoonDir2D.Right;
                 while (true)
                 {
                     // Get start position
-                    YoonVector2N pResultVector = Scanner.Scan2D(pTempBuffer, nWidth, nHeight, nDirSearch,
-                        pStartVector, nThreshold, bWhite) as YoonVector2N;
-                    Debug.Assert(pResultVector != null, nameof(pResultVector) + " != null");
+                    YoonVector2N pSearchVector =
+                        Scanner.Scan2D(pTempBuffer, nWidth, nHeight, pStartVector, nThreshold, bWhite) as YoonVector2N;
+                    Debug.Assert(pSearchVector != null, nameof(pSearchVector) + " != null");
                     // If the scanner is stop on the boundary
-                    if (pResultVector.X == -1 && pResultVector.Y == -1)
+                    if (pSearchVector.X == -1 && pSearchVector.Y == -1)
                         break;
+                    pStartVector = pSearchVector;
                     // Bind the blob
                     YoonObject pObject =
-                        ProcessBind(pTempBuffer, nWidth, nHeight, pResultVector, nThreshold, bWhite) as YoonObject;
+                        ProcessBind(pTempBuffer, nWidth, nHeight, pStartVector, nThreshold, bWhite) as YoonObject;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     YoonRect2N pFeature = pObject.Feature as YoonRect2N;
                     Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
@@ -2127,34 +2128,29 @@ namespace YoonFactory.Image
                     if (pFeature.Left <= 0 || pFeature.Top <= 0 || pFeature.Right <= 0 || pFeature.Bottom <= 0 ||
                         pFeature.Width <= 0 || pFeature.Height <= 0)
                     {
-                        pStartVector = pResultVector + new YoonVector2N(nDirSearch);
-                        if (pStartVector.X >= nWidth - 1 || pStartVector.X < 0)
-                        {
-                            nDirSearch.ReverseY();
-                            pStartVector += new YoonVector2N(nDirSearch);
-                            pStartVector.Y += nStepSearch;
-                            nStepSearch = 5;
-                        }
-
-                        continue;
+                        pStartVector.X += nStepSearch;
+                    }
+                    else
+                    {
+                        // Move the searching vector
+                        pStartVector.X += (pFeature.Width + nStepSearch);
+                        nMaxHeight = Math.Max(nMaxHeight, pFeature.Height);
+                        // Save the blob in the list
+                        pObject.Label = nLabelNo++;
+                        pResultSet.Add(pObject);
+                        if (pResultSet.Count > MAX_OBJECT || pObject.Label > MAX_LABEL)
+                            break;
                     }
 
-                    // Move the pipeline vector
-                    pStartVector =
-                        (YoonVector2N) (nDirSearch == eYoonDir2D.Right ? pFeature.TopRight : pFeature.TopLeft);
-                    nStepSearch = Math.Max(nStepSearch, pFeature.Height);
+                    // Revise the searching vector if has over-size
                     if (pStartVector.X >= nWidth - 1 || pStartVector.X < 0)
                     {
-                        nDirSearch.ReverseY();
-                        pStartVector += new YoonVector2N(nDirSearch);
-                        pStartVector.Y += nStepSearch;
-                        nStepSearch = 5;
+                        pStartVector.X = 0;
+                        pStartVector.Y += nMaxHeight;
+                        nMaxHeight = 0;
                     }
 
-                    // Save the blob in the list
-                    pObject.Label = nLabelNo++;
-                    pResultSet.Add(pObject);
-                    if (pResultSet.Count > MAX_OBJECT || pObject.Label > MAX_LABEL)
+                    if (pStartVector.Y >= nHeight - 1 || pStartVector.Y < 0)
                         break;
                 }
 
@@ -2181,20 +2177,21 @@ namespace YoonFactory.Image
                     ? Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 0)
                     : Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 255);
                 // Repeat the function until all blob are found
+                int nMaxHeight = 0;
                 int nStepSearch = 5;
-                eYoonDir2D nDirSearch = eYoonDir2D.Right;
                 while (true)
                 {
                     // Get start position
-                    YoonVector2N pResultVector = Scanner.Scan2D(pTempBuffer, nWidth, nHeight, nDirSearch,
-                        pStartVector, nThreshold, bWhite) as YoonVector2N;
-                    Debug.Assert(pResultVector != null, nameof(pResultVector) + " != null");
+                    YoonVector2N pSearchVector =
+                        Scanner.Scan2D(pTempBuffer, nWidth, nHeight, pStartVector, nThreshold, bWhite) as YoonVector2N;
+                    Debug.Assert(pSearchVector != null, nameof(pSearchVector) + " != null");
                     // If the scanner is stop on the boundary
-                    if (pResultVector.X == -1 && pResultVector.Y == -1)
+                    if (pSearchVector.X == -1 && pSearchVector.Y == -1)
                         break;
+                    pStartVector = pSearchVector;
                     // Bind the blob
                     YoonObject pObject =
-                        ProcessBind(pTempBuffer, nWidth, nHeight, pResultVector, nThreshold, bWhite) as YoonObject;
+                        ProcessBind(pTempBuffer, nWidth, nHeight, pStartVector, nThreshold, bWhite) as YoonObject;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     YoonRect2N pFeature = pObject.Feature as YoonRect2N;
                     Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
@@ -2203,14 +2200,13 @@ namespace YoonFactory.Image
                     if (pFeature.Left <= 0 || pFeature.Top <= 0 || pFeature.Right <= 0 || pFeature.Bottom <= 0 ||
                         pFeature.Width <= 0 || pFeature.Height <= 0)
                     {
-                        pStartVector = pResultVector + new YoonVector2N(nDirSearch);
+                        pStartVector.X += nStepSearch;
                     }
                     else
                     {
                         // Move the searching vector
-                        pStartVector =
-                            (YoonVector2N) (nDirSearch == eYoonDir2D.Right ? pFeature.TopRight : pFeature.TopLeft);
-                        nStepSearch = Math.Max(nStepSearch, pFeature.Height);
+                        pStartVector.X += (pFeature.Width + nStepSearch);
+                        nMaxHeight = Math.Max(nMaxHeight, pFeature.Height);
                         // Save the blob in the list
                         pObject.Label = nLabelNo++;
                         pResultSet.Add(pObject);
@@ -2221,11 +2217,13 @@ namespace YoonFactory.Image
                     // Revise the searching vector if has over-size
                     if (pStartVector.X >= nWidth - 1 || pStartVector.X < 0)
                     {
-                        nDirSearch.ReverseY();
-                        pStartVector += new YoonVector2N(nDirSearch);
-                        pStartVector.Y += nStepSearch;
-                        nStepSearch = 5;
+                        pStartVector.X = 0;
+                        pStartVector.Y += nMaxHeight;
+                        nMaxHeight = 0;
                     }
+
+                    if (pStartVector.Y >= nHeight - 1 || pStartVector.Y < 0)
+                        break;
                 }
 
                 return pResultSet;
@@ -3353,121 +3351,105 @@ namespace YoonFactory.Image
                 return pResultVector;
             }
 
-            public static IYoonVector Scan2D(YoonImage pSourceImage, eYoonDir2D nDir, YoonVector2N pStartVector,
-                int threshold = 128, bool isWhite = false)
+            public static IYoonVector Scan2D(YoonImage pSourceImage, YoonVector2N pStartVector, int threshold = 128,
+                bool isWhite = false)
             {
                 return pSourceImage.Plane switch
                 {
-                    1 => Scan2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nDir,
-                        pStartVector,
+                    1 => Scan2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, pStartVector,
                         (byte) threshold, isWhite),
-                    4 => Scan2D(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, nDir,
-                        pStartVector,
+                    4 => Scan2D(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, pStartVector,
                         threshold, isWhite),
                     _ => throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct")
                 };
             }
 
-            public static IYoonVector Scan2D(byte[] pBuffer, int nWidth, int nHeight, eYoonDir2D nDir,
-                YoonVector2N pStartVector, byte nThreshold, bool bWhite)
+            public static IYoonVector Scan2D(byte[] pBuffer, int nWidth, int nHeight, YoonVector2N pStartVector,
+                byte nThreshold, bool bWhite)
             {
-                if (nDir != eYoonDir2D.Right && nDir != eYoonDir2D.Left)
-                    throw new ArgumentException("[YOONIMAGE EXCEPTION] Scan direction is not correct");
-
                 pStartVector.SetMinMaxValue(0, 0, nWidth - 1, nHeight - 1);
                 YoonVector2N pPipelineVector = pStartVector.Clone() as YoonVector2N;
                 Debug.Assert(pPipelineVector != null, nameof(pPipelineVector) + " != null");
 
                 // Use the while loop to avoid the stack-overflow issue
-                // Find the white point to start
+                // Find the white point to increase direction
                 if (bWhite)
                 {
                     while (pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] < nThreshold)
                     {
-                        pPipelineVector.Move(nDir);
+                        pPipelineVector.X++;
                         if (!pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
                         {
-                            pStartVector.Move(nDir.NextQuadrant());
-                            pPipelineVector = pStartVector.Clone() as YoonVector2N;
-                            Debug.Assert(pPipelineVector != null, nameof(pPipelineVector) + " != null");
+                            pPipelineVector.Y++;
+                            pPipelineVector.X = 0;
                         }
 
-                        if (!pStartVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
+                        if (pPipelineVector.Y < 0 || pPipelineVector.Y >= nHeight)
                             return new YoonVector2N(-1, -1);
                     }
-
-                    return pStartVector.Clone();
                 }
                 // Find the black point to start
                 else
                 {
                     while (pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] >= nThreshold)
                     {
-                        pPipelineVector.Move(nDir);
+                        pPipelineVector.X++;
                         if (!pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
                         {
-                            pStartVector.Move(nDir.NextQuadrant());
-                            pPipelineVector = pStartVector.Clone() as YoonVector2N;
-                            Debug.Assert(pPipelineVector != null, nameof(pPipelineVector) + " != null");
+                            pPipelineVector.Y++;
+                            pPipelineVector.X = 0;
                         }
 
-                        if (!pStartVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
+                        if (pPipelineVector.Y < 0 || pPipelineVector.Y >= nHeight)
                             return new YoonVector2N(-1, -1);
                     }
-
-                    return pStartVector.Clone();
                 }
+
+                return pPipelineVector.Clone();
             }
 
-            public static IYoonVector Scan2D(int[] pBuffer, int nWidth, int nHeight, eYoonDir2D nDir,
-                YoonVector2N pStartVector, int nThreshold, bool bWhite)
+            public static IYoonVector Scan2D(int[] pBuffer, int nWidth, int nHeight, YoonVector2N pStartVector,
+                int nThreshold, bool bWhite)
             {
-                if (nDir != eYoonDir2D.Right && nDir != eYoonDir2D.Left)
-                    throw new ArgumentException("[YOONIMAGE EXCEPTION] Scan direction is not correct");
-
                 pStartVector.SetMinMaxValue(0, 0, nWidth - 1, nHeight - 1);
                 YoonVector2N pPipelineVector = pStartVector.Clone() as YoonVector2N;
                 Debug.Assert(pPipelineVector != null, nameof(pPipelineVector) + " != null");
 
                 // Use the while loop to avoid the stack-overflow issue
-                // Find the white point to start
+                // Find the white point to increase direction
                 if (bWhite)
                 {
                     while (pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] < nThreshold)
                     {
-                        pPipelineVector.Move(nDir);
+                        pPipelineVector.X++;
                         if (!pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
                         {
-                            pStartVector.Move(nDir.NextQuadrant());
-                            pPipelineVector = pStartVector.Clone() as YoonVector2N;
-                            Debug.Assert(pPipelineVector != null, nameof(pPipelineVector) + " != null");
+                            pPipelineVector.Y++;
+                            pPipelineVector.X = 0;
                         }
 
-                        if (!pStartVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
+                        if (pPipelineVector.Y < 0 || pPipelineVector.Y >= nHeight)
                             return new YoonVector2N(-1, -1);
                     }
-
-                    return pStartVector.Clone();
                 }
                 // Find the black point to start
                 else
                 {
                     while (pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] >= nThreshold)
                     {
-                        pPipelineVector.Move(nDir);
+                        pPipelineVector.X++;
                         if (!pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
                         {
-                            pStartVector.Move(nDir.NextQuadrant());
-                            pPipelineVector = pStartVector.Clone() as YoonVector2N;
-                            Debug.Assert(pPipelineVector != null, nameof(pPipelineVector) + " != null");
+                            pPipelineVector.Y++;
+                            pPipelineVector.X = 0;
                         }
 
-                        if (!pStartVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
+                        if (pPipelineVector.Y < 0 || pPipelineVector.Y >= nHeight)
                             return new YoonVector2N(-1, -1);
                     }
-
-                    return pStartVector.Clone();
                 }
+
+                return pPipelineVector.Clone();
             }
         }
 
