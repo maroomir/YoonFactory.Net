@@ -2079,24 +2079,25 @@ namespace YoonFactory.Image
                 return FindBlobs(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, nThreshold, bWhite);
             }
 
-            public static YoonDataset FindBlobs(byte[] pBuffer, int imageWidth, YoonRect2N scanArea, byte nThreshold,
+            public static YoonDataset FindBlobs(byte[] pBuffer, int nImageWidth, YoonRect2N pScanArea, byte nThreshold,
                 bool bWhite)
             {
                 int nLabelNo = 0;
-                int nWidth = scanArea.Width;
-                int nHeight = scanArea.Height;
+                int nWidth = pScanArea.Width;
+                int nHeight = pScanArea.Height;
                 if (nThreshold < 10) nThreshold = 10;
                 byte[] pTempBuffer = new byte[nWidth * nHeight];
+                bool[] pLabelBuffer = new bool[nWidth * nHeight];
                 YoonVector2N pStartVector = new YoonVector2N(0, 0);
                 YoonDataset pResultSet = new YoonDataset();
                 // Copy the source buffer into the temporary buffer
                 for (int j = 0; j < nHeight; j++)
                 {
-                    int y = scanArea.Top + j;
+                    int y = pScanArea.Top + j;
                     for (int i = 0; i < nWidth; i++)
                     {
-                        int x = scanArea.Left + i;
-                        pTempBuffer[j * nWidth + i] = pBuffer[y * imageWidth + x];
+                        int x = pScanArea.Left + i;
+                        pTempBuffer[j * nWidth + i] = pBuffer[y * nImageWidth + x];
                     }
                 }
 
@@ -2104,6 +2105,9 @@ namespace YoonFactory.Image
                 pTempBuffer = bWhite
                     ? Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 0)
                     : Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 255);
+                // Init the label buffer
+                for (int i = 0; i < pLabelBuffer.Length; i++)
+                    pLabelBuffer[i] = false;
                 // Repeat the function until all blob are found
                 int nMaxHeight = 0;
                 int nStepSearch = 5;
@@ -2119,7 +2123,8 @@ namespace YoonFactory.Image
                     pStartVector = pSearchVector;
                     // Bind the blob
                     YoonObject pObject =
-                        ProcessBind(pTempBuffer, nWidth, nHeight, pStartVector, nThreshold, bWhite) as YoonObject;
+                        ProcessLabeling(pTempBuffer, ref pLabelBuffer, nWidth, nHeight, pStartVector, nThreshold,
+                            bWhite, pScanArea) as YoonObject;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     YoonRect2N pFeature = pObject.Feature as YoonRect2N;
                     Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
@@ -2136,6 +2141,7 @@ namespace YoonFactory.Image
                         pStartVector.X += (pFeature.Width + nStepSearch);
                         nMaxHeight = Math.Max(nMaxHeight, pFeature.Height);
                         // Save the blob in the list
+                        // Revise the scan area
                         pObject.Label = nLabelNo++;
                         pResultSet.Add(pObject);
                         if (pResultSet.Count > MAX_OBJECT || pObject.Label > MAX_LABEL)
@@ -2171,11 +2177,16 @@ namespace YoonFactory.Image
                 int nLabelNo = 0;
                 if (nThreshold < 10) nThreshold = 10;
                 byte[] pTempBuffer = new byte[nWidth * nHeight];
+                bool[] pLabelBuffer = new bool[nWidth * nHeight];
                 YoonVector2N pStartVector = new YoonVector2N(0, 0);
                 pBuffer.CopyTo(pTempBuffer, 0);
+                // Erase the boundary of temporary buffer
                 pTempBuffer = bWhite
                     ? Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 0)
                     : Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 255);
+                // Init the label buffer
+                for (int i = 0; i < pLabelBuffer.Length; i++)
+                    pLabelBuffer[i] = false;
                 // Repeat the function until all blob are found
                 int nMaxHeight = 0;
                 int nStepSearch = 5;
@@ -2191,7 +2202,8 @@ namespace YoonFactory.Image
                     pStartVector = pSearchVector;
                     // Bind the blob
                     YoonObject pObject =
-                        ProcessBind(pTempBuffer, nWidth, nHeight, pStartVector, nThreshold, bWhite) as YoonObject;
+                        ProcessLabeling(pTempBuffer, ref pLabelBuffer, nWidth, nHeight, pStartVector, nThreshold,
+                            bWhite) as YoonObject;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     YoonRect2N pFeature = pObject.Feature as YoonRect2N;
                     Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
@@ -2229,46 +2241,45 @@ namespace YoonFactory.Image
                 return pResultSet;
             }
 
-            private static YoonObject ProcessBind(byte[] pBuffer, int nWidth, int nHeight, YoonVector2N pStartVector,
-                byte nThreshold, bool bWhite, int nBindCount = 10)
+            private static YoonObject ProcessLabeling(byte[] pImageBuffer, ref bool[] pLabelBuffer,
+                int nWidth, int nHeight, YoonVector2N pStartVector, byte nThreshold, bool bWhite,
+                YoonRect2N pScanArea = null, int nBindCount = 10)
             {
                 // Search the binding vectors to move the default vector
                 eYoonDir2D[] pArrayDirection = YoonDirFactory.GetClockDirections();
                 List<YoonVector2N> pListBindings = new List<YoonVector2N> {pStartVector.Clone() as YoonVector2N};
+                object pLocker = new object();
+                bool[] pProcessLabel = new bool[nWidth * nHeight];
+                Array.Copy(pLabelBuffer, pProcessLabel, nWidth * nHeight);
                 for (int iIndex = 0; iIndex < pListBindings.Count; iIndex++)
                 {
-                    foreach (eYoonDir2D nDir in pArrayDirection)
+                    Parallel.ForEach(pArrayDirection, nDir =>
                     {
                         bool bAddList = false;
                         // Add the vector to binding blob with similar levels
                         YoonVector2N pPipelineVector = new YoonVector2N(pListBindings[iIndex]);
                         pPipelineVector.Move(nDir);
-                        if (!pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
-                            continue;
-                        if (bWhite && pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] > nThreshold &&
-                            !pListBindings.Contains(pPipelineVector))
-                            bAddList = true;
-                        else if (!bWhite && pBuffer[pPipelineVector.Y * nWidth + pPipelineVector.X] <= nThreshold &&
-                                 !pListBindings.Contains(pPipelineVector))
-                            bAddList = true;
-                        if (bAddList)
+                        if (pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
                         {
-                            // Pass the duplicated vector
-                            bool bDuplicatedList = false;
-                            foreach (YoonVector2N pVector in pListBindings)
+                            int nPos = pPipelineVector.Y * nWidth + pPipelineVector.X;
+                            if (bWhite && pImageBuffer[nPos] > nThreshold)
+                                bAddList = true;
+                            else if (!bWhite && pImageBuffer[nPos] <= nThreshold)
+                                bAddList = true;
+                            // Pass the duplicated as labeling
+                            if (bAddList && !pProcessLabel[nPos])
                             {
-                                if (pPipelineVector.X == pVector.X && pPipelineVector.Y == pVector.Y)
+                                lock (pLocker)
                                 {
-                                    bDuplicatedList = true;
-                                    break;
+                                    pListBindings.Add(pPipelineVector.Clone() as YoonVector2N);
+                                    pProcessLabel[nPos] = true;
                                 }
                             }
-
-                            if (!bDuplicatedList)
-                                pListBindings.Add(pPipelineVector.Clone() as YoonVector2N);
                         }
-                    }
+                    });
                 }
+
+                Array.Copy(pProcessLabel, pLabelBuffer, nWidth * nHeight);
 
                 // Erase the small drops less then the binding counts
                 YoonRect2N pResultRect = new YoonRect2N(-1, -1, -1, -1);
@@ -2277,6 +2288,12 @@ namespace YoonFactory.Image
                     return new YoonObject(0, pResultRect, pResultImage, pListBindings.Count);
                 // Concrete the rectangle from the binding points
                 pResultRect = new YoonRect2N(pListBindings);
+                if (pScanArea != null)
+                {
+                    pResultRect.CenterPos.X += pScanArea.TopLeft.X;
+                    pResultRect.CenterPos.Y += pScanArea.TopLeft.Y;
+                }
+
                 pResultRect.SetVerifiedArea(0, 0, nWidth, nHeight);
                 if (pResultRect.Width == 0 || pResultRect.Height == 0)
                     return new YoonObject(0, pResultRect, pResultImage, pListBindings.Count);
@@ -2287,7 +2304,7 @@ namespace YoonFactory.Image
                     for (int iX = 0; iX < pResultRect.Width; iX++)
                     {
                         int iXSource = iX + pResultRect.Left;
-                        pBufferCrop[iY * pResultRect.Width + iX] = pBuffer[iYSource * nWidth + iXSource];
+                        pBufferCrop[iY * pResultRect.Width + iX] = pImageBuffer[iYSource * nWidth + iXSource];
                     }
                 }
 

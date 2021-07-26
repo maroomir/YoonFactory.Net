@@ -68,13 +68,16 @@ namespace YoonSample.TestImage
             foreach (YoonImage pImage in pListImage)
             {
                 YoonImage pResultImage = pImage.ToGrayImage();
-                YoonDataset pDataset = pResultImage.FindBlobs(90, false);
+                YoonRect2N pScanArea = new YoonRect2N(pImage.CenterPos, pImage.Width - 100, pImage.Height - 200);
+                YoonDataset pDataset = pResultImage.FindBlobs(pScanArea, 90, false);
                 for (int iObject = 0; iObject < pDataset.Count; iObject++)
                 {
+                    pResultImage.DrawRect(pScanArea, Color.Chartreuse);
                     YoonVector2N pVectorFeature = (YoonVector2N) pDataset[iObject].ReferencePosition;
                     pResultImage.DrawFigure(pDataset[iObject].Feature, Color.Yellow);
                     pResultImage.DrawCross(pVectorFeature, Color.Yellow);
                 }
+
                 CVImage.ShowImage(pResultImage, pImage.FilePath);
             }
         }
