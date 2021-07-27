@@ -2246,40 +2246,27 @@ namespace YoonFactory.Image
                 YoonRect2N pScanArea = null, int nBindCount = 10)
             {
                 // Search the binding vectors to move the default vector
-                eYoonDir2D[] pArrayDirection = YoonDirFactory.GetClockDirections();
                 List<YoonVector2N> pListBindings = new List<YoonVector2N> {pStartVector.Clone() as YoonVector2N};
-                object pLocker = new object();
-                bool[] pProcessLabel = new bool[nWidth * nHeight];
-                Array.Copy(pLabelBuffer, pProcessLabel, nWidth * nHeight);
                 for (int iIndex = 0; iIndex < pListBindings.Count; iIndex++)
                 {
-                    Parallel.ForEach(pArrayDirection, nDir =>
+                    foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
                     {
                         bool bAddList = false;
                         // Add the vector to binding blob with similar levels
                         YoonVector2N pPipelineVector = new YoonVector2N(pListBindings[iIndex]);
                         pPipelineVector.Move(nDir);
-                        if (pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1))
-                        {
-                            int nPos = pPipelineVector.Y * nWidth + pPipelineVector.X;
-                            if (bWhite && pImageBuffer[nPos] > nThreshold)
-                                bAddList = true;
-                            else if (!bWhite && pImageBuffer[nPos] <= nThreshold)
-                                bAddList = true;
-                            // Pass the duplicated as labeling
-                            if (bAddList && !pProcessLabel[nPos])
-                            {
-                                lock (pLocker)
-                                {
-                                    pListBindings.Add(pPipelineVector.Clone() as YoonVector2N);
-                                    pProcessLabel[nPos] = true;
-                                }
-                            }
-                        }
-                    });
+                        if (!pPipelineVector.VerifyMinMax(0, 0, nWidth - 1, nHeight - 1)) continue;
+                        int nPos = pPipelineVector.Y * nWidth + pPipelineVector.X;
+                        if (bWhite && pImageBuffer[nPos] > nThreshold)
+                            bAddList = true;
+                        else if (!bWhite && pImageBuffer[nPos] <= nThreshold)
+                            bAddList = true;
+                        // Pass the duplicated as labeling
+                        if (!bAddList || pLabelBuffer[nPos]) continue;
+                        pListBindings.Add(pPipelineVector.Clone() as YoonVector2N);
+                        pLabelBuffer[nPos] = true;
+                    }
                 }
-
-                Array.Copy(pProcessLabel, pLabelBuffer, nWidth * nHeight);
 
                 // Erase the small drops less then the binding counts
                 YoonRect2N pResultRect = new YoonRect2N(-1, -1, -1, -1);

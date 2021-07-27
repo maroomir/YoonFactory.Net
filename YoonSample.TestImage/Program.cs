@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Threading.Tasks;
 using YoonFactory;
 using YoonFactory.CV;
 using YoonFactory.Files;
@@ -65,10 +67,16 @@ namespace YoonSample.TestImage
             List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
             _pClm.Write("Image Load Completed");
             // Image Processing
-            foreach (YoonImage pImage in pListImage)
+            List<YoonImage> pListResult = new List<YoonImage>();
+            object pLocker = new object();
+            Stopwatch pTimer = new Stopwatch();
+            pTimer.Reset();
+            pTimer.Start();
+            Parallel.For(0, 30, i =>
+            //for (int i=0; i<30; i++)
             {
-                YoonImage pResultImage = pImage.ToGrayImage();
-                YoonRect2N pScanArea = new YoonRect2N(pImage.CenterPos, pImage.Width - 100, pImage.Height - 200);
+                YoonImage pResultImage = pListImage[i].ToGrayImage();
+                YoonRect2N pScanArea = new YoonRect2N(pListImage[i].CenterPos, pListImage[i].Width - 100, pListImage[i].Height - 200);
                 YoonDataset pDataset = pResultImage.FindBlobs(pScanArea, 90, false);
                 for (int iObject = 0; iObject < pDataset.Count; iObject++)
                 {
@@ -78,8 +86,18 @@ namespace YoonSample.TestImage
                     pResultImage.DrawCross(pVectorFeature, Color.Yellow);
                 }
 
-                CVImage.ShowImage(pResultImage, pImage.FilePath);
+                lock (pLocker)
+                {
+                    _pClm.Write($"Image {i:D} processing completed");
+                    pListResult.Add(pResultImage);
+                }
             }
+            );
+            pTimer.Stop();
+            _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pListResult.Count:F1}ms/img]");
+            // Show Image
+            foreach (YoonImage pImage in pListResult)
+                CVImage.ShowImage(pImage, pImage.FilePath);
         }
     }
 }
