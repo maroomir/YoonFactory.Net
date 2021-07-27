@@ -2109,8 +2109,8 @@ namespace YoonFactory.Image
                 for (int i = 0; i < pLabelBuffer.Length; i++)
                     pLabelBuffer[i] = false;
                 // Repeat the function until all blob are found
-                int nMaxHeight = 0;
                 int nStepSearch = 5;
+                int nMaxHeight = nStepSearch;  // Blocking the infinity while loop
                 while (true)
                 {
                     // Get start position
@@ -2153,7 +2153,7 @@ namespace YoonFactory.Image
                     {
                         pStartVector.X = 0;
                         pStartVector.Y += nMaxHeight;
-                        nMaxHeight = 0;
+                        nMaxHeight = nStepSearch;
                     }
 
                     if (pStartVector.Y >= nHeight - 1 || pStartVector.Y < 0)
@@ -2188,8 +2188,8 @@ namespace YoonFactory.Image
                 for (int i = 0; i < pLabelBuffer.Length; i++)
                     pLabelBuffer[i] = false;
                 // Repeat the function until all blob are found
-                int nMaxHeight = 0;
                 int nStepSearch = 5;
+                int nMaxHeight = nStepSearch;
                 while (true)
                 {
                     // Get start position
@@ -2231,7 +2231,7 @@ namespace YoonFactory.Image
                     {
                         pStartVector.X = 0;
                         pStartVector.Y += nMaxHeight;
-                        nMaxHeight = 0;
+                        nMaxHeight = nStepSearch;
                     }
 
                     if (pStartVector.Y >= nHeight - 1 || pStartVector.Y < 0)

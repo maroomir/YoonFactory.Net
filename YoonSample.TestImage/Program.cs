@@ -72,8 +72,8 @@ namespace YoonSample.TestImage
             Stopwatch pTimer = new Stopwatch();
             pTimer.Reset();
             pTimer.Start();
-            Parallel.For(0, 30, i =>
-            //for (int i=0; i<30; i++)
+            //Parallel.For(0, pListImage.Count, i =>  // Use the parallel processing under the 30 counts
+            for (int i=0; i<pListImage.Count; i++)
             {
                 YoonImage pResultImage = pListImage[i].ToGrayImage();
                 YoonRect2N pScanArea = new YoonRect2N(pListImage[i].CenterPos, pListImage[i].Width - 100, pListImage[i].Height - 200);
@@ -92,7 +92,7 @@ namespace YoonSample.TestImage
                     pListResult.Add(pResultImage);
                 }
             }
-            );
+            //);
             pTimer.Stop();
             _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pListResult.Count:F1}ms/img]");
             // Show Image
