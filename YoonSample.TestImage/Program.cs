@@ -62,7 +62,7 @@ namespace YoonSample.TestImage
 
             _pClm.Write("Image Parsing Completed");
             // Load Mark
-            YoonImage pMarkImage = new YoonImage(Path.Combine(_strRootDir, @"mark.bmp"));
+            YoonImage pMarkImage = new YoonImage(Path.Combine(_strRootDir, @"mark.jpg")).ToGrayImage();
             CVImage.ShowImage(pMarkImage, "MARK");
             _pClm.Write("Load Mark Completed");
             // Set origin
