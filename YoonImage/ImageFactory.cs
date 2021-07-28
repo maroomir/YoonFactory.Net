@@ -308,23 +308,21 @@ namespace YoonFactory.Image
                 // Find the matching accuracy and count
                 int nCountWhiteMax = 0;
                 int nCountBlackMax = 0;
-                for (int iY = 0; iY < nSourceHeight - nPatternHeight; iY += 1)
+                for (int y = 0; y < nSourceHeight - nPatternHeight; y += 1)
                 {
-                    for (int iX = 0; iX < nSourceWidth - nPatternWidth; iX += 1)
+                    for (int x = 0; x < nSourceWidth - nPatternWidth; x += 1)
                     {
-                        int nStartX = iX;
-                        int nStartY = iY;
                         // Find the difference within the whole image
                         int nCountWhite = 0;
                         int nCountBlack = 0;
                         int nTotalCountWhite = 0;
                         int nTotalCountBlack = 0;
-                        for (int y = 0; y < nPatternHeight - nJumpY; y += nJumpY)
+                        for (int j = 0; j < nPatternHeight - nJumpY; j += nJumpY)
                         {
-                            for (int x = 0; x < nPatternWidth - nJumpX; x += nJumpX)
+                            for (int i = 0; i < nPatternWidth - nJumpX; i += nJumpX)
                             {
-                                int nGraySource = pSourceBuffer[(nStartY + y) * nSourceWidth + nStartX + x];
-                                int nGrayPattern = pPatternBuffer[y * nPatternWidth + x];
+                                int nGraySource = pSourceBuffer[(y + j) * nSourceWidth + x + i];
+                                int nGrayPattern = pPatternBuffer[j * nPatternWidth + i];
                                 // If the gray levels are same, then increase the match count
                                 if (nGrayPattern == 0)
                                 {
@@ -347,8 +345,8 @@ namespace YoonFactory.Image
                             if (nCountWhite > nCountWhiteMax)
                             {
                                 nCountWhiteMax = nCountWhite;
-                                nFindPosX = iX;
-                                nFindPosY = iY;
+                                nFindPosX = x;
+                                nFindPosY = y;
                                 dCoefficient = 0.0;
                                 if (nTotalCountWhite > 1)
                                     dCoefficient = nCountWhite * 100.0 / nTotalCountWhite;
@@ -359,8 +357,8 @@ namespace YoonFactory.Image
                             if (nCountBlack > nCountBlackMax)
                             {
                                 nCountBlackMax = nCountBlack;
-                                nFindPosX = iX;
-                                nFindPosY = iY;
+                                nFindPosX = x;
+                                nFindPosY = y;
                                 dCoefficient = 0.0;
                                 if (nTotalCountBlack > 1)
                                     dCoefficient = nCountBlack * 100.0 / nTotalCountBlack;
@@ -405,23 +403,21 @@ namespace YoonFactory.Image
                 int nFindPosX = 0;
                 int nFindPosY = 0;
                 var matchCountMax = 0;
-                for (int iY = pScanArea.Top; iY < pScanArea.Bottom - nPatternHeight; iY += 1)
+                for (int y = pScanArea.Top; y < pScanArea.Bottom - nPatternHeight; y += 1)
                 {
-                    for (int iX = pScanArea.Left; iX < pScanArea.Right - nPatternWidth; iX += 1)
+                    for (int x = pScanArea.Left; x < pScanArea.Right - nPatternWidth; x += 1)
                     {
-                        int nStartX = iX;
-                        int nStartY = iY;
                         var matchCount = 0;
                         int nCountWhite = 0;
                         int nCountBlack = 0;
                         int nTotalCountWhite = 0;
                         int nTotalCountBlack = 0;
-                        for (int y = 0; y < nPatternHeight - nJumpY; y += nJumpY)
+                        for (int j = 0; j < nPatternHeight - nJumpY; j += nJumpY)
                         {
-                            for (int x = 0; x < nPatternWidth - nJumpX; x += nJumpX)
+                            for (int i = 0; i < nPatternWidth - nJumpX; i += nJumpX)
                             {
-                                int nGraySource = pSourceBuffer[(nStartY + y) * nSourceWidth + nStartX + x];
-                                int nGrayPattern = pPatternBuffer[y * nPatternWidth + x];
+                                int nGraySource = pSourceBuffer[(y + j) * nSourceWidth + x + i];
+                                int nGrayPattern = pPatternBuffer[j * nPatternWidth + i];
                                 if (nGrayPattern == nGraySource) matchCount++;
                                 switch (nGrayPattern)
                                 {
@@ -447,8 +443,8 @@ namespace YoonFactory.Image
                         if (matchCount > matchCountMax)
                         {
                             matchCountMax = matchCount;
-                            nFindPosX = iX;
-                            nFindPosY = iY;
+                            nFindPosX = x;
+                            nFindPosY = y;
                             dCoefficient = 0.0;
                             if (nTotalCountBlack > nTotalCountWhite)
                                 dCoefficient = nCountBlack * 100.0 / nTotalCountBlack;
@@ -494,9 +490,8 @@ namespace YoonFactory.Image
                 out int nPixelCount)
             {
                 YoonRect2N pFindRect = new YoonRect2N(0, 0, 0, 0);
-                int nDiffMin = 2147483647;
-                int nDiffSum = 0;
-                int nCount = 0;
+                int nDiffMin = Int32.MaxValue;
+                int nMinCount = 0;
                 int nFindPosX = 0;
                 int nFindPosY = 0;
                 // Set-up the skip parameter
@@ -505,20 +500,19 @@ namespace YoonFactory.Image
                 if (nJumpX < 1) nJumpX = 1;
                 if (nJumpY < 1) nJumpY = 1;
                 // Find the matching accuracy and count
-                for (int iY = 0; iY < nSourceHeight - nPatternHeight; iY += 1)
+                for (int y = 0; y < nSourceHeight - nPatternHeight; y += 1)
                 {
-                    for (int iX = 0; iX < nSourceWidth - nPatternWidth; iX += 1)
+                    for (int x = 0; x < nSourceWidth - nPatternWidth; x += 1)
                     {
-                        int nStartX = iX;
-                        int nStartY = iY;
                         // Find the difference within the whole image
-                        nDiffSum = 0;
-                        for (int y = 0; y < nPatternHeight - nJumpY; y += nJumpY)
+                        int nCount = 0;
+                        int nDiffSum = 0;
+                        for (int j = 0; j < nPatternHeight - nJumpY; j += nJumpY)
                         {
-                            for (int x = 0; x < nPatternWidth - nJumpX; x += nJumpX)
+                            for (int i = 0; i < nPatternWidth - nJumpX; i += nJumpX)
                             {
-                                int nGraySource = pSourceBuffer[(nStartY + y) * nSourceWidth + nStartX + x];
-                                int nGrayPattern = pPatternBuffer[y * nPatternWidth + x];
+                                int nGraySource = pSourceBuffer[(y + j) * nSourceWidth + x + i];
+                                int nGrayPattern = pPatternBuffer[j * nPatternWidth + i];
                                 nDiffSum += Math.Abs(nGraySource - nGrayPattern);
                                 if (Math.Abs(nGraySource - nGrayPattern) < nDiffThreshold)
                                     nCount++;
@@ -529,8 +523,9 @@ namespace YoonFactory.Image
                         if (nDiffSum < nDiffMin)
                         {
                             nDiffMin = nDiffSum;
-                            nFindPosX = iX;
-                            nFindPosY = iY;
+                            nFindPosX = x;
+                            nFindPosY = y;
+                            nMinCount = nCount;
                         }
                     }
                 }
@@ -548,7 +543,7 @@ namespace YoonFactory.Image
                 double dCoefficient =
                     MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, nPatternWidth, nPatternHeight);
                 dScore = dCoefficient;
-                nPixelCount = nCount;
+                nPixelCount = nMinCount;
                 return pFindRect;
             }
 
@@ -560,25 +555,24 @@ namespace YoonFactory.Image
                 int nDiffMin = 2147483647;
                 int nDiffSum = 0;
                 int nCount = 0;
+                int nMinCount = 0;
                 int nFindPosX = 0;
                 int nFindPosY = 0;
                 int nJumpX = nPatternWidth / 60;
                 int nJumpY = nPatternHeight / 60;
                 if (nJumpX < 1) nJumpX = 1;
                 if (nJumpY < 1) nJumpY = 1;
-                for (int iY = 0; iY < nSourceHeight - nPatternHeight; iY += 1)
+                for (int y = 0; y < nSourceHeight - nPatternHeight; y += 1)
                 {
-                    for (int iX = 0; iX < nSourceWidth - nPatternWidth; iX += 1)
+                    for (int x = 0; x < nSourceWidth - nPatternWidth; x += 1)
                     {
-                        int nStartX = iX;
-                        int nStartY = iY;
                         nDiffSum = 0;
-                        for (int y = 0; y < nPatternHeight - nJumpY; y += nJumpY)
+                        for (int j = 0; j < nPatternHeight - nJumpY; j += nJumpY)
                         {
-                            for (int x = 0; x < nPatternWidth - nJumpX; x += nJumpX)
+                            for (int i = 0; i < nPatternWidth - nJumpX; i += nJumpX)
                             {
-                                int nGraySource = pSourceBuffer[(nStartY + y) * nSourceWidth + nStartX + x];
-                                int nGrayPattern = pPatternBuffer[y * nPatternWidth + x];
+                                int nGraySource = pSourceBuffer[(y + j) * nSourceWidth + x + i];
+                                int nGrayPattern = pPatternBuffer[j * nPatternWidth + i];
                                 nDiffSum += Math.Abs(nGraySource - nGrayPattern);
                                 if (Math.Abs(nGraySource - nGrayPattern) < nDiffThreshold)
                                     nCount++;
@@ -588,9 +582,12 @@ namespace YoonFactory.Image
                         if (nDiffSum < nDiffMin)
                         {
                             nDiffMin = nDiffSum;
-                            nFindPosX = iX;
-                            nFindPosY = iY;
+                            nFindPosX = x;
+                            nFindPosY = y;
+                            nMinCount = nCount;
                         }
+
+                        nCount = 0;
                     }
                 }
 
@@ -606,7 +603,7 @@ namespace YoonFactory.Image
                 double dCoefficient =
                     MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, nPatternWidth, nPatternHeight);
                 dScore = dCoefficient;
-                nPixelCount = nCount;
+                nPixelCount = nMinCount;
                 return findRect;
             }
 
@@ -635,25 +632,24 @@ namespace YoonFactory.Image
                 int nDiffMin = 2147483647;
                 int nDiffSum = 0;
                 int nCount = 0;
+                int nMinCount = 0;
                 int nFindPosX = 0;
                 int nFindPosY = 0;
                 int nJumpX = nPatternWidth / 60;
                 int nJumpY = nPatternHeight / 60;
                 if (nJumpX < 1) nJumpX = 1;
                 if (nJumpY < 1) nJumpY = 1;
-                for (int iY = pScanArea.Top; iY < pScanArea.Bottom - nPatternHeight; iY += 2)
+                for (int y = pScanArea.Top; y < pScanArea.Bottom - nPatternHeight; y += 2)
                 {
-                    for (int iX = pScanArea.Left; iX < pScanArea.Right - nPatternWidth; iX += 2)
+                    for (int x = pScanArea.Left; x < pScanArea.Right - nPatternWidth; x += 2)
                     {
-                        int nStartX = iX;
-                        int nStartY = iY;
                         nDiffSum = 0;
-                        for (int y = 0; y < nPatternHeight - nJumpY; y += nJumpY)
+                        for (int j = 0; j < nPatternHeight - nJumpY; j += nJumpY)
                         {
-                            for (int x = 0; x < nPatternWidth - nJumpX; x += nJumpX)
+                            for (int i = 0; i < nPatternWidth - nJumpX; i += nJumpX)
                             {
-                                int nGraySource = pSourceBuffer[(nStartY + y) * nSourceWidth + nStartX + x];
-                                int nGrayPattern = pPatternBuffer[y * nPatternWidth + x];
+                                int nGraySource = pSourceBuffer[(y + j) * nSourceWidth + x + i];
+                                int nGrayPattern = pPatternBuffer[j * nPatternWidth + i];
                                 nDiffSum += Math.Abs(nGraySource - nGrayPattern);
                                 if (Math.Abs(nGraySource - nGrayPattern) < nDiffThreshold)
                                     nCount++;
@@ -663,9 +659,12 @@ namespace YoonFactory.Image
                         if (nDiffSum < nDiffMin)
                         {
                             nDiffMin = nDiffSum;
-                            nFindPosX = iX;
-                            nFindPosY = iY;
+                            nFindPosX = x;
+                            nFindPosY = y;
+                            nMinCount = nCount;
                         }
+
+                        nCount = 0;
                     }
                 }
 
@@ -680,7 +679,7 @@ namespace YoonFactory.Image
                         pSourceBuffer[(nFindPosY + j) * nSourceWidth + (nFindPosX + i)];
                 double dCoefficient =
                     MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, nPatternWidth, nPatternHeight);
-                nPixelCount = nCount;
+                nPixelCount = nMinCount;
                 dScore = dCoefficient;
                 return findRect;
             }

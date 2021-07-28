@@ -46,7 +46,6 @@ namespace YoonSample.TestImage
         {
             // Parsing
             _strRootDir = Path.Combine(_strRootDir, @"Align");
-            YoonImage pMarkImage = new YoonImage(Path.Combine(_strRootDir, @"mark.bmp"));
             Dictionary<string, YoonImage> pDicLeftImage = new Dictionary<string, YoonImage>();
             Dictionary<string, YoonImage> pDicRightImage = new Dictionary<string, YoonImage>();
             List<string> pListFilePath = FileFactory.GetExtensionFilePaths(_strRootDir, ".bmp");
@@ -60,17 +59,34 @@ namespace YoonSample.TestImage
                 else if (strFilePath.Contains("Right.bmp"))
                     pDicRightImage.Add(strKey, new YoonImage(strFilePath));
             }
+
             _pClm.Write("Image Parsing Completed");
+            // Load Mark
+            YoonImage pMarkImage = new YoonImage(Path.Combine(_strRootDir, @"mark.bmp"));
+            CVImage.ShowImage(pMarkImage, "MARK");
+            _pClm.Write("Load Mark Completed");
             // Set origin
             AlignObject pOriginLeft = new AlignObject(pDicLeftImage["Origin"].FindPattern(pMarkImage, 10));
             AlignObject pOriginRight = new AlignObject(pDicRightImage["Origin"].FindPattern(pMarkImage, 10));
             pOriginLeft.SetOrigin(eYoonDir2D.Left);
             pOriginRight.SetOrigin(eYoonDir2D.Right);
+            YoonImage pResultLeft, pResultRight;
+            using (pResultLeft = pDicLeftImage["Origin"].Clone() as YoonImage)
+            {
+                pResultLeft.DrawFigure(pOriginLeft.OriginFeature, Color.Chartreuse);
+                pResultLeft.DrawCross((YoonVector2N) pOriginLeft.OriginPosition, Color.Chartreuse);
+                CVImage.ShowImage(pResultLeft, "Origin LEFT");
+            }
+
+            using (pResultRight = pDicRightImage["Origin"].Clone() as YoonImage)
+            {
+                pResultRight.DrawFigure(pOriginRight.OriginFeature, Color.Chartreuse);
+                pResultRight.DrawCross((YoonVector2N) pOriginRight.OriginPosition, Color.Chartreuse);
+                CVImage.ShowImage(pResultRight, "Origin RIGHT");
+            }
+
             _pClm.Write("Set Origin To Parsing");
             // Image Processing
-            Stopwatch pTimer = new Stopwatch();
-            pTimer.Reset();
-            pTimer.Start();
             foreach (string strKey in pDicLeftImage.Keys)
             {
                 if (strKey == "Origin") continue;
@@ -79,14 +95,28 @@ namespace YoonSample.TestImage
                 AlignObject pObjectRight =
                     new AlignObject(pDicRightImage[strKey].FindPattern(pMarkImage, 10), pOriginRight);
                 _pClm.Write($"{strKey} Align Start");
-                double dX, dY, dTheta;
-                AlignFactory.Align2D(eYoonDir2D.Left, pObjectLeft, pObjectRight, out dX, out dY, out dTheta);
+                AlignFactory.Align2D(eYoonDir2D.Left, pObjectLeft, pObjectRight, out double dX, out double dY,
+                    out double dTheta);
                 _pClm.Write($"[Left] X : {dX:F4}, Y : {dY:F4}, Theta : {dTheta:F4}");
                 AlignFactory.Align2D(eYoonDir2D.Right, pObjectLeft, pObjectRight, out dX, out dY, out dTheta);
                 _pClm.Write($"[Right] X : {dX:F4}, Y : {dY:F4}, Theta : {dTheta:F4}");
+                using (pResultLeft = pDicLeftImage[strKey].Clone() as YoonImage)
+                {
+                    pResultLeft.DrawFigure(pObjectLeft.Feature, Color.Yellow);
+                    pResultLeft.DrawCross((YoonVector2N) pObjectLeft.Position, Color.Yellow);
+                    pResultLeft.DrawCross((YoonVector2N) pObjectLeft.OriginPosition, Color.Chartreuse);
+                    CVImage.ShowImage(pResultLeft, strKey + " LEFT");
+                }
+
+                using (pResultRight = pDicRightImage[strKey].Clone() as YoonImage)
+                {
+                    pResultRight.DrawFigure(pObjectRight.Feature, Color.Yellow);
+                    pResultRight.DrawCross((YoonVector2N) pObjectRight.Position, Color.Yellow);
+                    pResultRight.DrawCross((YoonVector2N) pOriginRight.OriginPosition, Color.Chartreuse);
+                    CVImage.ShowImage(pResultRight, strKey + " RIGHT");
+                }
             }
-            pTimer.Stop();
-            _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pDicLeftImage.Count:F1}ms/img]");
+            _pClm.Write("Finish The Align Process");
         }
 
         static void ProcessDrop()
