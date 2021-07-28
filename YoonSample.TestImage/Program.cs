@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using YoonFactory;
+using YoonFactory.Align;
 using YoonFactory.CV;
 using YoonFactory.Files;
 using YoonFactory.Image;
@@ -45,6 +46,7 @@ namespace YoonSample.TestImage
         {
             // Parsing
             _strRootDir = Path.Combine(_strRootDir, @"Align");
+            YoonImage pMarkImage = new YoonImage(Path.Combine(_strRootDir, @"mark.bmp"));
             Dictionary<string, YoonImage> pDicLeftImage = new Dictionary<string, YoonImage>();
             Dictionary<string, YoonImage> pDicRightImage = new Dictionary<string, YoonImage>();
             List<string> pListFilePath = FileFactory.GetExtensionFilePaths(_strRootDir, ".bmp");
@@ -58,6 +60,33 @@ namespace YoonSample.TestImage
                 else if (strFilePath.Contains("Right.bmp"))
                     pDicRightImage.Add(strKey, new YoonImage(strFilePath));
             }
+            _pClm.Write("Image Parsing Completed");
+            // Set origin
+            AlignObject pOriginLeft = new AlignObject(pDicLeftImage["Origin"].FindPattern(pMarkImage, 10));
+            AlignObject pOriginRight = new AlignObject(pDicRightImage["Origin"].FindPattern(pMarkImage, 10));
+            pOriginLeft.SetOrigin(eYoonDir2D.Left);
+            pOriginRight.SetOrigin(eYoonDir2D.Right);
+            _pClm.Write("Set Origin To Parsing");
+            // Image Processing
+            Stopwatch pTimer = new Stopwatch();
+            pTimer.Reset();
+            pTimer.Start();
+            foreach (string strKey in pDicLeftImage.Keys)
+            {
+                if (strKey == "Origin") continue;
+                AlignObject pObjectLeft =
+                    new AlignObject(pDicLeftImage[strKey].FindPattern(pMarkImage, 10), pOriginLeft);
+                AlignObject pObjectRight =
+                    new AlignObject(pDicRightImage[strKey].FindPattern(pMarkImage, 10), pOriginRight);
+                _pClm.Write($"{strKey} Align Start");
+                double dX, dY, dTheta;
+                AlignFactory.Align2D(eYoonDir2D.Left, pObjectLeft, pObjectRight, out dX, out dY, out dTheta);
+                _pClm.Write($"[Left] X : {dX:F4}, Y : {dY:F4}, Theta : {dTheta:F4}");
+                AlignFactory.Align2D(eYoonDir2D.Right, pObjectLeft, pObjectRight, out dX, out dY, out dTheta);
+                _pClm.Write($"[Right] X : {dX:F4}, Y : {dY:F4}, Theta : {dTheta:F4}");
+            }
+            pTimer.Stop();
+            _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pDicLeftImage.Count:F1}ms/img]");
         }
 
         static void ProcessDrop()
@@ -81,7 +110,7 @@ namespace YoonSample.TestImage
                 for (int iObject = 0; iObject < pDataset.Count; iObject++)
                 {
                     pResultImage.DrawRect(pScanArea, Color.Chartreuse);
-                    YoonVector2N pVectorFeature = (YoonVector2N) pDataset[iObject].ReferencePosition;
+                    YoonVector2N pVectorFeature = (YoonVector2N) pDataset[iObject].Position;
                     pResultImage.DrawFigure(pDataset[iObject].Feature, Color.Yellow);
                     pResultImage.DrawCross(pVectorFeature, Color.Yellow);
                 }

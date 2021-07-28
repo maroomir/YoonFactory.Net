@@ -369,8 +369,8 @@ namespace YoonFactory.Image
                     }
                 }
 
-                pFindRect.CenterPos.X = nFindPosX;
-                pFindRect.CenterPos.Y = nFindPosY;
+                pFindRect.CenterPos.X = nFindPosX + nPatternWidth / 2;
+                pFindRect.CenterPos.Y = nFindPosY + nPatternHeight / 2;
                 pFindRect.Width = nPatternWidth;
                 pFindRect.Height = nPatternHeight;
                 dScore = dCoefficient;
@@ -392,22 +392,22 @@ namespace YoonFactory.Image
                 return new YoonObject(0, pResultRect, pSourceImage.CropImage(pResultRect), dScore, nPixelCount);
             }
 
-            public static YoonRect2N FindPatternAsBinary(YoonRect2N pScanArea, byte[] pPatternBuffer, int patternWidth,
-                int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, out double score,
-                out int pixelCount)
+            public static YoonRect2N FindPatternAsBinary(YoonRect2N pScanArea, byte[] pPatternBuffer, int nPatternWidth,
+                int nPatternHeight, byte[] pSourceBuffer, int nSourceWidth, int nSourceHeight, out double dScore,
+                out int nPixelCount)
             {
                 YoonRect2N findRect = new YoonRect2N(0, 0, 0, 0);
                 double dCoefficient = 0.0;
-                int nJumpX = patternWidth / 30;
-                int nJumpY = patternHeight / 30;
+                int nJumpX = nPatternWidth / 30;
+                int nJumpY = nPatternHeight / 30;
                 if (nJumpX < 1) nJumpX = 1;
                 if (nJumpY < 1) nJumpY = 1;
                 int nFindPosX = 0;
                 int nFindPosY = 0;
                 var matchCountMax = 0;
-                for (int iY = pScanArea.Top; iY < pScanArea.Bottom - patternHeight; iY += 1)
+                for (int iY = pScanArea.Top; iY < pScanArea.Bottom - nPatternHeight; iY += 1)
                 {
-                    for (int iX = pScanArea.Left; iX < pScanArea.Right - patternWidth; iX += 1)
+                    for (int iX = pScanArea.Left; iX < pScanArea.Right - nPatternWidth; iX += 1)
                     {
                         int nStartX = iX;
                         int nStartY = iY;
@@ -416,12 +416,12 @@ namespace YoonFactory.Image
                         int nCountBlack = 0;
                         int nTotalCountWhite = 0;
                         int nTotalCountBlack = 0;
-                        for (int y = 0; y < patternHeight - nJumpY; y += nJumpY)
+                        for (int y = 0; y < nPatternHeight - nJumpY; y += nJumpY)
                         {
-                            for (int x = 0; x < patternWidth - nJumpX; x += nJumpX)
+                            for (int x = 0; x < nPatternWidth - nJumpX; x += nJumpX)
                             {
-                                int nGraySource = pSourceBuffer[(nStartY + y) * sourceWidth + nStartX + x];
-                                int nGrayPattern = pPatternBuffer[y * patternWidth + x];
+                                int nGraySource = pSourceBuffer[(nStartY + y) * nSourceWidth + nStartX + x];
+                                int nGrayPattern = pPatternBuffer[y * nPatternWidth + x];
                                 if (nGrayPattern == nGraySource) matchCount++;
                                 switch (nGrayPattern)
                                 {
@@ -458,12 +458,12 @@ namespace YoonFactory.Image
                     }
                 }
 
-                findRect.CenterPos.X = nFindPosX;
-                findRect.CenterPos.Y = nFindPosY;
-                findRect.Width = patternWidth;
-                findRect.Height = patternHeight;
-                score = dCoefficient;
-                pixelCount = matchCountMax;
+                findRect.CenterPos.X = nFindPosX + nPatternWidth / 2;
+                findRect.CenterPos.Y = nFindPosY + nPatternHeight / 2;
+                findRect.Width = nPatternWidth;
+                findRect.Height = nPatternHeight;
+                dScore = dCoefficient;
+                nPixelCount = matchCountMax;
                 return findRect;
             }
 
@@ -489,9 +489,9 @@ namespace YoonFactory.Image
                 throw new FormatException("[YOONIMAGE EXCEPTION] Image format arguments is not comportable");
             }
 
-            public static YoonRect2N FindPattern(byte[] pPatternBuffer, int patternWidth, int patternHeight,
-                byte[] pSourceBuffer, int sourceWidth, int sourceHeight, byte diffThreshold, out double score,
-                out int pixelCount)
+            public static YoonRect2N FindPattern(byte[] pPatternBuffer, int nPatternWidth, int nPatternHeight,
+                byte[] pSourceBuffer, int nSourceWidth, int nSourceHeight, byte nDiffThreshold, out double dScore,
+                out int nPixelCount)
             {
                 YoonRect2N pFindRect = new YoonRect2N(0, 0, 0, 0);
                 int nDiffMin = 2147483647;
@@ -500,27 +500,27 @@ namespace YoonFactory.Image
                 int nFindPosX = 0;
                 int nFindPosY = 0;
                 // Set-up the skip parameter
-                int nJumpX = patternWidth / 30;
-                int nJumpY = patternHeight / 30;
+                int nJumpX = nPatternWidth / 30;
+                int nJumpY = nPatternHeight / 30;
                 if (nJumpX < 1) nJumpX = 1;
                 if (nJumpY < 1) nJumpY = 1;
                 // Find the matching accuracy and count
-                for (int iY = 0; iY < sourceHeight - patternHeight; iY += 1)
+                for (int iY = 0; iY < nSourceHeight - nPatternHeight; iY += 1)
                 {
-                    for (int iX = 0; iX < sourceWidth - patternWidth; iX += 1)
+                    for (int iX = 0; iX < nSourceWidth - nPatternWidth; iX += 1)
                     {
                         int nStartX = iX;
                         int nStartY = iY;
                         // Find the difference within the whole image
                         nDiffSum = 0;
-                        for (int y = 0; y < patternHeight - nJumpY; y += nJumpY)
+                        for (int y = 0; y < nPatternHeight - nJumpY; y += nJumpY)
                         {
-                            for (int x = 0; x < patternWidth - nJumpX; x += nJumpX)
+                            for (int x = 0; x < nPatternWidth - nJumpX; x += nJumpX)
                             {
-                                int nGraySource = pSourceBuffer[(nStartY + y) * sourceWidth + nStartX + x];
-                                int nGrayPattern = pPatternBuffer[y * patternWidth + x];
+                                int nGraySource = pSourceBuffer[(nStartY + y) * nSourceWidth + nStartX + x];
+                                int nGrayPattern = pPatternBuffer[y * nPatternWidth + x];
                                 nDiffSum += Math.Abs(nGraySource - nGrayPattern);
-                                if (Math.Abs(nGraySource - nGrayPattern) < diffThreshold)
+                                if (Math.Abs(nGraySource - nGrayPattern) < nDiffThreshold)
                                     nCount++;
                             }
                         }
@@ -535,25 +535,26 @@ namespace YoonFactory.Image
                     }
                 }
 
-                pFindRect.CenterPos.X = nFindPosX;
-                pFindRect.CenterPos.Y = nFindPosY;
-                pFindRect.Width = patternWidth;
-                pFindRect.Height = patternHeight;
+                pFindRect.CenterPos.X = nFindPosX + nPatternWidth / 2;
+                pFindRect.CenterPos.Y = nFindPosY + nPatternHeight / 2;
+                pFindRect.Width = nPatternWidth;
+                pFindRect.Height = nPatternHeight;
                 // Find the coefficient
-                byte[] pTempBuffer = new byte[patternWidth * patternHeight];
-                for (int j = 0; j < patternHeight; j++)
-                for (int i = 0; i < patternWidth; i++)
-                    pTempBuffer[j * patternWidth + i] = pSourceBuffer[(nFindPosY + j) * sourceWidth + (nFindPosX + i)];
+                byte[] pTempBuffer = new byte[nPatternWidth * nPatternHeight];
+                for (int j = 0; j < nPatternHeight; j++)
+                for (int i = 0; i < nPatternWidth; i++)
+                    pTempBuffer[j * nPatternWidth + i] =
+                        pSourceBuffer[(nFindPosY + j) * nSourceWidth + (nFindPosX + i)];
                 double dCoefficient =
-                    MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
-                score = dCoefficient;
-                pixelCount = nCount;
+                    MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, nPatternWidth, nPatternHeight);
+                dScore = dCoefficient;
+                nPixelCount = nCount;
                 return pFindRect;
             }
 
-            public static YoonRect2N FindPattern(int[] pPatternBuffer, int patternWidth, int patternHeight,
-                int[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold, out double score,
-                out int pixelCount)
+            public static YoonRect2N FindPattern(int[] pPatternBuffer, int nPatternWidth, int nPatternHeight,
+                int[] pSourceBuffer, int nSourceWidth, int nSourceHeight, int nDiffThreshold, out double dScore,
+                out int nPixelCount)
             {
                 YoonRect2N findRect = new YoonRect2N(0, 0, 0, 0);
                 int nDiffMin = 2147483647;
@@ -561,25 +562,25 @@ namespace YoonFactory.Image
                 int nCount = 0;
                 int nFindPosX = 0;
                 int nFindPosY = 0;
-                int nJumpX = patternWidth / 60;
-                int nJumpY = patternHeight / 60;
+                int nJumpX = nPatternWidth / 60;
+                int nJumpY = nPatternHeight / 60;
                 if (nJumpX < 1) nJumpX = 1;
                 if (nJumpY < 1) nJumpY = 1;
-                for (int iY = 0; iY < sourceHeight - patternHeight; iY += 1)
+                for (int iY = 0; iY < nSourceHeight - nPatternHeight; iY += 1)
                 {
-                    for (int iX = 0; iX < sourceWidth - patternWidth; iX += 1)
+                    for (int iX = 0; iX < nSourceWidth - nPatternWidth; iX += 1)
                     {
                         int nStartX = iX;
                         int nStartY = iY;
                         nDiffSum = 0;
-                        for (int y = 0; y < patternHeight - nJumpY; y += nJumpY)
+                        for (int y = 0; y < nPatternHeight - nJumpY; y += nJumpY)
                         {
-                            for (int x = 0; x < patternWidth - nJumpX; x += nJumpX)
+                            for (int x = 0; x < nPatternWidth - nJumpX; x += nJumpX)
                             {
-                                int nGraySource = pSourceBuffer[(nStartY + y) * sourceWidth + nStartX + x];
-                                int nGrayPattern = pPatternBuffer[y * patternWidth + x];
+                                int nGraySource = pSourceBuffer[(nStartY + y) * nSourceWidth + nStartX + x];
+                                int nGrayPattern = pPatternBuffer[y * nPatternWidth + x];
                                 nDiffSum += Math.Abs(nGraySource - nGrayPattern);
-                                if (Math.Abs(nGraySource - nGrayPattern) < diffThreshold)
+                                if (Math.Abs(nGraySource - nGrayPattern) < nDiffThreshold)
                                     nCount++;
                             }
                         }
@@ -593,69 +594,68 @@ namespace YoonFactory.Image
                     }
                 }
 
-                findRect.CenterPos.X = nFindPosX;
-                findRect.CenterPos.Y = nFindPosY;
-                findRect.Width = patternWidth;
-                findRect.Height = patternHeight;
-                int[] pTempBuffer = new int[patternWidth * patternHeight];
-                for (int j = 0; j < patternHeight; j++)
-                for (int i = 0; i < patternWidth; i++)
-                    pTempBuffer[j * patternWidth + i] = pSourceBuffer[(nFindPosY + j) * sourceWidth + (nFindPosX + i)];
+                findRect.CenterPos.X = nFindPosX + nPatternWidth / 2;
+                findRect.CenterPos.Y = nFindPosY + nPatternHeight / 2;
+                findRect.Width = nPatternWidth;
+                findRect.Height = nPatternHeight;
+                int[] pTempBuffer = new int[nPatternWidth * nPatternHeight];
+                for (int j = 0; j < nPatternHeight; j++)
+                for (int i = 0; i < nPatternWidth; i++)
+                    pTempBuffer[j * nPatternWidth + i] =
+                        pSourceBuffer[(nFindPosY + j) * nSourceWidth + (nFindPosX + i)];
                 double dCoefficient =
-                    MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
-                score = dCoefficient;
-                pixelCount = nCount;
+                    MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, nPatternWidth, nPatternHeight);
+                dScore = dCoefficient;
+                nPixelCount = nCount;
                 return findRect;
             }
 
-            public static YoonObject FindPattern(YoonRect2N scanArea, YoonImage pPatternImage, YoonImage pSourceImage,
+            public static YoonObject FindPattern(YoonRect2N pScanArea, YoonImage pPatternImage, YoonImage pSourceImage,
                 int nDiffThreshold)
             {
                 if (pPatternImage.Format != PixelFormat.Format8bppIndexed ||
                     pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                if (!pPatternImage.IsVerifiedArea(scanArea))
+                if (!pPatternImage.IsVerifiedArea(pScanArea))
                     throw new ArgumentOutOfRangeException("[YOONIMAGE EXCEPTION] Scan area is not verified");
-                double dScore;
-                int nPixelCount;
-                YoonRect2N pRectResult = FindPattern(scanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width,
+                YoonRect2N pRectResult = FindPattern(pScanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width,
                     pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
-                    nDiffThreshold, out dScore, out nPixelCount);
+                    nDiffThreshold, out double dScore, out int nPixelCount);
                 return new YoonObject(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore,
                     nPixelCount);
             }
 
-            public static YoonRect2N FindPattern(YoonRect2N scanArea, byte[] pPatternBuffer, int patternWidth,
-                int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold,
-                out double score, out int pixelCount)
+            public static YoonRect2N FindPattern(YoonRect2N pScanArea, byte[] pPatternBuffer, int nPatternWidth,
+                int nPatternHeight, byte[] pSourceBuffer, int nSourceWidth, int nSourceHeight, int nDiffThreshold,
+                out double dScore, out int nPixelCount)
             {
                 YoonRect2N findRect = new YoonRect2N(0, 0, 0, 0);
-                if (patternWidth < 1 || patternHeight < 1)
+                if (nPatternWidth < 1 || nPatternHeight < 1)
                     throw new ArgumentException("[YOONIMAGE EXCEPTION] Pattern size is not verified");
                 int nDiffMin = 2147483647;
                 int nDiffSum = 0;
                 int nCount = 0;
                 int nFindPosX = 0;
                 int nFindPosY = 0;
-                int nJumpX = patternWidth / 60;
-                int nJumpY = patternHeight / 60;
+                int nJumpX = nPatternWidth / 60;
+                int nJumpY = nPatternHeight / 60;
                 if (nJumpX < 1) nJumpX = 1;
                 if (nJumpY < 1) nJumpY = 1;
-                for (int iY = scanArea.Top; iY < scanArea.Bottom - patternHeight; iY += 2)
+                for (int iY = pScanArea.Top; iY < pScanArea.Bottom - nPatternHeight; iY += 2)
                 {
-                    for (int iX = scanArea.Left; iX < scanArea.Right - patternWidth; iX += 2)
+                    for (int iX = pScanArea.Left; iX < pScanArea.Right - nPatternWidth; iX += 2)
                     {
                         int nStartX = iX;
                         int nStartY = iY;
                         nDiffSum = 0;
-                        for (int y = 0; y < patternHeight - nJumpY; y += nJumpY)
+                        for (int y = 0; y < nPatternHeight - nJumpY; y += nJumpY)
                         {
-                            for (int x = 0; x < patternWidth - nJumpX; x += nJumpX)
+                            for (int x = 0; x < nPatternWidth - nJumpX; x += nJumpX)
                             {
-                                int nGraySource = pSourceBuffer[(nStartY + y) * sourceWidth + nStartX + x];
-                                int nGrayPattern = pPatternBuffer[y * patternWidth + x];
+                                int nGraySource = pSourceBuffer[(nStartY + y) * nSourceWidth + nStartX + x];
+                                int nGrayPattern = pPatternBuffer[y * nPatternWidth + x];
                                 nDiffSum += Math.Abs(nGraySource - nGrayPattern);
-                                if (Math.Abs(nGraySource - nGrayPattern) < diffThreshold)
+                                if (Math.Abs(nGraySource - nGrayPattern) < nDiffThreshold)
                                     nCount++;
                             }
                         }
@@ -669,18 +669,19 @@ namespace YoonFactory.Image
                     }
                 }
 
-                findRect.CenterPos.X = nFindPosX;
-                findRect.CenterPos.Y = nFindPosY;
-                findRect.Width = patternWidth;
-                findRect.Height = patternHeight;
-                byte[] pTempBuffer = new byte[patternWidth * patternHeight];
-                for (int j = 0; j < patternHeight; j++)
-                for (int i = 0; i < patternWidth; i++)
-                    pTempBuffer[j * patternWidth + i] = pSourceBuffer[(nFindPosY + j) * sourceWidth + (nFindPosX + i)];
+                findRect.CenterPos.X = nFindPosX + nPatternWidth / 2;
+                findRect.CenterPos.Y = nFindPosY + nPatternHeight / 2;
+                findRect.Width = nPatternWidth;
+                findRect.Height = nPatternHeight;
+                byte[] pTempBuffer = new byte[nPatternWidth * nPatternHeight];
+                for (int j = 0; j < nPatternHeight; j++)
+                for (int i = 0; i < nPatternWidth; i++)
+                    pTempBuffer[j * nPatternWidth + i] =
+                        pSourceBuffer[(nFindPosY + j) * nSourceWidth + (nFindPosX + i)];
                 double dCoefficient =
-                    MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
-                pixelCount = nCount;
-                score = dCoefficient;
+                    MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, nPatternWidth, nPatternHeight);
+                nPixelCount = nCount;
+                dScore = dCoefficient;
                 return findRect;
             }
         }

@@ -51,7 +51,7 @@ namespace YoonFactory.Image
 
         public List<double> Scores => _pListObject.Select(pObject => pObject.Score).ToList();
 
-        public List<IYoonVector> References => _pListObject.Select(pObject => pObject.ReferencePosition).ToList();
+        public List<IYoonVector> Positions => _pListObject.Select(pObject => pObject.Position).ToList();
 
         public YoonObject this[int index]
         {
@@ -155,12 +155,12 @@ namespace YoonFactory.Image
             return new List<IYoonFigure>(Features);
         }
 
-        public List<IYoonVector> CopyReferences()
+        public List<IYoonVector> CopyPositions()
         {
 
             if (_pListObject == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            return new List<IYoonVector>(References);
+            return new List<IYoonVector>(Positions);
         }
 
         public IEnumerator<YoonObject> GetEnumerator()

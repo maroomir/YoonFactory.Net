@@ -10,17 +10,17 @@ namespace YoonFactory.Align
         public static void Align1D(AlignObject pObject, out double dX, out double dY, out double dTheta,
             double dScale = 1.0)
         {
-            YoonVector2D pObjectVector = pObject.GetReferenceVector2D();
+            YoonVector2D pObjectVector = pObject.GetCurrentVector2D();
             YoonVector2D pOriginVector = pObject.GetOriginVector2D();
-            CalculateAlign1D(pObjectVector, pOriginVector, pObject.GetReferenceTheta(), pObject.GetOriginTheta(),
+            CalculateAlign1D(pObjectVector, pOriginVector, pObject.GetCurrentTheta(), pObject.GetOriginTheta(),
                 out dX, out dY, out dTheta, dScale);
         }
 
         public static void Align2D(eYoonDir2D nDir, AlignObject pLeftObject, AlignObject pRightObject, out double dX,
             out double dY, out double dTheta, double dScale = 1.0)
         {
-            YoonVector2D pObjectVectorLeft = pLeftObject.GetReferenceVector2D();
-            YoonVector2D pObjectVectorRight = pRightObject.GetReferenceVector2D();
+            YoonVector2D pObjectVectorLeft = pLeftObject.GetCurrentVector2D();
+            YoonVector2D pObjectVectorRight = pRightObject.GetCurrentVector2D();
             YoonVector2D pOriginVectorLeft = pLeftObject.GetOriginVector2D();
             YoonVector2D pOriginVectorRight = pRightObject.GetOriginVector2D();
             dTheta = CalculateTheta2D(pObjectVectorLeft, pObjectVectorRight, pOriginVectorLeft, pOriginVectorRight,

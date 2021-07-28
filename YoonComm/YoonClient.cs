@@ -178,31 +178,29 @@ namespace YoonFactory.Comm.TCP
         public void LoadParameter()
         {
             string strFilePath = Path.Combine(RootDirectory, "IPClient.ini");
-            using (YoonIni pIni = new YoonIni(strFilePath))
-            {
-                pIni.LoadFile();
-                Parameter.Ip = pIni["Client"]["IP"].ToString("127.0.0.1");
-                Parameter.Port = pIni["Client"]["Port"].ToString("1234");
-                Parameter.RetryConnect = pIni["Client"]["RetryConnect"].ToString("true");
-                Parameter.RetryCount = pIni["Client"]["RetryCount"].ToString("100");
-                Parameter.Timeout = pIni["Client"]["TimeOut"].ToString("10000");
-                Parameter.ElapsedTime = pIni["Client"]["ElapsedTime"].ToString("5000");
-            }
+            YoonIni pIni = new YoonIni(strFilePath);
+            pIni.LoadFile();
+            Parameter.Ip = pIni["Client"]["IP"].ToString("127.0.0.1");
+            Parameter.Port = pIni["Client"]["Port"].ToString("1234");
+            Parameter.RetryConnect = pIni["Client"]["RetryConnect"].ToString("true");
+            Parameter.RetryCount = pIni["Client"]["RetryCount"].ToString("100");
+            Parameter.Timeout = pIni["Client"]["TimeOut"].ToString("10000");
+            Parameter.ElapsedTime = pIni["Client"]["ElapsedTime"].ToString("5000");
+            pIni.Dispose();
         }
 
         public void SaveParameter()
         {
             string strFilePath = Path.Combine(RootDirectory, "IPClient.ini");
-            using (YoonIni pIni = new YoonIni(strFilePath))
-            {
-                pIni["Client"]["IP"] = Parameter.Ip;
-                pIni["Client"]["Port"] = Parameter.Port;
-                pIni["Client"]["RetryConnect"] = Parameter.RetryConnect;
-                pIni["Client"]["RetryCount"] = Parameter.RetryCount;
-                pIni["Client"]["TimeOut"] = Parameter.Timeout;
-                pIni["Client"]["ElapsedTime"] = Parameter.ElapsedTime;
-                pIni.SaveFile();
-            }
+            YoonIni pIni = new YoonIni(strFilePath);
+            pIni["Client"]["IP"] = Parameter.Ip;
+            pIni["Client"]["Port"] = Parameter.Port;
+            pIni["Client"]["RetryConnect"] = Parameter.RetryConnect;
+            pIni["Client"]["RetryCount"] = Parameter.RetryCount;
+            pIni["Client"]["TimeOut"] = Parameter.Timeout;
+            pIni["Client"]["ElapsedTime"] = Parameter.ElapsedTime;
+            pIni.SaveFile();
+            pIni.Dispose();
         }
 
         public bool IsConnected => _pClientSocket is {Connected: true};

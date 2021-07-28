@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -361,6 +362,7 @@ namespace YoonFactory.Image
 
         public YoonImage(Bitmap pBitmap)
         {
+            Debug.Assert(pBitmap != null, nameof(pBitmap) + " != null");
             Bitmap = (Bitmap) pBitmap.Clone();
         }
 
@@ -501,23 +503,20 @@ namespace YoonFactory.Image
 
         public virtual YoonImage CropImage(YoonRect2N pCropArea)
         {
-            YoonImage pImageResult;
-            using (pImageResult = new YoonImage(pCropArea.Width, pCropArea.Height, PixelFormat.Format8bppIndexed))
+            YoonImage pImageResult = new YoonImage(pCropArea.Width, pCropArea.Height, PixelFormat.Format8bppIndexed);
+            for (int iY = 0; iY < pCropArea.Height; iY++)
             {
-                for (int iY = 0; iY < pCropArea.Height; iY++)
+                int nY = pCropArea.Top + iY;
+                if (nY >= Bitmap.Height) continue;
+                byte[] pByte = new byte[pCropArea.Width];
+                for (int iX = 0; iX < pCropArea.Width; iX++)
                 {
-                    int nY = pCropArea.Top + iY;
-                    if (nY >= Bitmap.Height) continue;
-                    byte[] pByte = new byte[pCropArea.Width];
-                    for (int iX = 0; iX < pCropArea.Width; iX++)
-                    {
-                        int nX = pCropArea.Left + iX;
-                        if (nX >= Bitmap.Width) continue;
-                        pByte[iX] = Math.Max((byte) 0, Math.Min(GetGrayPixel(iX, iY), (byte) 255));
-                    }
-
-                    pImageResult.SetGrayLine(pByte, iY);
+                    int nX = pCropArea.Left + iX;
+                    if (nX >= Bitmap.Width) continue;
+                    pByte[iX] = Math.Max((byte) 0, Math.Min(GetGrayPixel(iX, iY), (byte) 255));
                 }
+
+                pImageResult.SetGrayLine(pByte, iY);
             }
 
             return pImageResult;

@@ -179,29 +179,27 @@ namespace YoonFactory.Comm.TCP
         public void LoadParameter()
         {
             string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
-            using (YoonIni pIni = new YoonIni(strParamFilePath))
-            {
-                pIni.LoadFile();
-                Parameter.Port = pIni["Server"]["Port"].ToString("1234");
-                Parameter.Backlog = pIni["Server"]["Backlog"].ToString("5");
-                Parameter.RetryListen = pIni["Server"]["RetryListen"].ToString("true");
-                Parameter.RetryCount = pIni["Server"]["RetryCount"].ToString("10");
-                Parameter.Timeout = pIni["Server"]["TimeOut"].ToString("10000");
-            }
+            YoonIni pIni = new YoonIni(strParamFilePath);
+            pIni.LoadFile();
+            Parameter.Port = pIni["Server"]["Port"].ToString("1234");
+            Parameter.Backlog = pIni["Server"]["Backlog"].ToString("5");
+            Parameter.RetryListen = pIni["Server"]["RetryListen"].ToString("true");
+            Parameter.RetryCount = pIni["Server"]["RetryCount"].ToString("10");
+            Parameter.Timeout = pIni["Server"]["TimeOut"].ToString("10000");
+            pIni.Dispose();
         }
 
         public void SaveParameter()
         {
             string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
-            using (YoonIni pIni = new YoonIni(strParamFilePath))
-            {
-                pIni["Server"]["Port"] = Parameter.Port;
-                pIni["Server"]["Backlog"] = Parameter.Backlog;
-                pIni["Server"]["RetryListen"] = Parameter.RetryListen;
-                pIni["Server"]["RetryCount"] = Parameter.RetryCount;
-                pIni["Server"]["TimeOut"] = Parameter.Timeout;
-                pIni.SaveFile();
-            }
+            YoonIni pIni = new YoonIni(strParamFilePath);
+            pIni["Server"]["Port"] = Parameter.Port;
+            pIni["Server"]["Backlog"] = Parameter.Backlog;
+            pIni["Server"]["RetryListen"] = Parameter.RetryListen;
+            pIni["Server"]["RetryCount"] = Parameter.RetryCount;
+            pIni["Server"]["TimeOut"] = Parameter.Timeout;
+            pIni.SaveFile();
+            pIni.Dispose();
         }
 
         public void LoadTarget()

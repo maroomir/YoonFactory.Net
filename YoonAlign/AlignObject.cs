@@ -18,30 +18,44 @@ namespace YoonFactory
             Score = pOriginObject.Score;
             PixelCount = pOriginObject.PixelCount;
             ObjectImage = pOriginObject.ObjectImage.Clone() as YoonImage;
-            ReferencePosition = pOriginObject.ReferencePosition.Clone();
-            OriginPosition = pOriginObject.ReferencePosition.Clone();
+            Position = pOriginObject.Position.Clone();
+            OriginPosition = pOriginObject.Position.Clone();
             Feature = pOriginObject.Feature.Clone();
             OriginFeature = pOriginObject.Feature.Clone();
+        }
+
+        public AlignObject(YoonObject pObject, AlignObject pOrigin)
+        {
+            Label = pObject.Label;
+            Score = pObject.Score;
+            PixelCount = pObject.PixelCount;
+            ObjectImage = pObject.ObjectImage.Clone() as YoonImage;
+            Position = pObject.Position.Clone();
+            Feature = pObject.Feature.Clone();
+            // Bring the origin object
+            Direction = pOrigin.Direction;
+            OriginPosition = pOrigin.OriginPosition.Clone();
+            OriginFeature = pOrigin.OriginFeature.Clone();
         }
 
         public AlignObject(YoonObject pOriginObject, YoonImage pImage, IYoonVector pVector) : this(pOriginObject)
         {
             ObjectImage = pImage.Clone() as YoonImage;
-            ReferencePosition = pVector.Clone();
+            Position = pVector.Clone();
         }
 
         public AlignObject(YoonObject pOriginObject, YoonImage pImage, IYoonFigure pFeature, IYoonVector pVector) :
             this(pOriginObject)
         {
             ObjectImage = pImage.Clone() as YoonImage;
-            ReferencePosition = pVector.Clone();
+            Position = pVector.Clone();
             Feature = pFeature.Clone();
         }
 
         public void SetOrigin(eYoonDir2D nDir = eYoonDir2D.None)
         {
             Direction = nDir;
-            OriginPosition = ReferencePosition.Clone();
+            OriginPosition = Position.Clone();
             OriginFeature = Feature.Clone();
         }
 
@@ -65,22 +79,22 @@ namespace YoonFactory
                 throw new TypeAccessException("[YOONALIGN] Position Type is abnormal");
         }
 
-        public YoonVector2D GetReferenceVector2D()
+        public YoonVector2D GetCurrentVector2D()
         {
-            if (ReferencePosition is YoonVector2D pVector2D || ReferencePosition is YoonVector2N pVector2N)
-                return (ReferencePosition is YoonVector2N pReferenceVector2N)
-                    ? pReferenceVector2N.ToVector2D()
-                    : ReferencePosition as YoonVector2D;
+            if (Position is YoonVector2D pVector2D || Position is YoonVector2N pVector2N)
+                return (Position is YoonVector2N pCurrentVector2N)
+                    ? pCurrentVector2N.ToVector2D()
+                    : Position as YoonVector2D;
             else
                 throw new TypeAccessException("[YOONALIGN] Position Type is abnormal");
         }
 
-        public YoonVector2N GetReferenceVector2N()
+        public YoonVector2N GetCurrentVector2N()
         {
-            if (ReferencePosition is YoonVector2D pVector2D || ReferencePosition is YoonVector2N pVector2N)
-                return (ReferencePosition is YoonVector2D pReferenceVector2D)
-                    ? pReferenceVector2D.ToVector2N()
-                    : ReferencePosition as YoonVector2N;
+            if (Position is YoonVector2D pVector2D || Position is YoonVector2N pVector2N)
+                return (Position is YoonVector2D pCurrentVector2D)
+                    ? pCurrentVector2D.ToVector2N()
+                    : Position as YoonVector2N;
             else
                 throw new TypeAccessException("[YOONALIGN] Position Type is abnormal");
         }
@@ -90,7 +104,7 @@ namespace YoonFactory
             return (Feature is YoonRectAffine2D pRectOrigin) ? pRectOrigin.Rotation : 0.0;
         }
 
-        public double GetReferenceTheta()
+        public double GetCurrentTheta()
         {
             return (Feature is YoonRectAffine2D pRectObject) ? pRectObject.Rotation : 0.0;
         }
@@ -104,7 +118,7 @@ namespace YoonFactory
                 Score = pAlignObject.Score;
                 PixelCount = pAlignObject.PixelCount;
                 ObjectImage = pAlignObject.ObjectImage.Clone() as YoonImage;
-                ReferencePosition = pAlignObject.ReferencePosition.Clone();
+                Position = pAlignObject.Position.Clone();
                 OriginPosition = pAlignObject.OriginPosition.Clone();
                 Feature = pAlignObject.Feature.Clone();
                 OriginFeature = pAlignObject.OriginFeature.Clone();
@@ -123,7 +137,7 @@ namespace YoonFactory
                    Score == other.Score &&
                    EqualityComparer<IYoonFigure>.Default.Equals(Feature, other.Feature) &&
                    EqualityComparer<IYoonFigure>.Default.Equals(OriginFeature, other.OriginFeature) &&
-                   EqualityComparer<IYoonVector>.Default.Equals(ReferencePosition, other.ReferencePosition) &&
+                   EqualityComparer<IYoonVector>.Default.Equals(Position, other.Position) &&
                    EqualityComparer<IYoonVector>.Default.Equals(OriginPosition, other.OriginPosition) &&
                    EqualityComparer<YoonImage>.Default.Equals(ObjectImage, other.ObjectImage) &&
                    PixelCount == other.PixelCount;

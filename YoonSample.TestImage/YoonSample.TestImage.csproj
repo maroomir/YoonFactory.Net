@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\YoonAlign\YoonAlign.csproj" />
       <ProjectReference Include="..\YoonCV\YoonCV.csproj" />
       <ProjectReference Include="..\YoonFactory\YoonFactory.csproj" />
       <ProjectReference Include="..\YoonFile\YoonFile.csproj" />
