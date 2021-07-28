@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonSample.TestImage", "Yoo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonCV", "YoonCV\YoonCV.csproj", "{47D58979-DA44-4162-8FA2-7C00EECF0CE5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonAlign", "YoonAlign\YoonAlign.csproj", "{E2C878A5-9B9C-47EB-B776-2E02CCECB053}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +62,9 @@ Global
 		{47D58979-DA44-4162-8FA2-7C00EECF0CE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47D58979-DA44-4162-8FA2-7C00EECF0CE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47D58979-DA44-4162-8FA2-7C00EECF0CE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2C878A5-9B9C-47EB-B776-2E02CCECB053}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2C878A5-9B9C-47EB-B776-2E02CCECB053}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2C878A5-9B9C-47EB-B776-2E02CCECB053}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2C878A5-9B9C-47EB-B776-2E02CCECB053}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
