@@ -70,7 +70,8 @@ namespace YoonFactory.Align
         {
             if (Math.Abs(dTheta - INVALID_NUM) < TOLERANCE)
                 return new YoonVector2D(INVALID_NUM, INVALID_NUM);
-
+            // Change the degree to radian
+            dTheta *= (Math.PI / 180.0);
             // Calculate the align vector
             return new YoonVector2D()
             {

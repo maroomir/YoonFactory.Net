@@ -22,13 +22,18 @@ namespace YoonSample.TestImage
 
         static void Main(string[] args)
         {
-            Console.Write("Select the processing mode (Align, Drops, Glass) >> ");
+            Console.WriteLine("Select the processing mode = ");
+            Console.Write("Align, CVAlign, Drops, Glass >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
                 case "align":
                     _pClm.Write("Start Align Process");
                     ProcessAlign();
+                    break;
+                case "cvalign":
+                    _pClm.Write("Start CVAlign Process");
+                    ProcessCVAlign();
                     break;
                 case "drops":
                     _pClm.Write("Start Drops Inspection");
@@ -116,6 +121,84 @@ namespace YoonSample.TestImage
                     CVImage.ShowImage(pResultRight, strKey + " RIGHT");
                 }
             }
+            _pClm.Write("Finish The Align Process");
+        }
+
+        static void ProcessCVAlign()
+        {
+            // Parsing
+            _strRootDir = Path.Combine(_strRootDir, @"Align");
+            Dictionary<string, CVImage> pDicLeftImage = new Dictionary<string, CVImage>();
+            Dictionary<string, CVImage> pDicRightImage = new Dictionary<string, CVImage>();
+            List<string> pListFilePath = FileFactory.GetExtensionFilePaths(_strRootDir, ".bmp");
+            _pClm.Write("Image Load Completed");
+            foreach (string strFilePath in pListFilePath)
+            {
+                FileInfo pFile = new FileInfo(strFilePath);
+                string strKey = pFile.Directory.Name;
+                if (strFilePath.Contains("Left.bmp"))
+                    pDicLeftImage.Add(strKey, new CVImage(new YoonImage(strFilePath)));
+                else if (strFilePath.Contains("Right.bmp"))
+                    pDicRightImage.Add(strKey, new CVImage(new YoonImage(strFilePath)));
+            }
+
+            _pClm.Write("Image Parsing Completed");
+            // Load Mark
+            CVImage pMarkImage = new CVImage(new YoonImage(Path.Combine(_strRootDir, @"mark.jpg")).ToGrayImage());
+            pMarkImage.ShowImage("MARK");
+            _pClm.Write("Load Mark Completed");
+            // Set origin
+            AlignObject pOriginLeft = new AlignObject(pDicLeftImage["Origin"].FindTemplate(pMarkImage, 0.7));
+            AlignObject pOriginRight = new AlignObject(pDicRightImage["Origin"].FindTemplate(pMarkImage, 0.7));
+            pOriginLeft.SetOrigin(eYoonDir2D.Left);
+            pOriginRight.SetOrigin(eYoonDir2D.Right);
+            CVImage pResultLeft, pResultRight;
+            using (pResultLeft = pDicLeftImage["Origin"].Clone() as CVImage)
+            {
+                pResultLeft.DrawFigure(pOriginLeft.OriginFeature, Color.Chartreuse);
+                pResultLeft.DrawCross((YoonVector2N) pOriginLeft.OriginPosition, Color.Chartreuse);
+                pResultLeft.ShowImage("Origin LEFT");
+            }
+
+            using (pResultRight = pDicRightImage["Origin"].Clone() as CVImage)
+            {
+                pResultRight.DrawFigure(pOriginRight.OriginFeature, Color.Chartreuse);
+                pResultRight.DrawCross((YoonVector2N) pOriginRight.OriginPosition, Color.Chartreuse);
+                pResultRight.ShowImage("Origin RIGHT");
+            }
+
+            _pClm.Write("Set Origin To Parsing");
+            // Image Processing
+            foreach (string strKey in pDicLeftImage.Keys)
+            {
+                if (strKey == "Origin") continue;
+                AlignObject pObjectLeft =
+                    new AlignObject(pDicLeftImage[strKey].FindTemplate(pMarkImage, 0.7), pOriginLeft);
+                AlignObject pObjectRight =
+                    new AlignObject(pDicRightImage[strKey].FindTemplate(pMarkImage, 0.7), pOriginRight);
+                _pClm.Write($"{strKey} Align Start");
+                AlignFactory.Align2D(eYoonDir2D.Left, pObjectLeft, pObjectRight, out double dX, out double dY,
+                    out double dTheta);
+                _pClm.Write($"[Left] X : {dX:F4}, Y : {dY:F4}, Theta : {dTheta:F4}");
+                AlignFactory.Align2D(eYoonDir2D.Right, pObjectLeft, pObjectRight, out dX, out dY, out dTheta);
+                _pClm.Write($"[Right] X : {dX:F4}, Y : {dY:F4}, Theta : {dTheta:F4}");
+                using (pResultLeft = pDicLeftImage[strKey].Clone() as CVImage)
+                {
+                    pResultLeft.DrawFigure(pObjectLeft.Feature, Color.Yellow);
+                    pResultLeft.DrawCross((YoonVector2N) pObjectLeft.Position, Color.Yellow);
+                    pResultLeft.DrawCross((YoonVector2N) pObjectLeft.OriginPosition, Color.Chartreuse);
+                    pResultLeft.ShowImage(strKey + " LEFT");
+                }
+
+                using (pResultRight = pDicRightImage[strKey].Clone() as CVImage)
+                {
+                    pResultRight.DrawFigure(pObjectRight.Feature, Color.Yellow);
+                    pResultRight.DrawCross((YoonVector2N) pObjectRight.Position, Color.Yellow);
+                    pResultRight.DrawCross((YoonVector2N) pOriginRight.OriginPosition, Color.Chartreuse);
+                    pResultRight.ShowImage(strKey + " RIGHT");
+                }
+            }
+
             _pClm.Write("Finish The Align Process");
         }
 

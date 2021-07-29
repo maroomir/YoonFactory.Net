@@ -174,7 +174,7 @@ namespace YoonFactory.CV
             public static YoonObject FindTemplate(CVImage pTemplateImage, CVImage pSourceImage, double dScore = 0.7)
             {
                 Rect pRectResult = FindTemplate(pTemplateImage.Matrix, pSourceImage.Matrix, out var dMatchScore, dScore, TemplateMatchModes.CCoeffNormed);
-                return new YoonObject(0, pRectResult.ToYoonRect(), pTemplateImage.CropImage(pRectResult.ToYoonRect()), dMatchScore, (int)(dMatchScore * pRectResult.Width * pRectResult.Height));
+                return new YoonObject(0, pRectResult.ToYoonRect(), pSourceImage.CropImage(pRectResult.ToYoonRect()), dMatchScore, (int)(dMatchScore * pRectResult.Width * pRectResult.Height));
             }
 
             public static Rect FindTemplate(Mat pTemplateMatrix, Mat pSourceMatrix, out double dMatchScore, double dThresholdScore, TemplateMatchModes nMode = TemplateMatchModes.CCoeffNormed)
