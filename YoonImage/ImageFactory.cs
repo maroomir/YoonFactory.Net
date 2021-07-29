@@ -685,6 +685,37 @@ namespace YoonFactory.Image
             }
         }
 
+        public static class LineMatch
+        {
+            public static YoonObject FindLine(YoonImage pSourceImage, eYoonDir2D nScanDir, int nDiffThreshold = 30,
+                bool bWhite = true)
+            {
+                throw new NotSupportedException();
+            }
+
+            public static YoonLine2N FindLine(byte[] pSourceBuffer, int nWidth, int nHeight, eYoonDir2D nScanDir,
+                int nDiffThreshold, bool bWhite)
+            {
+                int nJumpX = nWidth / 60;
+                int nJumpY = nHeight / 60;
+                int nFineStep = 10;
+                YoonVector2N pStartVector = new YoonVector2N();
+                switch (nScanDir)
+                {
+                    case eYoonDir2D.Left:
+                        for (int y = 0; y <= nHeight - nJumpY; y+=nJumpY)
+                        {
+                            for (int x = 0; x <= nWidth - nJumpX; x+=nJumpX)
+                            {
+                                //
+                            }
+                        }
+                        pStartVector.X = nWidth;
+                }
+            }
+
+        }
+        
         public static class TwoImageProcess
         {
             public static YoonImage Combine(YoonImage pSourceImage, YoonImage pObjectImage)
