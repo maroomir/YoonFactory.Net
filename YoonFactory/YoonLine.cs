@@ -1,6 +1,7 @@
 ﻿using System.Xml.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace YoonFactory
 {
@@ -76,6 +77,32 @@ namespace YoonFactory
             EndPos = new YoonVector2N(1, Y(1));
         }
 
+        public YoonLine2N(List<YoonVector2N> pList)
+        {
+            if (pList.Count < 2 && pList.Count >= 10) return;
+            int[] pX = new int[pList.Count];
+            int[] pY = new int[pList.Count];
+            int nMinX = 65535;
+            int nMaxX = -65535;
+            for (int iVector = 0; iVector < pList.Count; iVector++)
+            {
+                pX[iVector] = pList[iVector].X;
+                pY[iVector] = pList[iVector].Y;
+                if (nMinX > pX[iVector]) nMinX = pX[iVector];
+                if (nMaxX < pX[iVector]) nMaxX = pX[iVector];
+            }
+
+            if (!MathFactory.LeastSquare(ref _dSlope, ref _dIntercept, pList.Count, pX, pY))
+                return;
+            StartPos = new YoonVector2N(nMinX, Y(nMinX));
+            EndPos = new YoonVector2N(nMaxX, Y(nMaxX));
+            //// Slope, Intercept Recalculating - Only use Integer Form
+            Debug.Assert(StartPos != null, nameof(StartPos) + " != null");
+            Debug.Assert(EndPos != null, nameof(EndPos) + " != null");
+            _dSlope = (EndPos.Y - StartPos.Y) / (EndPos.X - StartPos.X);
+            _dIntercept = StartPos.Y - _dSlope * StartPos.X;
+        }
+        
         public YoonLine2N(params YoonVector2N[] pArgs)
         {
             if (pArgs.Length < 2 && pArgs.Length >= 10) return;
@@ -96,6 +123,8 @@ namespace YoonFactory
             StartPos = new YoonVector2N(nMinX, Y(nMinX));
             EndPos = new YoonVector2N(nMaxX, Y(nMaxX));
             //// Slope, Intercept Recalculating - Only use Integer Form
+            Debug.Assert(StartPos != null, nameof(StartPos) + " != null");
+            Debug.Assert(EndPos != null, nameof(EndPos) + " != null");
             _dSlope = (EndPos.Y - StartPos.Y) / (EndPos.X - StartPos.X);
             _dIntercept = StartPos.Y - _dSlope * StartPos.X;
         }

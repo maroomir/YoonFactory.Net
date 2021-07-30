@@ -688,32 +688,59 @@ namespace YoonFactory.Image
         public static class LineMatch
         {
             public static YoonObject FindLine(YoonImage pSourceImage, eYoonDir2D nScanDir, int nDiffThreshold = 30,
-                bool bWhite = true)
+                int nFineStep = 10, bool bWhite = true)
             {
                 throw new NotSupportedException();
             }
 
-            public static YoonLine2N FindLine(byte[] pSourceBuffer, int nWidth, int nHeight, eYoonDir2D nScanDir,
-                int nDiffThreshold, bool bWhite)
+            public static YoonLine2N FindLineHorizontal(byte[] pSourceBuffer, int nWidth, int nHeight,
+                eYoonDir2D nScanDir,
+                int nDiffThreshold, int nFineStep, bool bWhite)
             {
                 int nJumpX = nWidth / 60;
                 int nJumpY = nHeight / 60;
-                int nFineStep = 10;
                 YoonVector2N pStartVector = new YoonVector2N();
+                int nStartX, nEndX, nStartY, nEndY;
+                List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
+                bool bFindEdge = false;
                 switch (nScanDir)
                 {
                     case eYoonDir2D.Left:
-                        for (int y = 0; y <= nHeight - nJumpY; y+=nJumpY)
+                        nStartX = 0;
+                        nEndX = nWidth - nFineStep - 1;
+                        nStartY = 0;
+                        nEndY = nHeight - nJumpY - 1;
+                        // Find the boundary of the white to black (current : 255 => next : 0)
+                        for (int y = nStartY; y <= nEndY; y += nJumpY)
                         {
-                            for (int x = 0; x <= nWidth - nJumpX; x+=nJumpX)
+                            for (int x = nStartX; x <= nEndX; x += nFineStep)
                             {
-                                //
+                                int nGrayCurrent = pSourceBuffer[y * nWidth + x];
+                                int nGrayNext = pSourceBuffer[y * nWidth + x + nFineStep];
+                                if (nGrayCurrent - nGrayNext < nDiffThreshold) continue;
+                                for (int i = x; i < x + nFineStep; i++)
+                                {
+                                    nGrayCurrent = pSourceBuffer[y * nWidth + i];
+                                    nGrayNext = pSourceBuffer[y * nWidth + i + 1];
+                                    if (nGrayCurrent - nGrayNext < nDiffThreshold) continue;
+                                    pListEdgePoint.Add(new YoonVector2N(i, y));
+                                    bFindEdge = true;
+                                    break;
+                                }
+
+                                if (!bFindEdge) continue;
+                                bFindEdge = false;
+                                break;
                             }
                         }
-                        pStartVector.X = nWidth;
-                }
-            }
 
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                return new YoonLine2N(pListEdgePoint);
+            }
         }
         
         public static class TwoImageProcess
