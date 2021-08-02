@@ -77,9 +77,21 @@ namespace YoonFactory
             EndPos = new YoonVector2N(1, Y(1));
         }
 
-        public YoonLine2N(List<YoonVector2N> pList)
+        public YoonLine2N(List<YoonVector2N> pList, eYoonDir2D nDirArrange = eYoonDir2D.None)
         {
-            if (pList.Count < 2 && pList.Count >= 10) return;
+            if (pList == null || pList.Count < 2)
+                throw new ArgumentException("[YOONCOMMON] Input array is abnormal");
+            if (pList.Count > 10)
+            {
+                List<YoonVector2N> pListSorted = new List<YoonVector2N>(pList);
+                pList.Clear();
+                MathFactory.SortVector(ref pListSorted, nDirArrange);
+                int nStart = (pList.Count - 10) / 2;
+                for (int i = 0; i < 10; i++)
+                    pList.Add(pListSorted[i + nStart]);
+                pListSorted.Clear();
+            }
+
             int[] pX = new int[pList.Count];
             int[] pY = new int[pList.Count];
             int nMinX = 65535;
@@ -96,16 +108,12 @@ namespace YoonFactory
                 return;
             StartPos = new YoonVector2N(nMinX, Y(nMinX));
             EndPos = new YoonVector2N(nMaxX, Y(nMaxX));
-            //// Slope, Intercept Recalculating - Only use Integer Form
-            Debug.Assert(StartPos != null, nameof(StartPos) + " != null");
-            Debug.Assert(EndPos != null, nameof(EndPos) + " != null");
-            _dSlope = (EndPos.Y - StartPos.Y) / (EndPos.X - StartPos.X);
-            _dIntercept = StartPos.Y - _dSlope * StartPos.X;
         }
-        
+
         public YoonLine2N(params YoonVector2N[] pArgs)
         {
-            if (pArgs.Length < 2 && pArgs.Length >= 10) return;
+            if (pArgs.Length < 2 && pArgs.Length >= 10)
+                throw new ArgumentException("[YOONCOMMON] Input array is abnormal");
             int[] pX = new int[pArgs.Length];
             int[] pY = new int[pArgs.Length];
             int nMinX = 65535;
@@ -122,11 +130,6 @@ namespace YoonFactory
                 return;
             StartPos = new YoonVector2N(nMinX, Y(nMinX));
             EndPos = new YoonVector2N(nMaxX, Y(nMaxX));
-            //// Slope, Intercept Recalculating - Only use Integer Form
-            Debug.Assert(StartPos != null, nameof(StartPos) + " != null");
-            Debug.Assert(EndPos != null, nameof(EndPos) + " != null");
-            _dSlope = (EndPos.Y - StartPos.Y) / (EndPos.X - StartPos.X);
-            _dIntercept = StartPos.Y - _dSlope * StartPos.X;
         }
 
         public int X(int nY)
@@ -271,10 +274,43 @@ namespace YoonFactory
             StartPos = new YoonVector2D(-1, Y(-1));
             EndPos = new YoonVector2D(1, Y(1));
         }
+        
+        public YoonLine2D(List<YoonVector2D> pList, eYoonDir2D nDirArrange = eYoonDir2D.None)
+        {
+            if (pList == null || pList.Count < 2)
+                throw new ArgumentException("[YOONCOMMON] Input array is abnormal");
+            if (pList.Count > 10)
+            {
+                List<YoonVector2D> pListSorted = new List<YoonVector2D>(pList);
+                pList.Clear();
+                MathFactory.SortVector(ref pListSorted, nDirArrange);
+                int nStart = (pList.Count - 10) / 2;
+                for (int i = 0; i < 10; i++)
+                    pList.Add(pListSorted[i + nStart]);
+                pListSorted.Clear();
+            }
+            double[] pX = new double[pList.Count];
+            double[] pY = new double[pList.Count];
+            double dMinX = 65535;
+            double dMaxX = -65535;
+            for (int iVector = 0; iVector < pList.Count; iVector++)
+            {
+                pX[iVector] = pList[iVector].X;
+                pY[iVector] = pList[iVector].Y;
+                if (dMinX > pX[iVector]) dMinX = pX[iVector];
+                if (dMaxX < pX[iVector]) dMaxX = pX[iVector];
+            }
+
+            if (!MathFactory.LeastSquare(ref _dSlope, ref _dIntercept, pList.Count, pX, pY))
+                return;
+            StartPos = new YoonVector2D(dMinX, Y(dMinX));
+            EndPos = new YoonVector2D(dMaxX, Y(dMaxX));
+        }
 
         public YoonLine2D(params YoonVector2D[] pArgs)
         {
-            if (pArgs.Length < 2 && pArgs.Length >= 10) return;
+            if (pArgs.Length < 2 && pArgs.Length >= 10)
+                throw new ArgumentException("[YOONCOMMON] Input array is abnormal");
             double[] pX = new double[pArgs.Length];
             double[] pY = new double[pArgs.Length];
             double dMinX = 65535;

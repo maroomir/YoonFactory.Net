@@ -688,135 +688,198 @@ namespace YoonFactory.Image
         public static class LineMatch
         {
             public static YoonObject FindLine(YoonImage pSourceImage, eYoonDir2D nScanDir, int nDiffThreshold = 30,
-                int nFineStep = 10, bool bWhite = true)
+                bool bWhite = true)
             {
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
+
                 throw new NotSupportedException();
             }
 
-            public static YoonLine2N FindLineRight(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
-                int nFineStep, bool bWhite)
+            public static YoonLine2N FindRight(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
+                int nCoarseStep, bool bWhite)
             {
                 int nJumpY = nHeight / 60;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
                 bool bFindEdge = false;
-                if (bWhite)
+                for (int y = 0; y < nHeight - nJumpY; y += nJumpY)
                 {
-                    // Find the boundary of the black to white (current : 0 => next : 255)
-                    for (int y = 0; y < nHeight - nJumpY; y += nJumpY)
+                    // Coarse tuning
+                    for (int x = 0; x < nWidth - nCoarseStep; x += nCoarseStep) // Scan right
                     {
-                        for (int x = 0; x < nWidth - nFineStep; x += nFineStep) // Scan right
+                        int nGrayCurrent = pSourceBuffer[y * nWidth + x];
+                        int nGrayNext = pSourceBuffer[y * nWidth + x + nCoarseStep];
+                        switch (bWhite)
                         {
-                            int nGrayCurrent = pSourceBuffer[y * nWidth + x];
-                            int nGrayNext = pSourceBuffer[y * nWidth + x + nFineStep];
-                            if (nGrayNext - nGrayCurrent < nDiffThreshold) continue;
-                            for (int i = x; i < x + nFineStep; i++)
+                            // Find the boundary of the black to white (current : 0 => next : 255)
+                            case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                            // Find the boundary of the white to black (current : 255 => next : 0)
+                            case false when nGrayCurrent - nGrayNext < nDiffThreshold:
+                                continue;
+                        }
+
+                        // Fine tuning
+                        for (int i = x; i < x + nCoarseStep; i++)
+                        {
+                            nGrayCurrent = pSourceBuffer[y * nWidth + i];
+                            nGrayNext = pSourceBuffer[y * nWidth + i + 1];
+                            switch (bWhite)
                             {
-                                nGrayCurrent = pSourceBuffer[y * nWidth + i];
-                                nGrayNext = pSourceBuffer[y * nWidth + i + 1];
-                                if (nGrayNext - nGrayCurrent < nDiffThreshold) continue;
-                                pListEdgePoint.Add(new YoonVector2N(i, y));
-                                bFindEdge = true;
-                                break;
+                                // Find the boundary of the black to white (current : 0 => next : 255)
+                                case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                                // Find the boundary of the white to black (current : 255 => next : 0)
+                                case false when nGrayCurrent - nGrayNext < nDiffThreshold:
+                                    continue;
                             }
 
-                            if (!bFindEdge) continue;
-                            bFindEdge = false;
+                            pListEdgePoint.Add(new YoonVector2N(i, y));
+                            bFindEdge = true;
                             break;
                         }
-                    }
-                }
-                else
-                {
-                    // Find the boundary of the white to black (current : 255 => next : 0)
-                    for (int y = 0; y < nHeight - nJumpY; y += nJumpY)
-                    {
-                        for (int x = 0; x < nWidth - nFineStep; x += nFineStep) // Scan right
-                        {
-                            int nGrayCurrent = pSourceBuffer[y * nWidth + x];
-                            int nGrayNext = pSourceBuffer[y * nWidth + x + nFineStep];
-                            if (nGrayCurrent - nGrayNext < nDiffThreshold) continue;
-                            for (int i = x; i < x + nFineStep; i++)
-                            {
-                                nGrayCurrent = pSourceBuffer[y * nWidth + i];
-                                nGrayNext = pSourceBuffer[y * nWidth + i + 1];
-                                if (nGrayCurrent - nGrayNext < nDiffThreshold) continue;
-                                pListEdgePoint.Add(new YoonVector2N(i, y));
-                                bFindEdge = true;
-                                break;
-                            }
 
-                            if (!bFindEdge) continue;
-                            bFindEdge = false;
-                            break;
-                        }
+                        if (!bFindEdge) continue;
+                        bFindEdge = false;
+                        break;
                     }
                 }
 
-                return new YoonLine2N(pListEdgePoint);
+                return new YoonLine2N(pListEdgePoint, eYoonDir2D.Right);
             }
-            
-            public static YoonLine2N FindLineLeft(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
+
+            public static YoonLine2N FindLeft(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
                 int nFineStep, bool bWhite)
             {
                 int nJumpY = nHeight / 60;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
                 bool bFindEdge = false;
-                if (bWhite)
+                for (int y = 0; y < nHeight - nJumpY; y += nJumpY)
                 {
-                    // Find the boundary of the black to white (current : 0 => next : 255)
-                    for (int y = 0; y < nHeight - nJumpY; y += nJumpY)
+                    for (int x = nWidth - 1; x >= 0; x -= nFineStep) // Scan left
                     {
-                        for (int x = nWidth - 1; x >= 0; x -= nFineStep) // Scan left
+                        int nGrayCurrent = pSourceBuffer[y * nWidth + x];
+                        int nGrayNext = pSourceBuffer[y * nWidth + x - nFineStep];
+                        switch (bWhite)
                         {
-                            int nGrayCurrent = pSourceBuffer[y * nWidth + x];
-                            int nGrayNext = pSourceBuffer[y * nWidth + x - nFineStep];
-                            if (nGrayNext - nGrayCurrent < nDiffThreshold) continue;
-                            for (int i = x; i > x - nFineStep; i--)
+                            case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                            case false when nGrayCurrent - nGrayNext < nDiffThreshold:
+                                continue;
+                        }
+
+                        for (int i = x; i > x - nFineStep; i--)
+                        {
+                            nGrayCurrent = pSourceBuffer[y * nWidth + i];
+                            nGrayNext = pSourceBuffer[y * nWidth + i - 1];
+                            switch (bWhite)
                             {
-                                nGrayCurrent = pSourceBuffer[y * nWidth + i];
-                                nGrayNext = pSourceBuffer[y * nWidth + i - 1];
-                                if (nGrayNext - nGrayCurrent < nDiffThreshold) continue;
-                                pListEdgePoint.Add(new YoonVector2N(i, y));
-                                bFindEdge = true;
-                                break;
+                                case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                                case false when nGrayCurrent - nGrayNext < nDiffThreshold:
+                                    continue;
                             }
 
-                            if (!bFindEdge) continue;
-                            bFindEdge = false;
+                            pListEdgePoint.Add(new YoonVector2N(i, y));
+                            bFindEdge = true;
                             break;
                         }
-                    }
-                }
-                else
-                {
-                    // Find the boundary of the white to black (current : 255 => next : 0)
-                    for (int y = 0; y < nHeight - nJumpY; y += nJumpY)
-                    {
-                        for (int x = nWidth - 1; x >= 0; x -= nFineStep) // Scan left
-                        {
-                            int nGrayCurrent = pSourceBuffer[y * nWidth + x];
-                            int nGrayNext = pSourceBuffer[y * nWidth + x + nFineStep];
-                            if (nGrayCurrent - nGrayNext < nDiffThreshold) continue;
-                            for (int i = x; i > x - nFineStep; i--)
-                            {
-                                nGrayCurrent = pSourceBuffer[y * nWidth + i];
-                                nGrayNext = pSourceBuffer[y * nWidth + i + 1];
-                                if (nGrayCurrent - nGrayNext < nDiffThreshold) continue;
-                                pListEdgePoint.Add(new YoonVector2N(i, y));
-                                bFindEdge = true;
-                                break;
-                            }
 
-                            if (!bFindEdge) continue;
-                            bFindEdge = false;
-                            break;
-                        }
+                        if (!bFindEdge) continue;
+                        bFindEdge = false;
+                        break;
                     }
                 }
 
-                return new YoonLine2N(pListEdgePoint);
+                return new YoonLine2N(pListEdgePoint, eYoonDir2D.Left);
+            }
+
+            public static YoonLine2N FindBottom(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
+                int nFineStep, bool bWhite)
+            {
+                int nJumpX = nWidth / 60;
+                YoonVector2N pStartVector = new YoonVector2N();
+                List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
+                bool bFindEdge = false;
+                for (int x = 0; x < nWidth - nJumpX; x += nJumpX)
+                {
+                    for (int y = 0; y < nHeight - nFineStep; y += nFineStep) // Scan Bottom
+                    {
+                        int nGrayCurrent = pSourceBuffer[y * nWidth + x];
+                        int nGrayNext = pSourceBuffer[(y + nFineStep) * nWidth + x];
+                        switch (bWhite)
+                        {
+                            case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                            case false when nGrayCurrent - nGrayNext < nDiffThreshold:
+                                continue;
+                        }
+
+                        for (int j = y; j < y + nFineStep; j++)
+                        {
+                            nGrayCurrent = pSourceBuffer[j * nWidth + x];
+                            nGrayNext = pSourceBuffer[(j + 1) * nWidth + x];
+                            switch (bWhite)
+                            {
+                                case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                                case false when nGrayCurrent - nGrayNext < nDiffThreshold:
+                                    continue;
+                            }
+
+                            pListEdgePoint.Add(new YoonVector2N(x, j));
+                            bFindEdge = true;
+                            break;
+                        }
+
+                        if (!bFindEdge) continue;
+                        bFindEdge = false;
+                        break;
+                    }
+                }
+
+                return new YoonLine2N(pListEdgePoint, eYoonDir2D.Bottom);
+            }
+
+            public static YoonLine2N FindTop(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
+                int nFineStep, bool bWhite)
+            {
+                int nJumpX = nWidth / 60;
+                YoonVector2N pStartVector = new YoonVector2N();
+                List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
+                bool bFindEdge = false;
+                for (int x = 0; x < nWidth - nJumpX; x += nJumpX)
+                {
+                    for (int y = nHeight - 1; y >= 0; y -= nFineStep) // Scan Top
+                    {
+                        int nGrayCurrent = pSourceBuffer[y * nWidth + x];
+                        int nGrayNext = pSourceBuffer[(y - nFineStep) * nWidth + x];
+                        switch (bWhite)
+                        {
+                            case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                            case false when nGrayCurrent - nGrayNext < nDiffThreshold:
+                                continue;
+                        }
+
+                        for (int j = y; j > y - nFineStep; j--)
+                        {
+                            nGrayCurrent = pSourceBuffer[j * nWidth + x];
+                            nGrayNext = pSourceBuffer[(j - 1) * nWidth + x];
+                            switch (bWhite)
+                            {
+                                case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                                case false when nGrayCurrent - nGrayNext < nDiffThreshold:
+                                    continue;
+                            }
+
+                            pListEdgePoint.Add(new YoonVector2N(x, j));
+                            bFindEdge = true;
+                            break;
+                        }
+
+                        if (!bFindEdge) continue;
+                        bFindEdge = false;
+                        break;
+                    }
+                }
+
+                return new YoonLine2N(pListEdgePoint, eYoonDir2D.Top);
             }
         }
 

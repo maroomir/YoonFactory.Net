@@ -317,58 +317,58 @@ namespace YoonFactory.Image
                 for (int j = i + 1; j < _pListObject.Count; j++)
                 {
                     YoonRect2N pRectMin = _pListObject[iSearch].Feature as YoonRect2N;
-                    YoonRect2N pRectCurr = _pListObject[j].Feature as YoonRect2N;
+                    YoonRect2N pRectCurrent = _pListObject[j].Feature as YoonRect2N;
                     Debug.Assert(pRectMin != null, nameof(pRectMin) + " != null");
-                    Debug.Assert(pRectCurr != null, nameof(pRectCurr) + " != null");
+                    Debug.Assert(pRectCurrent != null, nameof(pRectCurrent) + " != null");
                     int nDiff = 0;
                     int nHeight = 0;
                     // Height difference takes precedence then the width difference
                     switch (nDir)
                     {
                         case eYoonDir2D.TopLeft:
-                            nDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                            nDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
                             nHeight = pRectMin.Bottom - pRectMin.Top;
                             if (nDiff <= nHeight / 2)
                             {
-                                if (pRectCurr.Left < pRectMin.Left)
+                                if (pRectCurrent.Left < pRectMin.Left)
                                     iSearch = j;
                             }
                             else
                             {
-                                if (pRectCurr.Top < pRectMin.Top)
+                                if (pRectCurrent.Top < pRectMin.Top)
                                     iSearch = j;
                             }
 
                             break;
                         case eYoonDir2D.TopRight:
-                            nDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                            nDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
                             nHeight = pRectMin.Bottom - pRectMin.Top;
                             if (nDiff <= nHeight / 2)
                             {
-                                if (pRectCurr.Right > pRectMin.Right)
+                                if (pRectCurrent.Right > pRectMin.Right)
                                     iSearch = j;
                             }
                             else
                             {
-                                if (pRectCurr.Top < pRectMin.Top)
+                                if (pRectCurrent.Top < pRectMin.Top)
                                     iSearch = j;
                             }
 
                             break;
                         case eYoonDir2D.Left:
-                            if (pRectCurr.Left < pRectMin.Left)
+                            if (pRectCurrent.Left < pRectMin.Left)
                                 iSearch = j;
                             break;
                         case eYoonDir2D.Right:
-                            if (pRectCurr.Right > pRectMin.Right)
+                            if (pRectCurrent.Right > pRectMin.Right)
                                 iSearch = j;
                             break;
                         default: // Top-Left default
-                            nDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                            nDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
                             nHeight = pRectMin.Bottom - pRectMin.Top;
                             if (nDiff <= nHeight / 2)
                                 continue;
-                            if (pRectCurr.Left < pRectMin.Left)
+                            if (pRectCurrent.Left < pRectMin.Left)
                                 iSearch = j;
                             break;
                     }
@@ -387,57 +387,57 @@ namespace YoonFactory.Image
                 for (int j = i + 1; j < _pListObject.Count; j++)
                 {
                     YoonRect2D pRectMin = _pListObject[iSearch].Feature as YoonRect2D;
-                    YoonRect2D pRectCurr = _pListObject[j].Feature as YoonRect2D;
+                    YoonRect2D pRectCurrent = _pListObject[j].Feature as YoonRect2D;
                     Debug.Assert(pRectMin != null, nameof(pRectMin) + " != null");
-                    Debug.Assert(pRectCurr != null, nameof(pRectCurr) + " != null");
+                    Debug.Assert(pRectCurrent != null, nameof(pRectCurrent) + " != null");
                     double dHeight = 0;
                     double dDiff = 0;
                     switch (nDir)
                     {
                         case eYoonDir2D.TopLeft:
-                            dDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                            dDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
                             dHeight = pRectMin.Bottom - pRectMin.Top;
                             if (dDiff <= dHeight / 2)
                             {
-                                if (pRectCurr.Left < pRectMin.Left)
+                                if (pRectCurrent.Left < pRectMin.Left)
                                     iSearch = j;
                             }
                             else
                             {
-                                if (pRectCurr.Top < pRectMin.Top)
+                                if (pRectCurrent.Top < pRectMin.Top)
                                     iSearch = j;
                             }
 
                             break;
                         case eYoonDir2D.TopRight:
-                            dDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                            dDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
                             dHeight = pRectMin.Bottom - pRectMin.Top;
                             if (dDiff <= dHeight / 2)
                             {
-                                if (pRectCurr.Right > pRectMin.Right)
+                                if (pRectCurrent.Right > pRectMin.Right)
                                     iSearch = j;
                             }
                             else
                             {
-                                if (pRectCurr.Top < pRectMin.Top)
+                                if (pRectCurrent.Top < pRectMin.Top)
                                     iSearch = j;
                             }
 
                             break;
                         case eYoonDir2D.Left:
-                            if (pRectCurr.Left < pRectMin.Left)
+                            if (pRectCurrent.Left < pRectMin.Left)
                                 iSearch = j;
                             break;
                         case eYoonDir2D.Right:
-                            if (pRectCurr.Right > pRectMin.Right)
+                            if (pRectCurrent.Right > pRectMin.Right)
                                 iSearch = j;
                             break;
                         default:
-                            dDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                            dDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
                             dHeight = pRectMin.Bottom - pRectMin.Top;
                             if (dDiff <= dHeight / 2)
                                 continue;
-                            if (pRectCurr.Left < pRectMin.Left)
+                            if (pRectCurrent.Left < pRectMin.Left)
                                 iSearch = j;
                             break;
                     }
@@ -456,57 +456,57 @@ namespace YoonFactory.Image
                 for (int j = i + 1; j < _pListObject.Count; j++)
                 {
                     YoonRectAffine2D pRectMin = _pListObject[iSearch].Feature as YoonRectAffine2D;
-                    YoonRectAffine2D pRectCurr = _pListObject[j].Feature as YoonRectAffine2D;
+                    YoonRectAffine2D pRectCurrent = _pListObject[j].Feature as YoonRectAffine2D;
                     Debug.Assert(pRectMin != null, nameof(pRectMin) + " != null");
-                    Debug.Assert(pRectCurr != null, nameof(pRectCurr) + " != null");
+                    Debug.Assert(pRectCurrent != null, nameof(pRectCurrent) + " != null");
                     double dDiff = 0;
                     double dHeight = 0;
                     switch (nDir)
                     {
                         case eYoonDir2D.TopLeft:
-                            dDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                            dDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
                             dHeight = pRectMin.Bottom - pRectMin.Top;
                             if (dDiff <= dHeight / 2)
                             {
-                                if (pRectCurr.Left < pRectMin.Left)
+                                if (pRectCurrent.Left < pRectMin.Left)
                                     iSearch = j;
                             }
                             else
                             {
-                                if (pRectCurr.Top < pRectMin.Top)
+                                if (pRectCurrent.Top < pRectMin.Top)
                                     iSearch = j;
                             }
 
                             break;
                         case eYoonDir2D.TopRight:
-                            dDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                            dDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
                             dHeight = pRectMin.Bottom - pRectMin.Top;
                             if (dDiff <= dHeight / 2)
                             {
-                                if (pRectCurr.Right > pRectMin.Right)
+                                if (pRectCurrent.Right > pRectMin.Right)
                                     iSearch = j;
                             }
                             else
                             {
-                                if (pRectCurr.Top < pRectMin.Top)
+                                if (pRectCurrent.Top < pRectMin.Top)
                                     iSearch = j;
                             }
 
                             break;
                         case eYoonDir2D.Left:
-                            if (pRectCurr.Left < pRectMin.Left)
+                            if (pRectCurrent.Left < pRectMin.Left)
                                 iSearch = j;
                             break;
                         case eYoonDir2D.Right:
-                            if (pRectCurr.Right > pRectMin.Right)
+                            if (pRectCurrent.Right > pRectMin.Right)
                                 iSearch = j;
                             break;
                         default:
-                            dDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                            dDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
                             dHeight = pRectMin.Bottom - pRectMin.Top;
                             if (dDiff <= dHeight / 2)
                                 continue;
-                            if (pRectCurr.Left < pRectMin.Left)
+                            if (pRectCurrent.Left < pRectMin.Left)
                                 iSearch = j;
                             break;
                     }

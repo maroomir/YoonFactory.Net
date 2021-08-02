@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace YoonFactory
 {
@@ -218,10 +219,10 @@ namespace YoonFactory
                         dSumY += pY[i];
                     }
 
-                    double dC = dSumX1 * dSumX1 - (double) number * dSumX2;
+                    double dC = dSumX1 * dSumX1 - number * dSumX2;
                     if (dC == 0.0)
                         return false;
-                    double dB = (dSumX1 * dSumY - dSumXY * (double) number) / dC;
+                    double dB = (dSumX1 * dSumY - dSumXY * number) / dC;
                     double dA = (dSumY - dB * dSumX1) / number;
                     dSlope = dA;
                     dIntercept = dB;
@@ -374,6 +375,465 @@ namespace YoonFactory
             return true;
         }
 
+        public static void SortInteger(ref List<int> pList, eYoonDir2DMode nMode)
+        {
+            if (pList == null) return;
+            int iSearch;
+            switch (nMode)
+            {
+                case eYoonDir2DMode.Increase:
+                    for (int i = 0; i < pList.Count - 1; i++)
+                    {
+                        iSearch = i;
+                        for (int j = i + 1; j < pList.Count; j++)
+                        {
+                            int nMinLabel = pList[iSearch];
+                            if (pList[j] < nMinLabel)
+                                iSearch = j;
+                        }
+
+                        if (iSearch == i) continue;
+                        int nCurrent = pList[i];
+                        int nSearch = pList[iSearch];
+                        pList[i] = nSearch;
+                        pList[iSearch] = nCurrent;
+                    }
+
+                    break;
+                case eYoonDir2DMode.Decrease:
+                    for (int i = 0; i < pList.Count - 1; i++)
+                    {
+                        iSearch = i;
+                        for (int j = i + 1; j < pList.Count; j++)
+                        {
+                            int nMaxLabel = pList[iSearch];
+                            if (pList[j] > nMaxLabel)
+                                iSearch = j;
+                        }
+
+                        if (iSearch == i) continue;
+                        int nCurrent = pList[i];
+                        int nSearch = pList[iSearch];
+                        pList[i] = nSearch;
+                        pList[iSearch] = nCurrent;
+                    }
+
+                    break;
+            }
+        }
+
+        public static void SortVector(ref List<YoonVector2N> pList, eYoonDir2D nDir)
+        {
+            for (int i = 0; i < pList.Count - 1; i++)
+            {
+                int iSearch = i;
+                for (int j = i + 1; j < pList.Count; j++)
+                {
+                    YoonVector2N pObjectVector = pList[iSearch];
+                    YoonVector2N pCurrVector = pList[j];
+                    int nDiffX = Math.Abs(pObjectVector.X - pCurrVector.X);
+                    int nDiffY = Math.Abs(pObjectVector.Y - pCurrVector.Y);
+                    // Vertical difference takes precedence then the horizontal difference
+                    switch (nDir)
+                    {
+                        case eYoonDir2D.TopLeft: // X : Min, Y : Min
+                            if (nDiffY > nDiffX)
+                            {
+                                if (pCurrVector.Y < pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X < pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Top: // Y : Min
+                            if (pCurrVector.Y < pObjectVector.Y)
+                                iSearch = j;
+                            break;
+                        case eYoonDir2D.TopRight: // X : Max, Y : Min
+                            if (nDiffY > nDiffX)
+                            {
+                                if (pCurrVector.Y < pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X > pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Right: // X : Max
+                            if (pCurrVector.X > pObjectVector.X)
+                                iSearch = j;
+                            break;
+                        case eYoonDir2D.BottomRight: // X : Max, Y : Max
+                            if (nDiffY > nDiffX)
+                            {
+                                if (pCurrVector.Y > pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X > pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Bottom: // Y : Max
+                            if (pCurrVector.Y > pObjectVector.Y)
+                                iSearch = j;
+                            break;
+                        case eYoonDir2D.BottomLeft: // X : Min, Y : Max
+                            if (nDiffY > nDiffX)
+                            {
+                                if (pCurrVector.Y > pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X < pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Left: // X : Min
+                            if (pCurrVector.X < pObjectVector.X)
+                                iSearch = j;
+                            break;
+                        default:  // Top-Left default
+                            if (nDiffY > nDiffX)
+                            {
+                                if (pCurrVector.Y < pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X < pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                    }
+
+                    if (iSearch == i) continue;
+                    YoonVector2N pSourceVector = pList[i].Clone() as YoonVector2N;
+                    YoonVector2N pSearchVector = pList[iSearch].Clone() as YoonVector2N;
+                    pList[i] = pSearchVector;
+                    pList[iSearch] = pSourceVector;
+                }
+            }
+        }
+
+        public static void SortVector(ref List<YoonVector2D> pList, eYoonDir2D nDir)
+        {
+            for (int i = 0; i < pList.Count - 1; i++)
+            {
+                int iSearch = i;
+                for (int j = i + 1; j < pList.Count; j++)
+                {
+                    YoonVector2D pObjectVector = pList[iSearch];
+                    YoonVector2D pCurrVector = pList[j];
+                    double dDiffX = Math.Abs(pObjectVector.X - pCurrVector.X);
+                    double dDiffY = Math.Abs(pObjectVector.Y - pCurrVector.Y);
+                    // Vertical difference takes precedence then the horizontal difference
+                    switch (nDir)
+                    {
+                        case eYoonDir2D.TopLeft: // X : Min, Y : Min
+                            if (dDiffY > dDiffX)
+                            {
+                                if (pCurrVector.Y < pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X < pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Top: // Y : Min
+                            if (pCurrVector.Y < pObjectVector.Y)
+                                iSearch = j;
+                            break;
+                        case eYoonDir2D.TopRight: // X : Max, Y : Min
+                            if (dDiffY > dDiffX)
+                            {
+                                if (pCurrVector.Y < pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X > pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Right: // X : Max
+                            if (pCurrVector.X > pObjectVector.X)
+                                iSearch = j;
+                            break;
+                        case eYoonDir2D.BottomRight: // X : Max, Y : Max
+                            if (dDiffY > dDiffX)
+                            {
+                                if (pCurrVector.Y > pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X > pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Bottom: // Y : Max
+                            if (pCurrVector.Y > pObjectVector.Y)
+                                iSearch = j;
+                            break;
+                        case eYoonDir2D.BottomLeft: // X : Min, Y : Max
+                            if (dDiffY > dDiffX)
+                            {
+                                if (pCurrVector.Y > pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X < pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Left: // X : Min
+                            if (pCurrVector.X < pObjectVector.X)
+                                iSearch = j;
+                            break;
+                        default:  // Top-Left default
+                            if (dDiffY > dDiffX)
+                            {
+                                if (pCurrVector.Y < pObjectVector.Y)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pCurrVector.X < pObjectVector.X)
+                                    iSearch = j;
+                            }
+
+                            break;
+                    }
+
+                    if (iSearch == i) continue;
+                    YoonVector2D pSourceVector = pList[i].Clone() as YoonVector2D;
+                    YoonVector2D pSearchVector = pList[iSearch].Clone() as YoonVector2D;
+                    pList[i] = pSearchVector;
+                    pList[iSearch] = pSourceVector;
+                }
+            }
+        }
+
+        public static void SortRectangle(ref List<YoonRect2N> pList, eYoonDir2D nDir)
+        {
+
+            for (int i = 0; i < pList.Count - 1; i++)
+            {
+                int iSearch = i;
+                for (int j = i + 1; j < pList.Count; j++)
+                {
+                    YoonRect2N pRectMin = pList[iSearch];
+                    YoonRect2N pRectCurrent = pList[j];
+                    Debug.Assert(pRectMin != null, nameof(pRectMin) + " != null");
+                    Debug.Assert(pRectCurrent != null, nameof(pRectCurrent) + " != null");
+                    int nDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
+                    int nHeight = pRectMin.Bottom - pRectMin.Top;
+                    // Height difference takes precedence then the width difference
+                    switch (nDir)
+                    {
+                        case eYoonDir2D.TopLeft:
+                            if (nDiff <= nHeight / 2)
+                            {
+                                if (pRectCurrent.Left < pRectMin.Left)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pRectCurrent.Top < pRectMin.Top)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.TopRight:
+                            if (nDiff <= nHeight / 2)
+                            {
+                                if (pRectCurrent.Right > pRectMin.Right)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pRectCurrent.Top < pRectMin.Top)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Left:
+                            if (pRectCurrent.Left < pRectMin.Left)
+                                iSearch = j;
+                            break;
+                        case eYoonDir2D.Right:
+                            if (pRectCurrent.Right > pRectMin.Right)
+                                iSearch = j;
+                            break;
+                        default: // Top-Left default
+                            if (nDiff <= nHeight / 2)
+                                continue;
+                            if (pRectCurrent.Left < pRectMin.Left)
+                                iSearch = j;
+                            break;
+                    }
+                }
+
+                if (iSearch == i) continue;
+                YoonRect2N pRectSource = pList[i].Clone() as YoonRect2N;
+                YoonRect2N pRectSearch = pList[iSearch].Clone() as YoonRect2N;
+                pList[i] = pRectSearch;
+                pList[iSearch] = pRectSource;
+            }
+        }
+        
+        public static void SortRectangle(ref List<YoonRect2D> pList, eYoonDir2D nDir)
+        {
+            for (int i = 0; i < pList.Count - 1; i++)
+            {
+                int iSearch = i;
+                for (int j = i + 1; j < pList.Count; j++)
+                {
+                    YoonRect2D pRectMin = pList[iSearch];
+                    YoonRect2D pRectCurrent = pList[j];
+                    Debug.Assert(pRectMin != null, nameof(pRectMin) + " != null");
+                    Debug.Assert(pRectCurrent != null, nameof(pRectCurrent) + " != null");
+                    double dDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
+                    double dHeight = pRectMin.Bottom - pRectMin.Top;
+                    switch (nDir)
+                    {
+                        case eYoonDir2D.TopLeft:
+                            if (dDiff <= dHeight / 2)
+                            {
+                                if (pRectCurrent.Left < pRectMin.Left)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pRectCurrent.Top < pRectMin.Top)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.TopRight:
+                            if (dDiff <= dHeight / 2)
+                            {
+                                if (pRectCurrent.Right > pRectMin.Right)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pRectCurrent.Top < pRectMin.Top)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Left:
+                            if (pRectCurrent.Left < pRectMin.Left)
+                                iSearch = j;
+                            break;
+                        case eYoonDir2D.Right:
+                            if (pRectCurrent.Right > pRectMin.Right)
+                                iSearch = j;
+                            break;
+                        default:
+                            if (dDiff <= dHeight / 2)
+                                continue;
+                            if (pRectCurrent.Left < pRectMin.Left)
+                                iSearch = j;
+                            break;
+                    }
+                }
+
+                if (iSearch == i) continue;
+                YoonRect2D pRectSource = pList[i].Clone() as YoonRect2D;
+                YoonRect2D pRectSearch = pList[iSearch].Clone() as YoonRect2D;
+                pList[i] = pRectSearch;
+                pList[iSearch] = pRectSource;
+            }
+        }
+
+        public static void SortRectangle(ref List<YoonRectAffine2D> pList, eYoonDir2D nDir)
+        {
+            for (int i = 0; i < pList.Count - 1; i++)
+            {
+                int iSearch = i;
+                for (int j = i + 1; j < pList.Count; j++)
+                {
+                    YoonRectAffine2D pRectMin = pList[iSearch];
+                    YoonRectAffine2D pRectCurrent = pList[j];
+                    Debug.Assert(pRectMin != null, nameof(pRectMin) + " != null");
+                    Debug.Assert(pRectCurrent != null, nameof(pRectCurrent) + " != null");
+                    double dDiff = Math.Abs(pRectMin.Top - pRectCurrent.Top);
+                    double dHeight = pRectMin.Bottom - pRectMin.Top;
+                    switch (nDir)
+                    {
+                        case eYoonDir2D.TopLeft:
+                            if (dDiff <= dHeight / 2)
+                            {
+                                if (pRectCurrent.Left < pRectMin.Left)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pRectCurrent.Top < pRectMin.Top)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.TopRight:
+                            if (dDiff <= dHeight / 2)
+                            {
+                                if (pRectCurrent.Right > pRectMin.Right)
+                                    iSearch = j;
+                            }
+                            else
+                            {
+                                if (pRectCurrent.Top < pRectMin.Top)
+                                    iSearch = j;
+                            }
+
+                            break;
+                        case eYoonDir2D.Left:
+                            if (pRectCurrent.Left < pRectMin.Left)
+                                iSearch = j;
+                            break;
+                        case eYoonDir2D.Right:
+                            if (pRectCurrent.Right > pRectMin.Right)
+                                iSearch = j;
+                            break;
+                        default:
+                            if (dDiff <= dHeight / 2)
+                                continue;
+                            if (pRectCurrent.Left < pRectMin.Left)
+                                iSearch = j;
+                            break;
+                    }
+                }
+
+                if (iSearch == i) continue;
+                YoonRectAffine2D pRectSource = pList[i].Clone() as YoonRectAffine2D;
+                YoonRectAffine2D pRectSearch = pList[iSearch].Clone() as YoonRectAffine2D;
+                pList[i] = pRectSearch;
+                pList[iSearch] = pRectSource;
+            }
+        }
+        
         public static double Combine(double[] pX, double[] pY, int nNumber, int nRoot)
         {
             double dResult = 1.0;
