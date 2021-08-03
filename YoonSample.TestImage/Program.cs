@@ -41,6 +41,7 @@ namespace YoonSample.TestImage
                     break;
                 case "glass":
                     _pClm.Write("Start Glass Detector");
+                    ProcessGlass();
                     break;
                 default:
                     break;
@@ -92,13 +93,17 @@ namespace YoonSample.TestImage
 
             _pClm.Write("Set Origin To Parsing");
             // Image Processing
+            Stopwatch pTimer = new Stopwatch();
             foreach (string strKey in pDicLeftImage.Keys)
             {
                 if (strKey == "Origin") continue;
+                pTimer.Reset();
+                pTimer.Start();
                 AlignObject pObjectLeft =
                     new AlignObject(pDicLeftImage[strKey].FindPattern(pMarkImage, 10), pOriginLeft);
                 AlignObject pObjectRight =
                     new AlignObject(pDicRightImage[strKey].FindPattern(pMarkImage, 10), pOriginRight);
+                _pClm.Write($"Tact-time : {pTimer.ElapsedMilliseconds:F1}ms");
                 _pClm.Write($"{strKey} Align Start");
                 AlignFactory.Align2D(eYoonDir2D.Left, pObjectLeft, pObjectRight, out double dX, out double dY,
                     out double dTheta);
@@ -169,13 +174,18 @@ namespace YoonSample.TestImage
 
             _pClm.Write("Set Origin To Parsing");
             // Image Processing
+            Stopwatch pTimer = new Stopwatch();
             foreach (string strKey in pDicLeftImage.Keys)
             {
                 if (strKey == "Origin") continue;
+                pTimer.Reset();
+                pTimer.Start();
                 AlignObject pObjectLeft =
                     new AlignObject(pDicLeftImage[strKey].FindTemplate(pMarkImage, 0.7), pOriginLeft);
                 AlignObject pObjectRight =
                     new AlignObject(pDicRightImage[strKey].FindTemplate(pMarkImage, 0.7), pOriginRight);
+                pTimer.Stop();
+                _pClm.Write($"Tact-time : {pTimer.ElapsedMilliseconds:F1}ms");
                 _pClm.Write($"{strKey} Align Start");
                 AlignFactory.Align2D(eYoonDir2D.Left, pObjectLeft, pObjectRight, out double dX, out double dY,
                     out double dTheta);
@@ -238,6 +248,38 @@ namespace YoonSample.TestImage
             pTimer.Stop();
             _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pListResult.Count:F1}ms/img]");
             // Show Image
+            foreach (YoonImage pImage in pListResult)
+                CVImage.ShowImage(pImage, pImage.FilePath);
+        }
+
+        static void ProcessGlass()
+        {
+            // Parsing
+            _strRootDir = Path.Combine(_strRootDir, @"Glass");
+            List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
+            _pClm.Write("Image Load Completed");
+            // Image Processing
+            List<YoonImage> pListResult = new List<YoonImage>();
+            object pLocker = new object();
+            Stopwatch pTimer = new Stopwatch();
+            pTimer.Reset();
+            pTimer.Start();
+            for (int i = 0; i < pListImage.Count; i++)
+            {
+                YoonImage pResultImage = pListImage[i].ToGrayImage();
+                YoonObject pLeftObject = pResultImage.FindLine(eYoonDir2D.Right, 30, false);
+                YoonObject pRightObject = pResultImage.FindLine(eYoonDir2D.Left, 30, false);
+                YoonObject pTopObject = pResultImage.FindLine(eYoonDir2D.Top, 30, false);
+                YoonObject pBottomObject = pResultImage.FindLine(eYoonDir2D.Bottom, 30, false);
+                pResultImage.DrawFigure(pLeftObject.Feature, Color.Yellow);
+                pResultImage.DrawFigure(pRightObject.Feature, Color.Yellow);
+                pResultImage.DrawFigure(pTopObject.Feature, Color.Yellow);
+                pResultImage.DrawFigure(pBottomObject.Feature, Color.Yellow);
+                pListResult.Add(pResultImage);
+            }
+
+            pTimer.Stop();
+            _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pListResult.Count:F1}ms/img]");
             foreach (YoonImage pImage in pListResult)
                 CVImage.ShowImage(pImage, pImage.FilePath);
         }

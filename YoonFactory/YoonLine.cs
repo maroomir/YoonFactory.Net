@@ -86,7 +86,7 @@ namespace YoonFactory
                 List<YoonVector2N> pListSorted = new List<YoonVector2N>(pList);
                 pList.Clear();
                 MathFactory.SortVector(ref pListSorted, nDirArrange);
-                int nStart = (pList.Count - 10) / 2;
+                int nStart = (pListSorted.Count - 10) / 2;
                 for (int i = 0; i < 10; i++)
                     pList.Add(pListSorted[i + nStart]);
                 pListSorted.Clear();
@@ -284,7 +284,7 @@ namespace YoonFactory
                 List<YoonVector2D> pListSorted = new List<YoonVector2D>(pList);
                 pList.Clear();
                 MathFactory.SortVector(ref pListSorted, nDirArrange);
-                int nStart = (pList.Count - 10) / 2;
+                int nStart = (pListSorted.Count - 10) / 2;
                 for (int i = 0; i < 10; i++)
                     pList.Add(pListSorted[i + nStart]);
                 pListSorted.Clear();

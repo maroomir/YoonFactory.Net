@@ -210,22 +210,22 @@ namespace YoonFactory
                     double dSumX1 = 0.00;
                     double dSumX2 = 0.00;
                     double dSumXY = 0.00;
-                    double dSumY = 0.00;
+                    double dSumY1 = 0.00;
                     for (int i = 0; i < number; i++)
                     {
                         dSumX1 += pX[i];
                         dSumX2 += pX[i] * pX[i];
                         dSumXY += pX[i] * pY[i];
-                        dSumY += pY[i];
+                        dSumY1 += pY[i];
                     }
 
                     double dC = dSumX1 * dSumX1 - number * dSumX2;
                     if (dC == 0.0)
                         return false;
-                    double dB = (dSumX1 * dSumY - dSumXY * number) / dC;
-                    double dA = (dSumY - dB * dSumX1) / number;
-                    dSlope = dA;
-                    dIntercept = dB;
+                    double dB = (dSumX1 * dSumY1 - dSumXY * number) / dC;
+                    double dA = (dSumX1 * dSumXY - dSumX2 * dSumY1) / dC;
+                    dIntercept = dA;
+                    dSlope = dB;
                     break;
                 }
             }

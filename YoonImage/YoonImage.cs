@@ -870,10 +870,10 @@ namespace YoonFactory.Image
 
         public void DrawLine(YoonLine2N pLine, Color pColor, int nPenWidth = 1, double dRatio = 1.0)
         {
-            int nX1 = Math.Max(pLine.X(0), 0);
-            int nY1 = pLine.Y(nX1);
-            int nX2 = Math.Min(pLine.X(Width), Height);
-            int nY2 = pLine.Y(nX2);
+            int nX1 = pLine.StartPos.X;
+            int nY1 = pLine.StartPos.Y;
+            int nX2 = pLine.EndPos.X;
+            int nY2 = pLine.EndPos.Y;
             DrawLine(nX1, nY1, nX2, nY2, pColor, nPenWidth, dRatio);
         }
         

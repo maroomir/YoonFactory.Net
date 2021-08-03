@@ -28,7 +28,14 @@ namespace YoonFactory.Image
 
         public static YoonObject FindPattern(this YoonImage pSourceImage, YoonRect2N scanArea, YoonImage pPatternImage,
             int nDiffThreshold = 10) => PatternMatch.FindPattern(scanArea, pPatternImage, pSourceImage, nDiffThreshold);
+        
+        public static YoonObject FindLine(this YoonImage pSourceImage, eYoonDir2D nScanDir, int nDiffThreshold = 30,
+            bool bWhite = true) => LineMatch.FindLine(pSourceImage, nScanDir, nDiffThreshold, bWhite);
 
+        public static YoonObject FindLine(this YoonImage pSourceImage, YoonRect2N pScanArea, eYoonDir2D nScanDir,
+            int nDiffThreshold = 30, bool bWhite = true) =>
+            LineMatch.FindLine(pSourceImage, pScanArea, nScanDir, nDiffThreshold, bWhite);
+        
         public static YoonImage Combine(this YoonImage pSourceImage, YoonImage pObjectImage) =>
             TwoImageProcess.Combine(pSourceImage, pObjectImage);
 
@@ -693,13 +700,47 @@ namespace YoonFactory.Image
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
 
-                throw new NotSupportedException();
+                YoonLine2N pLine = nScanDir switch
+                {
+                    eYoonDir2D.Left => FindLeft(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                        nDiffThreshold, 10, bWhite),
+                    eYoonDir2D.Right => FindRight(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                        nDiffThreshold, 10, bWhite),
+                    eYoonDir2D.Top => FindTop(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                        nDiffThreshold, 10, bWhite),
+                    eYoonDir2D.Bottom => FindBottom(pSourceImage.GetGrayBuffer(), pSourceImage.Width,
+                        pSourceImage.Height, nDiffThreshold, 10, bWhite),
+                    _ => new YoonLine2N()
+                };
+                return new YoonObject(0, pLine, pLine.CenterPos, pSourceImage.Clone() as YoonImage);
+            }
+
+            public static YoonObject FindLine(YoonImage pSourceImage, YoonRect2N pScanArea, eYoonDir2D nScanDir,
+                int nDiffThreshold = 30, bool bWhite = true)
+            {
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
+
+                YoonImage pScanImage = pSourceImage.CropImage(pScanArea);
+                YoonLine2N pLine = nScanDir switch
+                {
+                    eYoonDir2D.Left => FindLeft(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height,
+                        nDiffThreshold, 10, bWhite),
+                    eYoonDir2D.Right => FindRight(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height,
+                        nDiffThreshold, 10, bWhite),
+                    eYoonDir2D.Top => FindTop(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height,
+                        nDiffThreshold, 10, bWhite),
+                    eYoonDir2D.Bottom => FindBottom(pScanImage.GetGrayBuffer(), pScanImage.Width,
+                        pScanImage.Height, nDiffThreshold, 10, bWhite),
+                    _ => new YoonLine2N()
+                };
+                return new YoonObject(0, pLine, pLine.CenterPos, pScanImage.Clone() as YoonImage);
             }
 
             public static YoonLine2N FindRight(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
                 int nCoarseStep, bool bWhite)
             {
-                int nJumpY = nHeight / 60;
+                int nJumpY = (nHeight / 60 > 1) ? nHeight / 60 : 1;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
                 bool bFindEdge = false;
@@ -748,18 +789,18 @@ namespace YoonFactory.Image
             }
 
             public static YoonLine2N FindLeft(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
-                int nFineStep, bool bWhite)
+                int nCoarseStep, bool bWhite)
             {
-                int nJumpY = nHeight / 60;
+                int nJumpY = (nHeight / 60 > 1) ? nHeight / 60 : 1;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
                 bool bFindEdge = false;
                 for (int y = 0; y < nHeight - nJumpY; y += nJumpY)
                 {
-                    for (int x = nWidth - 1; x >= 0; x -= nFineStep) // Scan left
+                    for (int x = nWidth - 1; x >= nCoarseStep; x -= nCoarseStep) // Scan left
                     {
                         int nGrayCurrent = pSourceBuffer[y * nWidth + x];
-                        int nGrayNext = pSourceBuffer[y * nWidth + x - nFineStep];
+                        int nGrayNext = pSourceBuffer[y * nWidth + x - nCoarseStep];
                         switch (bWhite)
                         {
                             case true when nGrayNext - nGrayCurrent < nDiffThreshold:
@@ -767,7 +808,7 @@ namespace YoonFactory.Image
                                 continue;
                         }
 
-                        for (int i = x; i > x - nFineStep; i--)
+                        for (int i = x; i > x - nCoarseStep; i--)
                         {
                             nGrayCurrent = pSourceBuffer[y * nWidth + i];
                             nGrayNext = pSourceBuffer[y * nWidth + i - 1];
@@ -793,18 +834,18 @@ namespace YoonFactory.Image
             }
 
             public static YoonLine2N FindBottom(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
-                int nFineStep, bool bWhite)
+                int nCoarseStep, bool bWhite)
             {
-                int nJumpX = nWidth / 60;
+                int nJumpX = (nWidth / 60 > 1) ? nWidth / 60 : 1;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
                 bool bFindEdge = false;
                 for (int x = 0; x < nWidth - nJumpX; x += nJumpX)
                 {
-                    for (int y = 0; y < nHeight - nFineStep; y += nFineStep) // Scan Bottom
+                    for (int y = 0; y < nHeight - nCoarseStep; y += nCoarseStep) // Scan Bottom
                     {
                         int nGrayCurrent = pSourceBuffer[y * nWidth + x];
-                        int nGrayNext = pSourceBuffer[(y + nFineStep) * nWidth + x];
+                        int nGrayNext = pSourceBuffer[(y + nCoarseStep) * nWidth + x];
                         switch (bWhite)
                         {
                             case true when nGrayNext - nGrayCurrent < nDiffThreshold:
@@ -812,7 +853,7 @@ namespace YoonFactory.Image
                                 continue;
                         }
 
-                        for (int j = y; j < y + nFineStep; j++)
+                        for (int j = y; j < y + nCoarseStep; j++)
                         {
                             nGrayCurrent = pSourceBuffer[j * nWidth + x];
                             nGrayNext = pSourceBuffer[(j + 1) * nWidth + x];
@@ -838,18 +879,18 @@ namespace YoonFactory.Image
             }
 
             public static YoonLine2N FindTop(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
-                int nFineStep, bool bWhite)
+                int nCoarseStep, bool bWhite)
             {
-                int nJumpX = nWidth / 60;
+                int nJumpX = (nWidth / 60 > 1) ? nWidth / 60 : 1;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
                 bool bFindEdge = false;
                 for (int x = 0; x < nWidth - nJumpX; x += nJumpX)
                 {
-                    for (int y = nHeight - 1; y >= 0; y -= nFineStep) // Scan Top
+                    for (int y = nHeight - 1; y >= nCoarseStep; y -= nCoarseStep) // Scan Top
                     {
                         int nGrayCurrent = pSourceBuffer[y * nWidth + x];
-                        int nGrayNext = pSourceBuffer[(y - nFineStep) * nWidth + x];
+                        int nGrayNext = pSourceBuffer[(y - nCoarseStep) * nWidth + x];
                         switch (bWhite)
                         {
                             case true when nGrayNext - nGrayCurrent < nDiffThreshold:
@@ -857,7 +898,7 @@ namespace YoonFactory.Image
                                 continue;
                         }
 
-                        for (int j = y; j > y - nFineStep; j--)
+                        for (int j = y; j > y - nCoarseStep; j--)
                         {
                             nGrayCurrent = pSourceBuffer[j * nWidth + x];
                             nGrayNext = pSourceBuffer[(j - 1) * nWidth + x];
