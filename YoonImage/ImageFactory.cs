@@ -743,7 +743,6 @@ namespace YoonFactory.Image
                 int nJumpY = (nHeight / 60 > 1) ? nHeight / 60 : 1;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
-                bool bFindEdge = false;
                 for (int y = 0; y < nHeight - nJumpY; y += nJumpY)
                 {
                     // Coarse tuning
@@ -761,26 +760,22 @@ namespace YoonFactory.Image
                         }
 
                         // Fine tuning
+                        // Find the edge of max differential range
+                        int iSearch = 0;
+                        int nMaxDiff = 0;
                         for (int i = x; i < x + nCoarseStep; i++)
                         {
                             nGrayCurrent = pSourceBuffer[y * nWidth + i];
                             nGrayNext = pSourceBuffer[y * nWidth + i + 1];
-                            switch (bWhite)
+                            int nDiff = Math.Abs(nGrayCurrent - nGrayNext);
+                            if (nDiff > nMaxDiff)
                             {
-                                // Find the boundary of the black to white (current : 0 => next : 255)
-                                case true when nGrayNext - nGrayCurrent < nDiffThreshold:
-                                // Find the boundary of the white to black (current : 255 => next : 0)
-                                case false when nGrayCurrent - nGrayNext < nDiffThreshold:
-                                    continue;
+                                nMaxDiff = nDiff;
+                                iSearch = i;
                             }
-
-                            pListEdgePoint.Add(new YoonVector2N(i, y));
-                            bFindEdge = true;
-                            break;
                         }
 
-                        if (!bFindEdge) continue;
-                        bFindEdge = false;
+                        pListEdgePoint.Add(new YoonVector2N(iSearch, y));
                         break;
                     }
                 }
@@ -794,38 +789,39 @@ namespace YoonFactory.Image
                 int nJumpY = (nHeight / 60 > 1) ? nHeight / 60 : 1;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
-                bool bFindEdge = false;
                 for (int y = 0; y < nHeight - nJumpY; y += nJumpY)
                 {
+                    // Coarse tuning
                     for (int x = nWidth - 1; x >= nCoarseStep; x -= nCoarseStep) // Scan left
                     {
                         int nGrayCurrent = pSourceBuffer[y * nWidth + x];
                         int nGrayNext = pSourceBuffer[y * nWidth + x - nCoarseStep];
                         switch (bWhite)
                         {
+                            // Find the boundary of the black to white (current : 0 => next : 255)
                             case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                            // Find the boundary of the white to black (current : 255 => next : 0)
                             case false when nGrayCurrent - nGrayNext < nDiffThreshold:
                                 continue;
                         }
 
+                        // Fine tuning
+                        // Find the edge of max differential range
+                        int iSearch = 0;
+                        int nMaxDiff = 0;
                         for (int i = x; i > x - nCoarseStep; i--)
                         {
                             nGrayCurrent = pSourceBuffer[y * nWidth + i];
                             nGrayNext = pSourceBuffer[y * nWidth + i - 1];
-                            switch (bWhite)
+                            int nDiff = Math.Abs(nGrayCurrent - nGrayNext);
+                            if (nDiff > nMaxDiff)
                             {
-                                case true when nGrayNext - nGrayCurrent < nDiffThreshold:
-                                case false when nGrayCurrent - nGrayNext < nDiffThreshold:
-                                    continue;
+                                nMaxDiff = nDiff;
+                                iSearch = i;
                             }
-
-                            pListEdgePoint.Add(new YoonVector2N(i, y));
-                            bFindEdge = true;
-                            break;
                         }
 
-                        if (!bFindEdge) continue;
-                        bFindEdge = false;
+                        pListEdgePoint.Add(new YoonVector2N(iSearch, y));
                         break;
                     }
                 }
@@ -839,38 +835,40 @@ namespace YoonFactory.Image
                 int nJumpX = (nWidth / 60 > 1) ? nWidth / 60 : 1;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
-                bool bFindEdge = false;
                 for (int x = 0; x < nWidth - nJumpX; x += nJumpX)
                 {
+                    // Coarse tuning
                     for (int y = 0; y < nHeight - nCoarseStep; y += nCoarseStep) // Scan Bottom
                     {
                         int nGrayCurrent = pSourceBuffer[y * nWidth + x];
                         int nGrayNext = pSourceBuffer[(y + nCoarseStep) * nWidth + x];
                         switch (bWhite)
                         {
+                            // Find the boundary of the black to white (current : 0 => next : 255)
                             case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                            // Find the boundary of the white to black (current : 255 => next : 0)
                             case false when nGrayCurrent - nGrayNext < nDiffThreshold:
                                 continue;
                         }
 
+                        // Fine tuning
+                        // Find the edge of max differential range
+                        int jSearch = 0;
+                        int nMaxDiff = 0;
                         for (int j = y; j < y + nCoarseStep; j++)
                         {
                             nGrayCurrent = pSourceBuffer[j * nWidth + x];
                             nGrayNext = pSourceBuffer[(j + 1) * nWidth + x];
-                            switch (bWhite)
+                            int nDiff = Math.Abs(nGrayCurrent - nGrayNext);
+                            if (nDiff > nMaxDiff)
                             {
-                                case true when nGrayNext - nGrayCurrent < nDiffThreshold:
-                                case false when nGrayCurrent - nGrayNext < nDiffThreshold:
-                                    continue;
+                                nMaxDiff = nDiff;
+                                jSearch = j;
                             }
 
-                            pListEdgePoint.Add(new YoonVector2N(x, j));
-                            bFindEdge = true;
-                            break;
                         }
 
-                        if (!bFindEdge) continue;
-                        bFindEdge = false;
+                        pListEdgePoint.Add(new YoonVector2N(x, jSearch));
                         break;
                     }
                 }
@@ -884,38 +882,39 @@ namespace YoonFactory.Image
                 int nJumpX = (nWidth / 60 > 1) ? nWidth / 60 : 1;
                 YoonVector2N pStartVector = new YoonVector2N();
                 List<YoonVector2N> pListEdgePoint = new List<YoonVector2N>();
-                bool bFindEdge = false;
                 for (int x = 0; x < nWidth - nJumpX; x += nJumpX)
                 {
+                    // Coarse tuning
                     for (int y = nHeight - 1; y >= nCoarseStep; y -= nCoarseStep) // Scan Top
                     {
                         int nGrayCurrent = pSourceBuffer[y * nWidth + x];
                         int nGrayNext = pSourceBuffer[(y - nCoarseStep) * nWidth + x];
                         switch (bWhite)
                         {
+                            // Find the boundary of the black to white (current : 0 => next : 255)
                             case true when nGrayNext - nGrayCurrent < nDiffThreshold:
+                            // Find the boundary of the white to black (current : 255 => next : 0)
                             case false when nGrayCurrent - nGrayNext < nDiffThreshold:
                                 continue;
                         }
 
+                        // Fine tuning
+                        // Find the edge of max differential range
+                        int jSearch = 0;
+                        int nMaxDiff = 0;
                         for (int j = y; j > y - nCoarseStep; j--)
                         {
                             nGrayCurrent = pSourceBuffer[j * nWidth + x];
                             nGrayNext = pSourceBuffer[(j - 1) * nWidth + x];
-                            switch (bWhite)
+                            int nDiff = Math.Abs(nGrayCurrent - nGrayNext);
+                            if (nDiff > nMaxDiff)
                             {
-                                case true when nGrayNext - nGrayCurrent < nDiffThreshold:
-                                case false when nGrayCurrent - nGrayNext < nDiffThreshold:
-                                    continue;
+                                nMaxDiff = nDiff;
+                                jSearch = j;
                             }
-
-                            pListEdgePoint.Add(new YoonVector2N(x, j));
-                            bFindEdge = true;
-                            break;
                         }
 
-                        if (!bFindEdge) continue;
-                        bFindEdge = false;
+                        pListEdgePoint.Add(new YoonVector2N(x, jSearch));
                         break;
                     }
                 }

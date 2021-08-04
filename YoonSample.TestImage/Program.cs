@@ -267,14 +267,18 @@ namespace YoonSample.TestImage
             for (int i = 0; i < pListImage.Count; i++)
             {
                 YoonImage pResultImage = pListImage[i].ToGrayImage();
-                YoonObject pLeftObject = pResultImage.FindLine(eYoonDir2D.Right, 30, false);
-                YoonObject pRightObject = pResultImage.FindLine(eYoonDir2D.Left, 30, false);
-                YoonObject pTopObject = pResultImage.FindLine(eYoonDir2D.Top, 30, false);
-                YoonObject pBottomObject = pResultImage.FindLine(eYoonDir2D.Bottom, 30, false);
-                pResultImage.DrawFigure(pLeftObject.Feature, Color.Yellow);
-                pResultImage.DrawFigure(pRightObject.Feature, Color.Yellow);
-                pResultImage.DrawFigure(pTopObject.Feature, Color.Yellow);
-                pResultImage.DrawFigure(pBottomObject.Feature, Color.Yellow);
+                YoonObject pLeftObject = pResultImage.FindLine(eYoonDir2D.Right, 100, true);
+                YoonObject pRightObject = pResultImage.FindLine(eYoonDir2D.Left, 100, true);
+                YoonObject pTopObject = pResultImage.FindLine(eYoonDir2D.Top, 100, true);
+                YoonObject pBottomObject = pResultImage.FindLine(eYoonDir2D.Bottom, 100, true);
+                YoonRect2N pRectObject = new YoonRect2N((YoonLine2N) pTopObject.Feature,
+                    (YoonLine2N) pLeftObject.Feature, (YoonLine2N) pBottomObject.Feature,
+                    (YoonLine2N) pRightObject.Feature);
+                pResultImage.DrawFigure(pLeftObject.Feature, Color.Yellow, 3);
+                pResultImage.DrawFigure(pRightObject.Feature, Color.Yellow, 3);
+                pResultImage.DrawFigure(pTopObject.Feature, Color.Yellow, 3);
+                pResultImage.DrawFigure(pBottomObject.Feature, Color.Yellow, 3);
+                pResultImage.DrawRect(pRectObject, Color.Aqua, 2);
                 pListResult.Add(pResultImage);
             }
 

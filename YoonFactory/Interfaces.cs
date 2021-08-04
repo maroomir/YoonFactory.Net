@@ -151,6 +151,8 @@ namespace YoonFactory
     public interface IYoonLine : IYoonFigure
     {
         double Length { get; }
+        double Slope { get; }
+        double Constant { get; }
 
         new IYoonLine Clone();
         void CopyFrom(IYoonLine pLine);
@@ -168,6 +170,7 @@ namespace YoonFactory
 
         T X(T valueY);
         T Y(T valueX);
+        IYoonVector2D<T> Intersection(IYoonLine pLine);
     }
 
     public interface IYoonRect : IYoonFigure
