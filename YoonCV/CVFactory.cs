@@ -237,27 +237,54 @@ namespace YoonFactory.CV
             }
         }
 
+        public static YoonDataset FindLines(this CVImage pSourceImage, double dThresholdMin, double dThresholdMax,
+            int nThresholdHough = 150, int nMaxCount = 30) =>
+            LineMatch.FindLines(pSourceImage, dThresholdMin, dThresholdMax, nThresholdHough, nMaxCount);
+
         public static class LineMatch
         {
-            public static YoonLine2D[] FindLines(Mat pSourceMatrix, double dThreshold)
+            public static YoonDataset FindLines(CVImage pSourceImage, double dThresholdMin, double dThresholdMax,
+                int nThresholdHough = 150, int nMaxCount = 30)
             {
-                Mat pResultMatrix = Filter.Binary(pSourceMatrix, dThreshold);
-                pResultMatrix = Filter.Canny(pResultMatrix, 50, 100);
-                LineSegmentPolar[] pLineStorage = pResultMatrix.HoughLines(1, Cv2.PI / 180, 50, 0, 0);
-                YoonLine2D[] pResultArray = new YoonLine2D[pLineStorage.Length];
-                for(int iLine = 0; iLine < pLineStorage.Length; iLine++)
+                if (pSourceImage.Plane != 1)
+                    throw new FormatException("[YOONCV EXCEPTION] Image arguments is not 8bit format");
+
+                List<YoonLine2N> pListLine =
+                    FindLines(pSourceImage.Matrix, dThresholdMin, dThresholdMax, nThresholdHough, nMaxCount);
+                YoonDataset pResultDataset = new YoonDataset();
+                for (int i = 0; i < pListLine.Count; i++)
                 {
-                    float dDistance = pLineStorage[iLine].Rho;  // Distance as the zero position
-                    float dTheta = pLineStorage[iLine].Theta;  // Angle of the perpendicular line 
-                    double dX0 = dDistance * Math.Cos(dTheta);  // Intersection position with perpendicular line 
-                    double dY0 = dDistance * Math.Sin(dTheta);  // Intersection position with perpendicular line
-                    int nScale = pSourceMatrix.Width + pSourceMatrix.Height;
-                    YoonVector2D pVector1 = new YoonVector2D(dX0 - nScale * Math.Sin(dTheta), dY0 + nScale * Math.Cos(dTheta));
-                    YoonVector2D pVector2 = new YoonVector2D(dX0 + nScale * Math.Sin(dTheta), dY0 - nScale * Math.Cos(dTheta));
-                    pResultArray[iLine] = new YoonLine2D(pVector1, pVector2);
+                    pResultDataset.Add(new YoonObject(i,
+                        pFeature: pListLine[i].Clone() as YoonLine2N,
+                        pPosCurrent: pListLine[i].CenterPos,
+                        pObjectImage: Filter.Canny(pSourceImage, dThresholdMin, dThresholdMax)));
                 }
 
-                return pResultArray;
+                return pResultDataset;
+            }
+
+            public static List<YoonLine2N> FindLines(Mat pSourceMatrix, double dThresholdMin, double dThresholdMax,
+                int nThresholdHough, int nMaxCount = 30)
+            {
+                Mat pResultMatrix = Filter.Binary(pSourceMatrix, (dThresholdMin + dThresholdMax) / 2);
+                pResultMatrix = Filter.Canny(pResultMatrix, dThresholdMin, dThresholdMax);
+                LineSegmentPolar[] pLineStorage = pResultMatrix.HoughLines(1, Cv2.PI / 180, nThresholdHough, 0, 0);
+                List<YoonLine2N> pListLine = new List<YoonLine2N>();
+                for (int iLine = 0; iLine < Math.Min(nMaxCount, pLineStorage.Length); iLine++)
+                {
+                    float dDistance = pLineStorage[iLine].Rho; // Distance as the zero position
+                    float dTheta = pLineStorage[iLine].Theta; // Angle of the perpendicular line 
+                    double dX0 = dDistance * Math.Cos(dTheta); // Intersection position with perpendicular line 
+                    double dY0 = dDistance * Math.Sin(dTheta); // Intersection position with perpendicular line
+                    int nScale = pSourceMatrix.Width + pSourceMatrix.Height;
+                    YoonVector2N pVector1 = new YoonVector2N(Convert.ToInt32(dX0 - nScale * Math.Sin(dTheta)),
+                        Convert.ToInt32(dY0 + nScale * Math.Cos(dTheta)));
+                    YoonVector2N pVector2 = new YoonVector2N(Convert.ToInt32(dX0 + nScale * Math.Sin(dTheta)),
+                        Convert.ToInt32(dY0 - nScale * Math.Cos(dTheta)));
+                    pListLine.Add(new YoonLine2N(pVector1, pVector2));
+                }
+
+                return pListLine;
             }
         }
 
@@ -549,7 +576,7 @@ namespace YoonFactory.CV
             public static CVImage DetectHSV(CVImage pSourceImage, byte nHue, byte nSaturation, byte nValue)
             {
                 if (pSourceImage.Plane != 3)
-                    throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 24bit format");
                 return new CVImage(DetectHSV(pSourceImage.Matrix, nHue, nSaturation, nValue));
             }
 

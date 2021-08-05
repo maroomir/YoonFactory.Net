@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Threading.Tasks;
 using YoonFactory;
 using YoonFactory.Align;
 using YoonFactory.CV;
@@ -23,7 +22,7 @@ namespace YoonSample.TestImage
         static void Main(string[] args)
         {
             Console.WriteLine("Select the processing mode = ");
-            Console.Write("Align, CVAlign, Drops, Glass >> ");
+            Console.Write("Align, CVAlign, Drops, Glass, CVGlass >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -42,6 +41,10 @@ namespace YoonSample.TestImage
                 case "glass":
                     _pClm.Write("Start Glass Detector");
                     ProcessGlass();
+                    break;
+                case "cvglass":
+                    _pClm.Write("Start CVGlass Detector");
+                    ProcessCVGlass();
                     break;
                 default:
                     break;
@@ -286,6 +289,34 @@ namespace YoonSample.TestImage
             _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pListResult.Count:F1}ms/img]");
             foreach (YoonImage pImage in pListResult)
                 CVImage.ShowImage(pImage, pImage.FilePath);
+        }
+
+        static void ProcessCVGlass()
+        {
+            // Parsing
+            _strRootDir = Path.Combine(_strRootDir, @"Glass");
+            List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
+            _pClm.Write("Image Load Completed");
+            // Image Processing
+            List<CVImage> pListResult = new List<CVImage>();
+            object pLocker = new object();
+            Stopwatch pTimer = new Stopwatch();
+            pTimer.Reset();
+            pTimer.Start();
+            for (int i = 0; i < pListImage.Count; i++)
+            {
+                CVImage pResultImage = new CVImage(pListImage[i].ToGrayImage());
+                YoonDataset pResultDataset = pResultImage.FindLines(50, 150, nMaxCount:10);
+                _pClm.Write($"Sample {i:D} : Find {pResultDataset.Count:D} objects");
+                foreach (YoonObject pObject in pResultDataset)
+                    pResultImage.DrawFigure(pObject.Feature, Color.Yellow, 3);
+                pListResult.Add(pResultImage);
+            }
+
+            pTimer.Stop();
+            _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pListResult.Count:F1}ms/img]");
+            foreach (CVImage pImage in pListResult)
+                pImage.ShowImage(pImage.FilePath);
         }
     }
 }

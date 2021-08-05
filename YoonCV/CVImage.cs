@@ -23,6 +23,7 @@ namespace YoonFactory.CV
 
         public CVImage(YoonImage pImage)
         {
+            FilePath = pImage.FilePath;
             Bitmap = pImage.CopyBitmap();
         }
 
