@@ -306,7 +306,7 @@ namespace YoonSample.TestImage
             for (int i = 0; i < pListImage.Count; i++)
             {
                 CVImage pResultImage = new CVImage(pListImage[i].ToGrayImage());
-                YoonDataset pResultDataset = pResultImage.FindLines(50, 150, nMaxCount:10);
+                YoonDataset pResultDataset = pResultImage.FindLines(80, 200, nMaxCount:30);
                 _pClm.Write($"Sample {i:D} : Find {pResultDataset.Count:D} objects");
                 foreach (YoonObject pObject in pResultDataset)
                     pResultImage.DrawFigure(pObject.Feature, Color.Yellow, 3);

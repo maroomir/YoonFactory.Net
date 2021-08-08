@@ -251,13 +251,12 @@ namespace YoonFactory.CV
 
                 List<YoonLine2N> pListLine =
                     FindLines(pSourceImage.Matrix, dThresholdMin, dThresholdMax, nThresholdHough, nMaxCount);
+                YoonImage pResultImage = pSourceImage.Canny(dThresholdMin, dThresholdMax);
                 YoonDataset pResultDataset = new YoonDataset();
                 for (int i = 0; i < pListLine.Count; i++)
                 {
-                    pResultDataset.Add(new YoonObject(i,
-                        pFeature: pListLine[i].Clone() as YoonLine2N,
-                        pPosCurrent: pListLine[i].CenterPos,
-                        pObjectImage: Filter.Canny(pSourceImage, dThresholdMin, dThresholdMax)));
+                    pResultDataset.Add(new YoonObject(i, pListLine[i].Clone() as YoonLine2N, pListLine[i].CenterPos,
+                        pResultImage.Clone() as YoonImage));
                 }
 
                 return pResultDataset;
@@ -276,11 +275,10 @@ namespace YoonFactory.CV
                     float dTheta = pLineStorage[iLine].Theta; // Angle of the perpendicular line 
                     double dX0 = dDistance * Math.Cos(dTheta); // Intersection position with perpendicular line 
                     double dY0 = dDistance * Math.Sin(dTheta); // Intersection position with perpendicular line
-                    int nScale = pSourceMatrix.Width + pSourceMatrix.Height;
-                    YoonVector2N pVector1 = new YoonVector2N(Convert.ToInt32(dX0 - nScale * Math.Sin(dTheta)),
-                        Convert.ToInt32(dY0 + nScale * Math.Cos(dTheta)));
-                    YoonVector2N pVector2 = new YoonVector2N(Convert.ToInt32(dX0 + nScale * Math.Sin(dTheta)),
-                        Convert.ToInt32(dY0 - nScale * Math.Cos(dTheta)));
+                    YoonVector2N pVector1 = new YoonVector2N(Convert.ToInt32(dX0 - pSourceMatrix.Width * Math.Sin(dTheta)),
+                        Convert.ToInt32(dY0 + pSourceMatrix.Height * Math.Cos(dTheta)));
+                    YoonVector2N pVector2 = new YoonVector2N(Convert.ToInt32(dX0 + pSourceMatrix.Width * Math.Sin(dTheta)),
+                        Convert.ToInt32(dY0 - pSourceMatrix.Height * Math.Cos(dTheta)));
                     pListLine.Add(new YoonLine2N(pVector1, pVector2));
                 }
 

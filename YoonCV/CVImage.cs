@@ -1,20 +1,22 @@
 ﻿using YoonFactory.Image;
 using System;
-using System.Threading.Tasks;
+using System.Drawing;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using YoonFactory.Files;
+using Point = OpenCvSharp.Point;
+using Size = OpenCvSharp.Size;
 
 namespace YoonFactory.CV
 {
     public class CVImage : YoonImage
     {
-        public Mat Matrix => Bitmap.ToMat();
-
         public CVImage() : base()
         {
             //
         }
+
+        public Mat Matrix => Bitmap.ToMat();
 
         public CVImage(Mat pMatrix) : this()
         {
@@ -43,36 +45,9 @@ namespace YoonFactory.CV
             return true;
         }
 
-        public override bool SaveImage(string strPath)
-        {
-            FilePath = strPath;
-            return Matrix.SaveImage(FilePath);
-        }
-
         public Mat CopyMatrix()
         {
             return Matrix.Clone();
-        }
-
-        public override IYoonFile Clone()
-        {
-            CVImage pImage = new CVImage(Matrix) {FilePath = FilePath};
-            return pImage;
-        }
-
-        public override YoonImage ToGrayImage()
-        {
-            return new CVImage(Matrix.CvtColor(ColorConversionCodes.BGR2GRAY));
-        }
-
-        public override YoonImage ToRGBImage()
-        {
-            return new CVImage(Matrix.CvtColor(ColorConversionCodes.GRAY2BGR));
-        }
-
-        public override YoonImage CropImage(YoonRect2N cropArea)
-        {
-            return new CVImage(Matrix.SubMat(cropArea.ToCVRect()));
         }
 
         public static void ShowImage(YoonImage pImage, string strTitle)
@@ -95,14 +70,15 @@ namespace YoonFactory.CV
             if (Plane != 3)
                 throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
 
+            Mat pMatrix = Matrix;
             Mat pHistogramMatrix = new Mat();
             Mat pResultMatrix = Mat.Ones(new Size(256, Height), MatType.CV_8UC1);
-            Cv2.CalcHist(new Mat[] { Matrix }, new int[] { nChannel }, null, pHistogramMatrix, 1, new int[] { 256 },
+            Cv2.CalcHist(new Mat[] { pMatrix }, new int[] { nChannel }, null, pHistogramMatrix, 1, new int[] { 256 },
                 new Rangef[] { new Rangef(0, 256) });
             Cv2.Normalize(pHistogramMatrix, pHistogramMatrix, 0, 255, NormTypes.MinMax);
             for (int i = 0; i < pHistogramMatrix.Rows; i++)
             {
-                Cv2.Line(pResultMatrix, new Point(i, Matrix.Height), new Point(i, Matrix.Height - pHistogramMatrix.Get<float>(i)),
+                Cv2.Line(pResultMatrix, new Point(i, pMatrix.Height), new Point(i, pMatrix.Height - pHistogramMatrix.Get<float>(i)),
                     Scalar.White);
             }
             Cv2.ImShow(strTitle, pResultMatrix);
@@ -114,7 +90,7 @@ namespace YoonFactory.CV
         {
             Mat pMatHistogram = new Mat();
             Mat pMatResult = Mat.Ones(new Size(256, Height), MatType.CV_8UC1);
-            Mat pMatSource = (ToGrayImage() as CVImage).Matrix;
+            Mat pMatSource = ToGrayImage().Bitmap.ToMat();
             Cv2.CalcHist(new Mat[] { pMatSource }, new int[] { 0 }, null, pMatHistogram, 1, new int[] { 256 },
                 new Rangef[] { new Rangef(0, 256) });
             Cv2.Normalize(pMatHistogram, pMatHistogram, 0, 255, NormTypes.MinMax);
