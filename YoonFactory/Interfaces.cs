@@ -25,16 +25,16 @@ namespace YoonFactory
 
     public interface IYoonMatrix2D<T> : IYoonMatrix<T> where T : IComparable, IComparable<T>
     {
-        IYoonMatrix SetScaleUnit(T nScaleX, T nScaleY);
-        IYoonMatrix SetMovementUnit(T nMoveX, T nMoveY);
+        IYoonMatrix SetScaleUnit(T scaleX, T scaleY);
+        IYoonMatrix SetMovementUnit(T moveX, T moveY);
         IYoonMatrix SetMovementUnit(IYoonVector2D<T> pVector);
         IYoonMatrix SetRotateUnit(double dAngle);
     }
 
     public interface IYoonMatrix3D<T> : IYoonMatrix<T> where T : IComparable, IComparable<T>
     {
-        IYoonMatrix SetScaleUnit(T dScaleX, T dScaleY, T dScaleZ);
-        IYoonMatrix SetMovementUnit(T dMoveX, T dMoveY, T dMoveZ);
+        IYoonMatrix SetScaleUnit(T scaleX, T scaleY, T scaleZ);
+        IYoonMatrix SetMovementUnit(T moveX, T moveY, T moveZ);
         IYoonMatrix SetMovementUnit(IYoonVector3D<T> pVector);
         IYoonMatrix SetRotateXUnit(double dAngle);
         IYoonMatrix SetRotateYUnit(double dAngle);

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\YoonFactory\YoonFactory.csproj" />
+      <ProjectReference Include="..\YoonFile\YoonFile.csproj" />
+      <ProjectReference Include="..\YoonImage\YoonImage.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="TorchSharp" Version="0.91.52719" />
+    </ItemGroup>
+
+</Project>

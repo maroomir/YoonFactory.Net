@@ -1008,19 +1008,19 @@ namespace YoonFactory
     /// </summary>
     public class YoonMatrix2N : YoonMatrix3X3Int, IYoonMatrix2D<int>
     {
-        public IYoonMatrix SetScaleUnit(int nScaleX, int nScaleY)
+        public IYoonMatrix SetScaleUnit(int scaleX, int scaleY)
         {
             Unit();
-            matrix_11 *= nScaleX;
-            matrix_22 *= nScaleY;
+            matrix_11 *= scaleX;
+            matrix_22 *= scaleY;
             return this;
         }
 
-        public IYoonMatrix SetMovementUnit(int nMoveX, int nMoveY)
+        public IYoonMatrix SetMovementUnit(int moveX, int moveY)
         {
             Unit();
-            matrix_13 += nMoveX;
-            matrix_23 += nMoveY;
+            matrix_13 += moveX;
+            matrix_23 += moveY;
             return this;
         }
 
@@ -1051,19 +1051,19 @@ namespace YoonFactory
     public class YoonMatrix2D : YoonMatrix3X3Double, IYoonMatrix2D<double>
     {
 
-        public IYoonMatrix SetScaleUnit(double nScaleX, double nScaleY)
+        public IYoonMatrix SetScaleUnit(double scaleX, double scaleY)
         {
             Unit();
-            matrix_11 *= nScaleX;
-            matrix_22 *= nScaleY;
+            matrix_11 *= scaleX;
+            matrix_22 *= scaleY;
             return this;
         }
 
-        public IYoonMatrix SetMovementUnit(double nMoveX, double nMoveY)
+        public IYoonMatrix SetMovementUnit(double moveX, double moveY)
         {
             Unit();
-            matrix_13 += nMoveX;
-            matrix_23 += nMoveY;
+            matrix_13 += moveX;
+            matrix_23 += moveY;
             return this;
         }
 
@@ -1497,21 +1497,21 @@ namespace YoonFactory
     /// </summary>
     public class YoonMatrix3D : YoonMatrix4X4Double, IYoonMatrix3D<double>
     {
-        public IYoonMatrix SetScaleUnit(double dScaleX, double dScaleY, double dScaleZ)
+        public IYoonMatrix SetScaleUnit(double scaleX, double scaleY, double scaleZ)
         {
             Unit();
-            matrix_11 *= dScaleX;
-            matrix_22 *= dScaleY;
-            matrix_33 *= dScaleZ;
+            matrix_11 *= scaleX;
+            matrix_22 *= scaleY;
+            matrix_33 *= scaleZ;
             return this;
         }
 
-        public IYoonMatrix SetMovementUnit(double dMoveX, double dMoveY, double dMoveZ)
+        public IYoonMatrix SetMovementUnit(double moveX, double moveY, double moveZ)
         {
             Unit();
-            matrix_14 += dMoveX;
-            matrix_24 += dMoveY;
-            matrix_34 += dMoveZ;
+            matrix_14 += moveX;
+            matrix_24 += moveY;
+            matrix_34 += moveZ;
             return this;
         }
 
