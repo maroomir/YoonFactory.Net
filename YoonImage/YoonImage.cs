@@ -51,11 +51,32 @@ namespace YoonFactory.Image
         protected const int DEFAULT_HEIGHT = 480;
         protected const int DEFAULT_CHANNEL = 1;
 
-        private byte[] _pBuffer = null;
-
         public string FilePath { get; protected set; }
 
+        public Bitmap Bitmap { get; protected set; } = null;
+
         public PixelFormat Format => Bitmap.PixelFormat;
+
+        public int Channel
+        {
+            get
+            {
+                return Bitmap.PixelFormat switch
+                {
+                    PixelFormat.Format8bppIndexed => 1,
+                    PixelFormat.Format16bppArgb1555 => 2,
+                    PixelFormat.Format16bppGrayScale => 2,
+                    PixelFormat.Format16bppRgb555 => 2,
+                    PixelFormat.Format16bppRgb565 => 2,
+                    PixelFormat.Format1bppIndexed => 2,
+                    PixelFormat.Format24bppRgb => 3,
+                    PixelFormat.Format32bppArgb => 4,
+                    PixelFormat.Format32bppPArgb => 4,
+                    PixelFormat.Format32bppRgb => 4,
+                    _ => 0
+                };
+            }
+        }
 
         private PixelFormat GetDefaultFormat(int nPlane)
         {
@@ -69,13 +90,12 @@ namespace YoonFactory.Image
             };
         }
 
-        public int Channel { get; } = DEFAULT_CHANNEL;
 
-        public int Stride => Channel * Width;
+        public int Stride => Channel * Bitmap.Width;
 
-        public int Width { get; } = DEFAULT_WIDTH;
+        public int Width => Bitmap.Width;
 
-        public int Height { get; } = DEFAULT_HEIGHT;
+        public int Height => Bitmap.Height;
 
         public YoonVector2N CenterPos => new YoonVector2N(Width / 2, Height / 2);
 
@@ -99,14 +119,13 @@ namespace YoonFactory.Image
                 nHeight = DEFAULT_HEIGHT;
             }
 
-            Bitmap pBitmap = new Bitmap(nWidth, nHeight, GetDefaultFormat(nPlane));
-            ColorPalette pPallete = pBitmap.Palette;
+            Bitmap = new Bitmap(nWidth, nHeight, GetDefaultFormat(nPlane));
+            ColorPalette pPallete = Bitmap.Palette;
             switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format8bppIndexed:
                     Parallel.For(0, 256, i => { pPallete.Entries[i] = Color.FromArgb(i, i, i); });
-                    pBitmap.Palette = pPallete;
-                    _pBuffer = Scan8bitBuffer()
+                    Bitmap.Palette = pPallete;
                     break;
                 default:
                     break;
@@ -1652,36 +1671,18 @@ namespace YoonFactory.Image
             return bResult;
         }
 
-        private static int GetBitmapChannel(Bitmap pBitmap)
+        private byte[] Scan8bitBuffer(Rectangle pRect)
         {
-            return pBitmap.PixelFormat switch
-            {
-                PixelFormat.Format8bppIndexed => 1,
-                PixelFormat.Format16bppArgb1555 => 2,
-                PixelFormat.Format16bppGrayScale => 2,
-                PixelFormat.Format16bppRgb555 => 2,
-                PixelFormat.Format16bppRgb565 => 2,
-                PixelFormat.Format1bppIndexed => 2,
-                PixelFormat.Format24bppRgb => 3,
-                PixelFormat.Format32bppArgb => 4,
-                PixelFormat.Format32bppPArgb => 4,
-                PixelFormat.Format32bppRgb => 4,
-                _ => 0
-            };
-        }
-
-        private static byte[] Scan8bitBuffer(Bitmap pBitmap, Rectangle pRect)
-        {
-            if (pBitmap.PixelFormat != PixelFormat.Format8bppIndexed)
+            if (Format != PixelFormat.Format8bppIndexed)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot Indexed format");
-            if (pRect.X > pBitmap.Width || pRect.Y > pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             byte[] pBuffer = new byte[pRect.Width * pRect.Height];
             try
             {
-                BitmapData pImageData = pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
                 Marshal.Copy(pImageData.Scan0, pBuffer, 0, pBuffer.Length);
-                pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
             {
@@ -1692,18 +1693,18 @@ namespace YoonFactory.Image
             return pBuffer;
         }
 
-        private static byte[] Scan24bitBuffer(Bitmap pBitmap, Rectangle pRect)
+        private byte[] Scan24bitBuffer(Rectangle pRect)
         {
-            if (pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            if (Format != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
-            if (pRect.X > pBitmap.Width || pRect.Y > pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
-            byte[] pBuffer = new byte[pRect.Width * pRect.Height * GetBitmapChannel(pBitmap)];
+            byte[] pBuffer = new byte[pRect.Width * pRect.Height * Channel];
             try
             {
-                BitmapData pImageData = pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
                 Marshal.Copy(pImageData.Scan0, pBuffer, 0, pBuffer.Length);
-                pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
             {
@@ -1714,11 +1715,11 @@ namespace YoonFactory.Image
             return pBuffer;
         }
 
-        private static int[] Scan32bitBuffer(Bitmap pBitmap, Rectangle pRect)
+        private int[] Scan32bitBuffer(Rectangle pRect)
         {
-            if (pBitmap.PixelFormat != PixelFormat.Format32bppArgb)
+            if (Format != PixelFormat.Format32bppArgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
-            if (pRect.X > pBitmap.Width || pRect.Y > pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             int[] pBuffer = new int[pRect.Width * pRect.Height];
             try
