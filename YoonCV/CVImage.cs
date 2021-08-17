@@ -67,7 +67,7 @@ namespace YoonFactory.CV
 
         public void ShowHistogram(string strTitle, int nChannel)  // B : 0,  G : 1,  R : 2
         {
-            if (Plane != 3)
+            if (Channel != 3)
                 throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
 
             Mat pMatrix = Matrix;

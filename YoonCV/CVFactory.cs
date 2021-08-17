@@ -246,7 +246,7 @@ namespace YoonFactory.CV
             public static YoonDataset FindLines(CVImage pSourceImage, double dThresholdMin, double dThresholdMax,
                 int nThresholdHough = 150, int nMaxCount = 30)
             {
-                if (pSourceImage.Plane != 1)
+                if (pSourceImage.Channel != 1)
                     throw new FormatException("[YOONCV EXCEPTION] Image arguments is not 8bit format");
 
                 List<YoonLine2N> pListLine =
@@ -573,7 +573,7 @@ namespace YoonFactory.CV
         {
             public static CVImage DetectHSV(CVImage pSourceImage, byte nHue, byte nSaturation, byte nValue)
             {
-                if (pSourceImage.Plane != 3)
+                if (pSourceImage.Channel != 3)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 24bit format");
                 return new CVImage(DetectHSV(pSourceImage.Matrix, nHue, nSaturation, nValue));
             }

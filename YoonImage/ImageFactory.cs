@@ -473,7 +473,7 @@ namespace YoonFactory.Image
             public static YoonObject FindPattern(YoonImage pPatternImage, YoonImage pSourceImage,
                 int nDiffThreshold = 10)
             {
-                if (pPatternImage.Plane == 1 && pSourceImage.Plane == 1)
+                if (pPatternImage.Channel == 1 && pSourceImage.Channel == 1)
                 {
                     YoonRect2N pRectResult = FindPattern(pPatternImage.GetGrayBuffer(), pPatternImage.Width,
                         pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
@@ -481,7 +481,7 @@ namespace YoonFactory.Image
                     return new YoonObject(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore, nPixelCount);
                 }
 
-                if (pPatternImage.Plane == 4 && pSourceImage.Plane == 4)
+                if (pPatternImage.Channel == 4 && pSourceImage.Channel == 4)
                 {
                     YoonRect2N pRectResult = FindPattern(pPatternImage.GetARGBBuffer(), pPatternImage.Width,
                         pPatternImage.Height, pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
@@ -1536,7 +1536,7 @@ namespace YoonFactory.Image
         {
             public static YoonImage FillBound(YoonImage pSourceImage, int nValue)
             {
-                return pSourceImage.Plane switch
+                return pSourceImage.Channel switch
                 {
                     1 => new YoonImage(
                         FillBound(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, (byte) nValue),
@@ -1591,7 +1591,7 @@ namespace YoonFactory.Image
             {
                 int iFillCount = 0;
                 int iTotalCount = 0;
-                if (pSourceImage.Plane == 1)
+                if (pSourceImage.Channel == 1)
                 {
                     byte[] pBuffer = pSourceImage.GetGrayBuffer();
                     FillFlood(ref pBuffer, ref iFillCount, pSourceImage.Width, pSourceImage.Height, pVector,
@@ -1599,7 +1599,7 @@ namespace YoonFactory.Image
                     return new YoonImage(pBuffer, pSourceImage.Width, pSourceImage.Height, 1);
                 }
 
-                else if (pSourceImage.Plane == 4)
+                else if (pSourceImage.Channel == 4)
                 {
                     int[] pBuffer = pSourceImage.GetARGBBuffer();
                     FillFlood(ref pBuffer, ref iFillCount, pSourceImage.Width, pSourceImage.Height, pVector, nThreshold,
@@ -1689,7 +1689,7 @@ namespace YoonFactory.Image
             public static YoonImage FillInside1D(YoonImage pSourceImage, int nThreshold = 128, bool bFillWhite = true,
                 int nSize = 5)
             {
-                return pSourceImage.Plane switch
+                return pSourceImage.Channel switch
                 {
                     1 => new YoonImage(
                         FillInside1D(pSourceImage.GetGrayBuffer(), pSourceImage.Width * pSourceImage.Height,
@@ -1842,7 +1842,7 @@ namespace YoonFactory.Image
             public static YoonImage FillInside2D(YoonImage pSourceImage, YoonRect2N pScanArea, eYoonDir2DMode nDirMode,
                 int nThreshold = 128, bool bFillWhite = true, int nSize = 5)
             {
-                if (pSourceImage.Plane == 1)
+                if (pSourceImage.Channel == 1)
                 {
                     return nDirMode switch
                     {
@@ -1858,7 +1858,7 @@ namespace YoonFactory.Image
                     };
                 }
 
-                if (pSourceImage.Plane == 4)
+                if (pSourceImage.Channel == 4)
                 {
                     return nDirMode switch
                     {
@@ -3357,7 +3357,7 @@ namespace YoonFactory.Image
             public static IYoonVector Scan1D(YoonImage pSourceImage, eYoonDir2D nDir, YoonVector2N pStartVector,
                 int threshold = 128, bool isWhite = false)
             {
-                if (pSourceImage.Plane == 1)
+                if (pSourceImage.Channel == 1)
                 {
                     return nDir switch
                     {
@@ -3373,7 +3373,7 @@ namespace YoonFactory.Image
                     };
                 }
 
-                if (pSourceImage.Plane == 4)
+                if (pSourceImage.Channel == 4)
                 {
                     return nDir switch
                     {
@@ -3596,7 +3596,7 @@ namespace YoonFactory.Image
             public static IYoonVector Scan2D(YoonImage pSourceImage, YoonVector2N pStartVector, int threshold = 128,
                 bool isWhite = false)
             {
-                return pSourceImage.Plane switch
+                return pSourceImage.Channel switch
                 {
                     1 => Scan2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, pStartVector,
                         (byte) threshold, isWhite),
@@ -3831,10 +3831,10 @@ namespace YoonFactory.Image
             public static void GetLevelInfo(YoonImage pSourceImage, YoonRect2N scanArea, out int nMin, out int nMax,
                 out int nAverage)
             {
-                if (pSourceImage.Plane == 1)
+                if (pSourceImage.Channel == 1)
                     GetLevelInfo(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, out nMin, out nMax,
                         out nAverage);
-                else if (pSourceImage.Plane == 4)
+                else if (pSourceImage.Channel == 4)
                     GetLevelInfo(pSourceImage.GetARGBBuffer(), pSourceImage.Width, scanArea, out nMin, out nMax,
                         out nAverage);
                 else
@@ -4154,11 +4154,11 @@ namespace YoonFactory.Image
             //  Image 확대, 축소하기.
             public static YoonImage Zoom(YoonImage pSourceImage, double dRatio)
             {
-                if (pSourceImage.Plane == 1)
+                if (pSourceImage.Channel == 1)
                     return new YoonImage(
                         Zoom(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
                         pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
-                if (pSourceImage.Plane == 4)
+                if (pSourceImage.Channel == 4)
                     return new YoonImage(
                         Zoom(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
                         pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
@@ -4167,11 +4167,11 @@ namespace YoonFactory.Image
 
             public static YoonImage Zoom(YoonImage pSourceImage, double dRatioX, double dRatioY)
             {
-                if (pSourceImage.Plane == 1)
+                if (pSourceImage.Channel == 1)
                     return new YoonImage(
                         Zoom(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatioX, dRatioY),
                         pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
-                if (pSourceImage.Plane == 4)
+                if (pSourceImage.Channel == 4)
                     return new YoonImage(
                         Zoom(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatioX, dRatioY),
                         pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
