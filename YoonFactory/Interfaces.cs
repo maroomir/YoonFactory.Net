@@ -3,6 +3,52 @@ using System.Collections.Generic;
 
 namespace YoonFactory
 {
+    public interface IYoonBuffer : IDisposable
+    {
+        int Length { get; }
+        
+        IntPtr ScanAddress();
+        bool Print(IntPtr pAddress);
+        
+        bool Equals(IYoonBuffer pBuffer);
+        void CopyFrom(IYoonBuffer pBuffer);
+        IYoonBuffer Clone();
+    }
+
+    public interface IYoonBuffer<T> : IYoonBuffer where T : IComparable, IComparable<T>
+    {
+        T[] Scan();
+        bool Print(T[] pBuffer);
+    }
+
+    public interface IYoonBuffer1D<T> : IYoonBuffer<T> where T : IComparable, IComparable<T>
+    {
+        T[] Scan(int nStart, int nEnd);
+        bool Print(T[] pBuffer, int nStart, int nEnd);
+        T Get(int nPos);
+        bool Set(T value, int nPos);
+    }
+
+    public interface IYoonBuffer2D<T> : IYoonBuffer<T> where T : IComparable, IComparable<T>
+    {
+        T[] Scan(YoonRect2N pArea);
+        T[] Scan(YoonVector2N pStartVector, YoonVector2N pEndVector);
+        bool Print(T[] pBuffer, YoonRect2N pArea);
+        bool Print(T[] pBuffer, YoonVector2N pStartVector, YoonVector2N pEndVector);
+        T Get(int nX, int nY);
+        bool Set(T value, int nX, int nY);
+    }
+
+    public interface IYoonBuffer3D<T> : IYoonBuffer<T> where T : IComparable, IComparable<T>
+    {
+        T[] Scan(int nPlane);
+        T[] Scan(YoonRect2N pArea, int nPlane);
+        T[] Scan(YoonVector2N pStartVector, YoonVector2N pEndVector, int nPlane);
+        bool Print(T[] pBuffer, int nPlane);
+        bool Print(T[] pBuffer, YoonRect2N pArea, int nPlane);
+        bool Print(T[] pBuffer, YoonVector2N pStartVector, YoonVector2N pEndVector, int nPlane);
+    }
+
     public interface IYoonMatrix
     {
         int Length { get; }
@@ -13,14 +59,14 @@ namespace YoonFactory
         IYoonMatrix Unit();
         void CopyFrom(IYoonMatrix pMatrix);
     }
-
+    
     public interface IYoonMatrix<T> : IYoonMatrix where T : IComparable, IComparable<T>
     {
         T[,] Array { get; set; }
-        T Determinant { get; }  // 행렬식
+        T Determinant { get; } // 행렬식
         T Cofactor(int nRow, int nCol); // 여인자
         IYoonMatrix GetMinorMatrix(int nRow, int nCol); // 소행렬
-        IYoonMatrix GetAdjointMatrix();    // 수반행렬
+        IYoonMatrix GetAdjointMatrix(); // 수반행렬
     }
 
     public interface IYoonMatrix2D<T> : IYoonMatrix<T> where T : IComparable, IComparable<T>
@@ -229,7 +275,7 @@ namespace YoonFactory
         List<IYoonVector> PixelPoints { get; set; }
 
         void SetReferencePosition(IYoonVector vecPixelPos, IYoonVector vecRealPos);
-        IYoonVector GetPixelResolution(IYoonVector vecPixelPos);   // mm/pixel
+        IYoonVector GetPixelResolution(IYoonVector vecPixelPos); // mm/pixel
 
         IYoonVector ToPixel(IYoonVector vecRealPos);
         IYoonVector ToReal(IYoonVector vecPixelPos);
