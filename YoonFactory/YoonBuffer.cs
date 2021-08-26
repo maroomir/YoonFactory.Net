@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace YoonFactory
 {
-    public class YoonBuffer1D : IYoonBuffer<byte>, IEquatable<YoonBuffer1D>
+    public class YoonBuffer1D : IYoonBuffer1D<byte>, IEquatable<YoonBuffer1D>
     {
         #region IDisposable Support
 
@@ -39,22 +41,103 @@ namespace YoonFactory
 
         public int Length => _pBuffer?.Length ?? 0;
 
-        public IntPtr ScanAddress()
+        public YoonBuffer1D(int nLength)
+        {
+            if (nLength <= 0)
+                throw new ArgumentOutOfRangeException("[YOONBUFFER EXCEPTION] Abnormal buffer length");
+            _pBuffer = new byte[nLength];
+        }
+
+        public YoonBuffer1D(IntPtr ptrAddress, int nLength)
+        {
+            SetBuffer(ptrAddress, nLength);
+        }
+
+        public YoonBuffer1D(byte[] pBuffer)
+        {
+            SetBuffer(pBuffer);
+        }
+
+        public IntPtr GetAddress()
+        {
+            Debug.Assert(_pBuffer != null, "_pBuffer != null");
+            IntPtr pAddress = Marshal.AllocHGlobal(_pBuffer.Length * sizeof(byte));
+            Marshal.Copy(_pBuffer, 0, pAddress, _pBuffer.Length);
+            return pAddress;
+        }
+
+        public byte[] GetBuffer()
+        {
+            return _pBuffer;
+        }
+
+        public byte[] CopyBuffer()
+        {
+            Debug.Assert(_pBuffer != null, "_pBuffer != null");
+            byte[] pResultBuffer = new byte[_pBuffer.Length];
+            Array.Copy(_pBuffer, pResultBuffer, _pBuffer.Length);
+            return pResultBuffer;
+        }
+
+        public byte[] CopyBuffer(int nStart, int nEnd)
+        {
+            int nLength = Math.Abs(nEnd - nStart);
+            nStart = (nStart < nEnd) ? nStart : nEnd;
+            nEnd = nStart + nEnd;
+            byte[] pResultBuffer = new byte[nLength];
+            Array.Copy(_pBuffer, nStart, pResultBuffer, nEnd, nLength);
+            return pResultBuffer;
+        }
+
+        public bool SetBuffer(IntPtr ptrAddress, int nLength)
+        {
+            if (ptrAddress == IntPtr.Zero)
+                throw new ArgumentNullException("[YOONBUFFER EXCEPTION] Address is null");
+            if (nLength <= 0)
+                throw new ArgumentOutOfRangeException("[YOONBUFFER EXCEPTION] Abnormal buffer length");
+            try
+            {
+                Marshal.Copy(ptrAddress, _pBuffer, 0, nLength);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[YOONBUFFER EXCEPTION] Marshal copy is not active");
+                Console.Write(ex.ToString());
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool SetBuffer(byte[] pBuffer)
+        {
+            if (pBuffer is not {Length: > 0})
+                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal buffer exception");
+            try
+            {
+                Array.Copy(pBuffer, _pBuffer, pBuffer.Length);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[YOONBUFFER EXCEPTION] Marshal copy is not active");
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool SetBuffer(byte[] pBuffer, int nStart, int nEnd)
         {
             throw new NotImplementedException();
         }
 
-        public bool Print(IntPtr pAddress)
+        public byte GetValue(int nPos)
         {
             throw new NotImplementedException();
         }
 
-        public byte[] Scan()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Print(byte[] pBuffer)
+        public bool SetValue(byte value, int nPos)
         {
             throw new NotImplementedException();
         }

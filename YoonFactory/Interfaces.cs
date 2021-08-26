@@ -7,8 +7,8 @@ namespace YoonFactory
     {
         int Length { get; }
         
-        IntPtr ScanAddress();
-        bool Print(IntPtr pAddress);
+        IntPtr GetAddress();
+        bool SetBuffer(IntPtr ptrAddress, int nLength);
         
         bool Equals(IYoonBuffer pBuffer);
         void CopyFrom(IYoonBuffer pBuffer);
@@ -17,36 +17,44 @@ namespace YoonFactory
 
     public interface IYoonBuffer<T> : IYoonBuffer where T : IComparable, IComparable<T>
     {
-        T[] Scan();
-        bool Print(T[] pBuffer);
+        T[] GetBuffer();
+        T[] CopyBuffer();
+        bool SetBuffer(T[] pBuffer);
     }
 
     public interface IYoonBuffer1D<T> : IYoonBuffer<T> where T : IComparable, IComparable<T>
     {
-        T[] Scan(int nStart, int nEnd);
-        bool Print(T[] pBuffer, int nStart, int nEnd);
-        T Get(int nPos);
-        bool Set(T value, int nPos);
+        T[] CopyBuffer(int nStart, int nEnd);
+        bool SetBuffer(T[] pBuffer, int nStart, int nEnd);
+        
+        T GetValue(int nPos);
+        bool SetValue(T value, int nPos);
     }
 
     public interface IYoonBuffer2D<T> : IYoonBuffer<T> where T : IComparable, IComparable<T>
     {
-        T[] Scan(YoonRect2N pArea);
-        T[] Scan(YoonVector2N pStartVector, YoonVector2N pEndVector);
-        bool Print(T[] pBuffer, YoonRect2N pArea);
-        bool Print(T[] pBuffer, YoonVector2N pStartVector, YoonVector2N pEndVector);
-        T Get(int nX, int nY);
-        bool Set(T value, int nX, int nY);
+        T[] CopyBuffer(YoonRect2N pArea);
+        T[] CopyBuffer(YoonVector2N pStartVector, YoonVector2N pEndVector);
+        bool SetBuffer(T[] pBuffer, YoonRect2N pArea);
+        bool SetBuffer(T[] pBuffer, YoonVector2N pStartVector, YoonVector2N pEndVector);
+        
+        T GetValue(int nRow, int nCol);
+        bool SetValue(T value, int nRow, int nCol);
     }
 
     public interface IYoonBuffer3D<T> : IYoonBuffer<T> where T : IComparable, IComparable<T>
     {
-        T[] Scan(int nPlane);
-        T[] Scan(YoonRect2N pArea, int nPlane);
-        T[] Scan(YoonVector2N pStartVector, YoonVector2N pEndVector, int nPlane);
-        bool Print(T[] pBuffer, int nPlane);
-        bool Print(T[] pBuffer, YoonRect2N pArea, int nPlane);
-        bool Print(T[] pBuffer, YoonVector2N pStartVector, YoonVector2N pEndVector, int nPlane);
+        T[] CopyBuffer(int nPlane);
+        T[] CopyBuffer(YoonRect2N pArea);
+        T[] CopyBuffer(YoonRect2N pArea, int nPlane);
+        T[] CopyBuffer(YoonVector2N pStartVector, YoonVector2N pEndVector);
+        T[] CopyBuffer(YoonVector2N pStartVector, YoonVector2N pEndVector, int nPlane);
+        bool SetBuffer(T[] pBuffer, int nPlane);
+        bool SetBuffer(T[] pBuffer, YoonRect2N pArea, int nPlane);
+        bool SetBuffer(T[] pBuffer, YoonVector2N pStartVector, YoonVector2N pEndVector, int nPlane);
+
+        T GetValue(int nX, int nY, int nPlane);
+        bool SetValue(T value, int nX, int nY, int nPlane);
     }
 
     public interface IYoonMatrix
