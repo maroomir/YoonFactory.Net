@@ -186,12 +186,16 @@ namespace YoonFactory
 
         public void CopyFrom(IYoonBuffer pBuffer)
         {
-            throw new NotImplementedException();
+            if (pBuffer is not YoonBuffer1D pBuffer1D) return;
+            if (pBuffer1D._pBuffer == null || pBuffer1D.Length == 0) return;
+            if (_pBuffer == null || _pBuffer.Length != pBuffer1D.Length)
+                _pBuffer = new byte[pBuffer1D.Length];
+            Array.Copy(pBuffer1D._pBuffer, _pBuffer, pBuffer1D.Length);
         }
 
         public IYoonBuffer Clone()
         {
-            throw new NotImplementedException();
+            return new YoonBuffer1D(_pBuffer);
         }
 
         public bool Equals(YoonBuffer1D other)
@@ -216,12 +220,172 @@ namespace YoonFactory
 
         public static bool operator ==(YoonBuffer1D pBufferSource, YoonBuffer1D pBufferObject)
         {
-            return false;
+            Debug.Assert(pBufferSource != null, nameof(pBufferSource) + " != null");
+            return pBufferSource.Equals((IYoonBuffer) pBufferObject);
         }
 
         public static bool operator !=(YoonBuffer1D pBufferSource, YoonBuffer1D pBufferObject)
         {
             return !(pBufferSource == pBufferObject);
+        }
+    }
+
+    public class YoonBuffer2D : IYoonBuffer2D<byte>, IEquatable<YoonBuffer2D>
+    {
+        #region IDisposable Support
+
+        private bool _disposedValue = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    //
+                }
+
+                _pBuffer = null;
+                _disposedValue = true;
+            }
+        }
+
+        ~YoonBuffer2D()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+
+        private byte[] _pBuffer = null;
+
+        public int Length => _pBuffer?.Length ?? 0;
+        public int Rows { get; private set; } = 0;
+        public int Cols { get; private set; } = 0;
+
+        public YoonBuffer2D(int nWidth, int nHeight)
+        {
+            Rows = nHeight;
+            Cols = nWidth;
+            if (nWidth * nHeight <= 0)
+                throw new ArgumentOutOfRangeException("[YOONBUFFER EXCEPTION] Abnormal buffer length");
+            _pBuffer = new byte[nWidth * nHeight];
+        }
+
+        public YoonBuffer2D(IntPtr ptrAddress, int nWidth, int nHeight)
+        {
+            Rows = nHeight;
+            Cols = nWidth;
+            SetBuffer(ptrAddress, nWidth * nHeight);
+        }
+
+        public YoonBuffer2D(byte[] pBuffer, int nWidth, int nHeight)
+        {
+            Rows = nHeight;
+            Cols = nWidth;
+            SetBuffer(pBuffer);
+        }
+
+        public IntPtr GetAddress()
+        {
+            Debug.Assert(_pBuffer != null, "_pBuffer != null");
+            IntPtr pAddress = Marshal.AllocHGlobal(_pBuffer.Length * sizeof(byte));
+            Marshal.Copy(_pBuffer, 0, pAddress, _pBuffer.Length);
+            return pAddress;
+        }
+
+        public byte[] GetBuffer()
+        {
+            return _pBuffer;
+        }
+
+        public byte[] CopyBuffer()
+        {
+            Debug.Assert(_pBuffer != null, "_pBuffer != null");
+            byte[] pResultBuffer = new byte[_pBuffer.Length];
+            Array.Copy(_pBuffer, pResultBuffer, _pBuffer.Length);
+            return pResultBuffer;
+        }
+        
+        public byte[] CopyBuffer(YoonRect2N pArea)
+        {
+            throw new NotImplementedException();
+        }
+
+        public byte[] CopyBuffer(YoonVector2N pStartVector, YoonVector2N pEndVector)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SetBuffer(byte[] pBuffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SetBuffer(IntPtr ptrAddress, int nLength)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SetBuffer(byte[] pBuffer, YoonRect2N pArea)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SetBuffer(byte[] pBuffer, YoonVector2N pStartVector, YoonVector2N pEndVector)
+        {
+            throw new NotImplementedException();
+        }
+
+        public byte GetValue(int nRow, int nCol)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SetValue(byte value, int nRow, int nCol)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public bool Equals(IYoonBuffer pBuffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CopyFrom(IYoonBuffer pBuffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IYoonBuffer Clone()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(YoonBuffer2D other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return _disposedValue == other._disposedValue && Equals(_pBuffer, other._pBuffer) && Rows == other.Rows && Cols == other.Cols;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((YoonBuffer2D) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_disposedValue, _pBuffer, Rows, Cols);
         }
     }
 }

@@ -33,6 +33,9 @@ namespace YoonFactory
 
     public interface IYoonBuffer2D<T> : IYoonBuffer<T> where T : IComparable, IComparable<T>
     {
+        int Rows { get; }
+        int Cols { get; }
+        
         T[] CopyBuffer(YoonRect2N pArea);
         T[] CopyBuffer(YoonVector2N pStartVector, YoonVector2N pEndVector);
         bool SetBuffer(T[] pBuffer, YoonRect2N pArea);
@@ -44,6 +47,10 @@ namespace YoonFactory
 
     public interface IYoonBuffer3D<T> : IYoonBuffer<T> where T : IComparable, IComparable<T>
     {
+        int Rows { get; }
+        int Cols { get; }
+        int Depth { get; }
+        
         T[] CopyBuffer(int nPlane);
         T[] CopyBuffer(YoonRect2N pArea);
         T[] CopyBuffer(YoonRect2N pArea, int nPlane);
