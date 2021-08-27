@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace YoonFactory
@@ -83,7 +84,7 @@ namespace YoonFactory
         {
             int nLength = Math.Abs(nEnd - nStart);
             nStart = (nStart < nEnd) ? nStart : nEnd;
-            nEnd = nStart + nEnd;
+            nEnd = nStart + nLength;
             byte[] pResultBuffer = new byte[nLength];
             Array.Copy(_pBuffer, nStart, pResultBuffer, nEnd, nLength);
             return pResultBuffer;
@@ -97,11 +98,12 @@ namespace YoonFactory
                 throw new ArgumentOutOfRangeException("[YOONBUFFER EXCEPTION] Abnormal buffer length");
             try
             {
+                _pBuffer ??= new byte[nLength];
                 Marshal.Copy(ptrAddress, _pBuffer, 0, nLength);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[YOONBUFFER EXCEPTION] Marshal copy is not active");
+                Console.WriteLine("[YOONBUFFER EXCEPTION] Marshal copy exception");
                 Console.Write(ex.ToString());
                 return false;
             }
@@ -112,14 +114,15 @@ namespace YoonFactory
         public bool SetBuffer(byte[] pBuffer)
         {
             if (pBuffer is not {Length: > 0})
-                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal buffer exception");
+                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal buffer length");
             try
             {
+                _pBuffer ??= new byte[pBuffer.Length];
                 Array.Copy(pBuffer, _pBuffer, pBuffer.Length);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[YOONBUFFER EXCEPTION] Marshal copy is not active");
+                Console.WriteLine("[YOONBUFFER EXCEPTION] Marshal copy exception");
                 Console.WriteLine(ex.ToString());
                 return false;
             }
@@ -129,22 +132,56 @@ namespace YoonFactory
 
         public bool SetBuffer(byte[] pBuffer, int nStart, int nEnd)
         {
-            throw new NotImplementedException();
+            int nLength = Math.Abs(nEnd - nStart);
+            nStart = (nStart < nEnd) ? nStart : nEnd;
+            nEnd = nStart + nLength;
+            if (_pBuffer == null || _pBuffer.Length < nEnd)
+                throw new OutOfMemoryException("[YOONBUFFER EXCEPTION] Abnormal main buffer size");
+            if (pBuffer == null || pBuffer.Length != nLength)
+                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal buffer length");
+            try
+            {
+                for (int i = nStart; i < nEnd; i++)
+                    _pBuffer[i] = pBuffer[i - nStart];
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[YOONBUFFER EXCEPTION] Buffer copy exception");
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+
+            return true;
         }
 
         public byte GetValue(int nPos)
         {
-            throw new NotImplementedException();
+            if (_pBuffer == null || _pBuffer.Length <= nPos)
+                throw new OutOfMemoryException("[YOONBUFFER EXCEPTION] Abnormal main buffer size");
+            return _pBuffer[nPos];
         }
 
         public bool SetValue(byte value, int nPos)
         {
-            throw new NotImplementedException();
+            if (_pBuffer == null || _pBuffer.Length <= nPos)
+                throw new OutOfMemoryException("[YOONBUFFER EXCEPTION] Abnormal main buffer size");
+            _pBuffer[nPos] = value;
+            return true;
         }
 
         public bool Equals(IYoonBuffer pBuffer)
         {
-            throw new NotImplementedException();
+            if (_pBuffer.Length != pBuffer.Length)
+                return false;
+            if (pBuffer is not YoonBuffer1D pBuffer1D)
+                return false;
+            for (int i = 0; i < _pBuffer.Length; i++)
+            {
+                if (_pBuffer[i] != pBuffer1D._pBuffer[i])
+                    return false;
+            }
+
+            return true;
         }
 
         public void CopyFrom(IYoonBuffer pBuffer)
