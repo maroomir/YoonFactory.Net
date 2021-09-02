@@ -557,34 +557,34 @@ namespace YoonFactory
             _pBuffer = new byte[nLength];
         }
 
+        public YoonBuffer3D(IntPtr ptrAddress, int nWidth, int nHeight, int nDepth)
+        {
+            int nLength = nWidth * nHeight * nDepth;
+            Rows = nHeight;
+            Cols = nWidth;
+            Depth = nDepth;
+            SetBuffer(ptrAddress, nLength);
+        }
+
+        public YoonBuffer3D(byte[] pBuffer, int nWidth, int nHeight, int nDepth)
+        {
+            Rows = nHeight;
+            Cols = nWidth;
+            Depth = nDepth;
+            SetBuffer(pBuffer);
+        }
+
         public IntPtr GetAddress()
         {
-            throw new NotImplementedException();
-        }
-
-        public bool SetBuffer(IntPtr ptrAddress, int nLength)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Equals(IYoonBuffer pBuffer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CopyFrom(IYoonBuffer pBuffer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IYoonBuffer Clone()
-        {
-            throw new NotImplementedException();
+            Debug.Assert(_pBuffer != null, "_pBuffer != null");
+            IntPtr pAddress = Marshal.AllocHGlobal(_pBuffer.Length * sizeof(byte));
+            Marshal.Copy(_pBuffer, 0, pAddress, _pBuffer.Length);
+            return pAddress;
         }
 
         public byte[] GetBuffer()
         {
-            throw new NotImplementedException();
+            return _pBuffer;
         }
 
         public byte[] CopyBuffer()
@@ -592,11 +592,6 @@ namespace YoonFactory
             throw new NotImplementedException();
         }
 
-        public bool SetBuffer(byte[] pBuffer)
-        {
-            throw new NotImplementedException();
-        }
-        
         public byte[] CopyBuffer(int nPlane)
         {
             throw new NotImplementedException();
@@ -622,6 +617,31 @@ namespace YoonFactory
             throw new NotImplementedException();
         }
 
+        public bool SetBuffer(IntPtr ptrAddress, int nLength)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(IYoonBuffer pBuffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CopyFrom(IYoonBuffer pBuffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IYoonBuffer Clone()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SetBuffer(byte[] pBuffer)
+        {
+            throw new NotImplementedException();
+        }
+        
         public bool SetBuffer(byte[] pBuffer, int nPlane)
         {
             throw new NotImplementedException();
