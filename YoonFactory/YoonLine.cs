@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using static System.Double;
+using static System.Int32;
 
 namespace YoonFactory
 {
@@ -12,6 +14,8 @@ namespace YoonFactory
         [XmlAnyAttribute] public IYoonVector2D<int> StartPos { get; private set; } = new YoonVector2N(0, 0);
         [XmlAnyAttribute] public IYoonVector2D<int> EndPos { get; private set; } = new YoonVector2N(0, 0);
 
+        public int PropertiesCount => 4;  // START X, START Y, END X, END Y
+        
         public IYoonVector2D<int> CenterPos =>
             new YoonVector2N((StartPos.X + EndPos.X) / 2, (StartPos.Y + EndPos.Y) / 2);
 
@@ -22,6 +26,19 @@ namespace YoonFactory
         public double Constant { get; private set; } = 0.0;
         
         IYoonRect2D<int> IYoonLine2D<int>.Area => new YoonRect2N((YoonVector2N) StartPos, (YoonVector2N) EndPos);
+
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            int nStartX = int.Parse(pArgs[0]);
+            int nStartY = int.Parse(pArgs[1]);
+            int nEndX = int.Parse(pArgs[2]);
+            int nEndY = int.Parse(pArgs[3]);
+            StartPos = new YoonVector2N(nStartX, nStartY);
+            EndPos = new YoonVector2N(nEndX, nEndY);
+            Slope = (nEndY - nStartY) / (nEndX == nStartX ? 0.00001 : nEndX - nStartX);
+            Constant = nStartY - Slope * nStartX;
+        }
 
         public override bool Equals(object obj)
         {
@@ -67,7 +84,7 @@ namespace YoonFactory
         {
             StartPos = new YoonVector2N(nStartX, nStartY);
             EndPos = new YoonVector2N(nEndX, nEndY);
-            Slope = (nEndY - nStartY) / (nEndX - nStartX);
+            Slope = (nEndY - nStartY) / (nEndX == nStartX ? 0.00001 : nEndX - nStartX);
             Constant = nStartY - Slope * nStartX;
         }
 
@@ -254,6 +271,8 @@ namespace YoonFactory
         [XmlAnyAttribute] public IYoonVector2D<double> StartPos { get; private set; } = new YoonVector2D(0, 0);
         [XmlAnyAttribute] public IYoonVector2D<double> EndPos { get; private set; } = new YoonVector2D(0, 0);
 
+        public int PropertiesCount => 4;  // START X, START Y, END X, END Y
+        
         public IYoonVector2D<double> CenterPos =>
             new YoonVector2D((StartPos.X + EndPos.X) / 2, (StartPos.Y + EndPos.Y) / 2);
 
@@ -265,6 +284,19 @@ namespace YoonFactory
         
         public IYoonRect2D<double> Area => new YoonRect2D((YoonVector2D) StartPos, (YoonVector2D) EndPos);
 
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            double dStartX = double.Parse(pArgs[0]);
+            double dStartY = double.Parse(pArgs[1]);
+            double dEndX = double.Parse(pArgs[2]);
+            double dEndY = double.Parse(pArgs[3]);
+            StartPos = new YoonVector2D(dStartX, dStartY);
+            EndPos = new YoonVector2D(dEndX, dEndY);
+            Slope = (dEndY - dStartY) / (dEndX == dStartX ? 0.00001 : dEndX - dStartX);
+            Constant = dStartY - Slope * dStartX;
+        }
+        
         public override bool Equals(object obj)
         {
             return Equals(obj as IYoonLine);
@@ -305,7 +337,7 @@ namespace YoonFactory
         {
             StartPos = new YoonVector2D(dStartX, dStartY);
             EndPos = new YoonVector2D(dEndX, dEndY);
-            Slope = (dEndY - dStartY) / (dEndX - dStartX);
+            Slope = (dEndY - dStartY) / (dEndX == dStartX ? 0.00001 : dEndX - dStartX);
             Constant = dStartY - Slope * dStartX;
         }
 

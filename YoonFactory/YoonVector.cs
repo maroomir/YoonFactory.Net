@@ -9,7 +9,7 @@ namespace YoonFactory
     /// </summary>
     public class YoonVector2N : IYoonVector2D<int>, IEquatable<YoonVector2N>
     {
-        public int Count { get; } = 3;
+        public int PropertiesCount=> 2;  // X, Y
 
         public eYoonDir2D Direction
         {
@@ -76,6 +76,13 @@ namespace YoonFactory
             }
         }
 
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            X = int.Parse(pArgs[0]);
+            Y = int.Parse(pArgs[1]);
+        }
+        
         public void CopyFrom(IYoonVector v)
         {
             if (v is not YoonVector2N vec) return;
@@ -339,7 +346,7 @@ namespace YoonFactory
         public bool Equals(YoonVector2N other)
         {
             return other != null &&
-                   Count == other.Count &&
+                   PropertiesCount == other.PropertiesCount &&
                    Direction == other.Direction &&
                    W == other.W &&
                    X == other.X &&
@@ -351,7 +358,7 @@ namespace YoonFactory
         public override int GetHashCode()
         {
             int hashCode = 1178670866;
-            hashCode = hashCode * -1521134295 + Count.GetHashCode();
+            hashCode = hashCode * -1521134295 + PropertiesCount.GetHashCode();
             hashCode = hashCode * -1521134295 + Direction.GetHashCode();
             hashCode = hashCode * -1521134295 + W.GetHashCode();
             hashCode = hashCode * -1521134295 + X.GetHashCode();
@@ -374,7 +381,7 @@ namespace YoonFactory
         public static YoonVector2N operator *(YoonMatrix3X3Int pMatrix, YoonVector2N pVector)
         {
             YoonVector2N pResultVector = new YoonVector2N();
-            for (int i = 0; i < pVector.Count; i++)
+            for (int i = 0; i < pVector.PropertiesCount; i++)
             {
                 pResultVector.Array[i] = 0;
                 for (int k = 0; k < pMatrix.Length; k++)
@@ -431,7 +438,7 @@ namespace YoonFactory
     /// </summary>
     public class YoonVector2D : IYoonVector2D<double>, IEquatable<YoonVector2D>
     {
-        public int Count { get; } = 3;
+        public int PropertiesCount => 2;  // X, Y
 
         public eYoonDir2D Direction
         {
@@ -517,6 +524,13 @@ namespace YoonFactory
             X = pVector2D.X;
             Y = pVector2D.Y;
             W = 1;
+        }
+
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            X = double.Parse(pArgs[0]);
+            Y = double.Parse(pArgs[1]);
         }
 
         public IYoonVector Clone()
@@ -764,7 +778,7 @@ namespace YoonFactory
         public bool Equals(YoonVector2D other)
         {
             return other != null &&
-                   Count == other.Count &&
+                   PropertiesCount == other.PropertiesCount &&
                    Direction == other.Direction &&
                    W == other.W &&
                    X == other.X &&
@@ -776,7 +790,7 @@ namespace YoonFactory
         public override int GetHashCode()
         {
             int hashCode = 1178670866;
-            hashCode = hashCode * -1521134295 + Count.GetHashCode();
+            hashCode = hashCode * -1521134295 + PropertiesCount.GetHashCode();
             hashCode = hashCode * -1521134295 + Direction.GetHashCode();
             hashCode = hashCode * -1521134295 + W.GetHashCode();
             hashCode = hashCode * -1521134295 + X.GetHashCode();
@@ -799,7 +813,7 @@ namespace YoonFactory
         public static YoonVector2D operator *(YoonMatrix3X3Double m, YoonVector2D v)
         {
             YoonVector2D pVector = new YoonVector2D();
-            for (int i = 0; i < v.Count; i++)
+            for (int i = 0; i < v.PropertiesCount; i++)
             {
                 pVector.Array[i] = 0;
                 for (int k = 0; k < m.Length; k++)
@@ -864,7 +878,7 @@ namespace YoonFactory
     /// </summary>
     public class YoonVector3D : IYoonVector, IYoonVector3D<double>, IEquatable<YoonVector3D>
     {
-        public int Count { get; } = 4;
+        public int PropertiesCount { get; } = 3;  // X, Y, Z
 
         public override bool Equals(object obj)
         {
@@ -876,7 +890,8 @@ namespace YoonFactory
             if (pVector is not YoonVector3D pVector3D) return false;
             return X == pVector3D.X &&
                    Y == pVector3D.Y &&
-                   W == pVector3D.W;
+                   W == pVector3D.W &&
+                   Z == pVector3D.Z;
         }
 
         public void CopyFrom(IYoonVector pVector)
@@ -884,7 +899,16 @@ namespace YoonFactory
             if (pVector is not YoonVector3D pVector3D) return;
             X = pVector3D.X;
             Y = pVector3D.Y;
+            Z = pVector3D.Z;
             W = 1;
+        }
+
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            X = double.Parse(pArgs[0]);
+            Y = double.Parse(pArgs[1]);
+            Z = double.Parse(pArgs[2]);
         }
 
         public IYoonVector Clone()
@@ -1121,7 +1145,7 @@ namespace YoonFactory
         public bool Equals(YoonVector3D other)
         {
             return other != null &&
-                   Count == other.Count &&
+                   PropertiesCount == other.PropertiesCount &&
                    W == other.W &&
                    X == other.X &&
                    Y == other.Y &&
@@ -1133,7 +1157,7 @@ namespace YoonFactory
         public override int GetHashCode()
         {
             int hashCode = -366330435;
-            hashCode = hashCode * -1521134295 + Count.GetHashCode();
+            hashCode = hashCode * -1521134295 + PropertiesCount.GetHashCode();
             hashCode = hashCode * -1521134295 + W.GetHashCode();
             hashCode = hashCode * -1521134295 + X.GetHashCode();
             hashCode = hashCode * -1521134295 + Y.GetHashCode();
@@ -1151,7 +1175,7 @@ namespace YoonFactory
         public static YoonVector3D operator *(YoonMatrix4X4Double pMatrix, YoonVector3D pVector)
         {
             YoonVector3D pResultVector = new YoonVector3D();
-            for (int i = 0; i < pVector.Count; i++)
+            for (int i = 0; i < pVector.PropertiesCount; i++)
             {
                 pResultVector.Array[i] = 0;
                 for (int k = 0; k < pMatrix.Length; k++)

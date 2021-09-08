@@ -46,6 +46,8 @@ namespace YoonFactory
         [XmlAttribute] public int Width { get; set; }
         [XmlAttribute] public int Height { get; set; }
 
+        public int PropertiesCount => 4;  // CENTER X, CENTER Y, WIDTH, HEIGHT
+        
         public int Left => ((YoonVector2N) CenterPos).X - Width / 2;
 
         public int Top => ((YoonVector2N) CenterPos).Y - Height / 2;
@@ -61,7 +63,19 @@ namespace YoonFactory
         public IYoonVector2D<int> BottomLeft => new YoonVector2N(CenterPos.X - Width / 2, CenterPos.Y + Height / 2);
 
         public IYoonVector2D<int> BottomRight => new YoonVector2N(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
-
+        
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            int nX = int.Parse(pArgs[0]);
+            int nY = int.Parse(pArgs[1]);
+            int nWidth = int.Parse(pArgs[2]);
+            int nHeight = int.Parse(pArgs[3]);
+            CenterPos = new YoonVector2N {X = nX, Y = nY};
+            Width = nWidth;
+            Height = nHeight;
+        }
+        
         public void SetVerifiedArea(int nMinX, int nMinY, int nMaxX, int nMaxY)
         {
             int nLeft = (Left > nMinX) ? Left : nMinX;
@@ -491,6 +505,20 @@ namespace YoonFactory
 
         public IYoonVector2D<double> BottomRight => new YoonVector2D(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
 
+        public int PropertiesCount => 4; // X, Y, WIDTH, HEIGHT
+
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            double dX = double.Parse(pArgs[0]);
+            double dY = double.Parse(pArgs[1]);
+            double dWidth = double.Parse(pArgs[2]);
+            double dHeight = double.Parse(pArgs[3]);
+            CenterPos = new YoonVector2D() {X = dX, Y = dY};
+            Width = dWidth;
+            Height = dHeight;
+        }
+        
         public void SetVerifiedArea(double dMinX, double dMinY, double dMaxX, double dMaxY)
         {
             double dLeft = (Left > dMinX) ? Left : dMinX;

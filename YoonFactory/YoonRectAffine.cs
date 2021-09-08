@@ -133,6 +133,24 @@ namespace YoonFactory
 
         public IYoonVector2D<double> BottomRight => _pCornerRotateBottomRight;
 
+
+        public int PropertiesCount => 5; // X, Y, WIDTH, HEIGHT, THETA
+
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            double dX = double.Parse(pArgs[0]);
+            double dY = double.Parse(pArgs[1]);
+            double dWidth = double.Parse(pArgs[2]);
+            double dHeight = double.Parse(pArgs[3]);
+            double dTheta = double.Parse(pArgs[4]);
+            CenterPos = new YoonVector2D() {X = dX, Y = dY};
+            Width = dWidth;
+            Height = dHeight;
+            Rotation = dTheta;
+        }
+
+        
         public void SetVerifiedArea(double dMinX, double dMinY, double dMaxX, double dMaxY)
         {
             double dLeft = (Left > dMinX) ? Left : dMinX;
@@ -163,7 +181,6 @@ namespace YoonFactory
             CenterPos = new YoonVector2D {X = 0, Y = 0};
             Width = dWidth;
             Height = dHeight;
-
             Rotation = dTheta;
         }
 

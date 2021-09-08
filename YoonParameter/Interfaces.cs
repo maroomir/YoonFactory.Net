@@ -5,6 +5,9 @@ namespace YoonFactory
 
     public interface IYoonParameter
     {
+        int GetLength();
+        bool Set(params string[] pArgs);
+        
         bool Equals(IYoonParameter pParam);
         void CopyFrom(IYoonParameter pParam);
         IYoonParameter Clone();
@@ -12,6 +15,7 @@ namespace YoonFactory
 
     public interface IYoonResult
     {
+        int GetLength();
         string Combine(string strDelimiter);
         bool Insert(string strCombine, string strDelimiter);
 

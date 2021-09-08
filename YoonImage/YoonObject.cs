@@ -276,6 +276,22 @@ namespace YoonFactory
             };
         }
 
+        public int GetLength()
+        {
+            return 3 + // Label, Score, PixelCount
+                   Feature.PropertiesCount + Position.PropertiesCount;
+        }
+
+        public bool Set(params string[] pArgs)
+        {
+            if (pArgs.Length != GetLength()) return false;
+            Label = int.Parse(pArgs[0]);
+            Score = double.Parse(pArgs[1]);
+            PixelCount = int.Parse(pArgs[2]);
+            // TODO : Fit other setting params
+            return true;
+        }
+        
         public void CopyFrom(IYoonParameter pObject)
         {
             if (pObject is YoonObject pYoonObject)

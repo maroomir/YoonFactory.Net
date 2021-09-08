@@ -104,13 +104,14 @@ namespace YoonFactory
 
     public interface IYoonFigure
     {
+        int PropertiesCount { get; }
+        void FromArgs(params string[] pArgs);
+        
         IYoonFigure Clone();
     }
 
     public interface IYoonVector : IYoonFigure
     {
-        int Count { get; }
-
         bool Equals(IYoonVector pVector);
         new IYoonVector Clone();
         void CopyFrom(IYoonVector pVector);

@@ -20,6 +20,16 @@ namespace YoonFactory
         [XmlAttribute] public int X { get; set; }
         [XmlAttribute] public int Y { get; set; }
         [XmlAttribute] public int Height { get; set; }
+        
+        public int PropertiesCount => 3; // X, Y, HEIGHT
+
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            X = int.Parse(pArgs[0]);
+            Y = int.Parse(pArgs[1]);
+            Height = int.Parse(pArgs[2]);
+        }
 
         public YoonTriangle2N()
         {
@@ -65,6 +75,16 @@ namespace YoonFactory
         [XmlAttribute] public double Y { get; set; }
         [XmlAttribute] public double Height { get; set; }
 
+        public int PropertiesCount => 3; // X, Y, HEIGHT
+
+        public void FromArgs(params string[] pArgs)
+        {
+            if (pArgs.Length != PropertiesCount) return;
+            X = double.Parse(pArgs[0]);
+            Y = double.Parse(pArgs[1]);
+            Height = double.Parse(pArgs[2]);
+        }
+        
         public YoonTriangle2D()
         {
             X = 0;
