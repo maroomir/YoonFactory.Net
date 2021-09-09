@@ -288,10 +288,14 @@ namespace YoonFactory
             Label = int.Parse(pArgs[0]);
             Score = double.Parse(pArgs[1]);
             PixelCount = int.Parse(pArgs[2]);
-            // TODO : Fit other setting params
+            int nCursor = 3;
+            Feature.FromArgs(pArgs.Slice(nCursor, nCursor + Feature.PropertiesCount));
+            nCursor += Feature.PropertiesCount;
+            Position.FromArgs(pArgs.Slice(nCursor, nCursor + Position.PropertiesCount));
+            nCursor += Position.PropertiesCount;
             return true;
         }
-        
+
         public void CopyFrom(IYoonParameter pObject)
         {
             if (pObject is YoonObject pYoonObject)
