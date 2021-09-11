@@ -589,57 +589,128 @@ namespace YoonFactory
 
         public byte[] CopyBuffer()
         {
-            throw new NotImplementedException();
+            Debug.Assert(_pBuffer != null, "_pBuffer != null");
+            byte[] pResultBuffer = new byte[_pBuffer.Length];
+            Array.Copy(_pBuffer, pResultBuffer, _pBuffer.Length);
+            return pResultBuffer;
+        }
+
+        public YoonBuffer2D ToBuffer2D(int nPlane)
+        {
+            if (_pBuffer == null || _pBuffer.Length == 0)
+                throw new OutOfMemoryException("[YOONBUFFER EXCEPTION] Abnormal main buffer size");
+            if (nPlane >= Depth || nPlane < 0)
+                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal Depth size");
+            return new YoonBuffer2D(CopyBuffer(nPlane), Rows, Cols);
         }
 
         public byte[] CopyBuffer(int nPlane)
         {
-            throw new NotImplementedException();
+            if (_pBuffer == null || _pBuffer.Length == 0)
+                throw new OutOfMemoryException("[YOONBUFFER EXCEPTION] Abnormal main buffer size");
+            if (nPlane >= Depth || nPlane < 0)
+                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal Depth size");
+
+            int nLength = Rows * Cols;
+            byte[] pResultBuffer = new byte[nLength];
+            Array.Copy(_pBuffer, nPlane * nLength, pResultBuffer, 0, nLength);
+            return pResultBuffer;
         }
 
         public byte[] CopyBuffer(YoonRect2N pArea)
         {
-            throw new NotImplementedException();
+            if (_pBuffer == null || _pBuffer.Length == 0)
+                throw new OutOfMemoryException("[YOONBUFFER EXCEPTION] Abnormal main buffer size");
+            if (pArea.Width <= 0 || pArea.Height <= 0 || pArea.Left <= 0 || pArea.Top <= 0)
+                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal Area size");
+            if (pArea.Right > Cols || pArea.Bottom > Rows)
+                throw new ArgumentOutOfRangeException("[YOONBUFFER EXCEPTION] Abnormal area size");
+
+            int nTotalSize = Rows * Cols;
+            int nAreaSize = pArea.Width * pArea.Height;
+            byte[] pResultBuffer = new byte[nAreaSize * Depth];
+            for (int iZ = 0; iZ < Depth; iZ++)
+            {
+                for (int iY = 0; iY < pArea.Height; iY++)
+                {
+                    int nY = pArea.Top + iY;
+                    for (int iX = 0; iX < pArea.Width; iX++)
+                    {
+                        int nX = pArea.Left + iX;
+                        pResultBuffer[iZ * nAreaSize + iY * pArea.Width + iX] =
+                            _pBuffer[iZ * nTotalSize + nY * Cols + nX];
+                    }
+                }
+            }
+
+            return pResultBuffer;
         }
 
         public byte[] CopyBuffer(YoonRect2N pArea, int nPlane)
         {
-            throw new NotImplementedException();
+            if (_pBuffer == null || _pBuffer.Length == 0)
+                throw new OutOfMemoryException("[YOONBUFFER EXCEPTION] Abnormal main buffer size");
+            if (pArea.Width <= 0 || pArea.Height <= 0 || pArea.Left <= 0 || pArea.Top <= 0)
+                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal Area size");
+            if (pArea.Right > Cols || pArea.Bottom > Rows)
+                throw new ArgumentOutOfRangeException("[YOONBUFFER EXCEPTION] Abnormal area size");
+            if (nPlane >= Depth || nPlane < 0)
+                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal Depth size");
+
+            YoonBuffer2D pBuffer2D = ToBuffer2D(nPlane);
+            return pBuffer2D.CopyBuffer(pArea);
         }
 
         public byte[] CopyBuffer(YoonVector2N pStartVector, YoonVector2N pEndVector)
         {
-            throw new NotImplementedException();
+            YoonRect2N pRect = new YoonRect2N(pStartVector, pEndVector);
+            return CopyBuffer(pRect);
         }
 
         public byte[] CopyBuffer(YoonVector2N pStartVector, YoonVector2N pEndVector, int nPlane)
         {
-            throw new NotImplementedException();
+            YoonRect2N pRect = new YoonRect2N(pStartVector, pEndVector);
+            return CopyBuffer(pRect, nPlane);
         }
 
         public bool SetBuffer(IntPtr ptrAddress, int nLength)
         {
-            throw new NotImplementedException();
-        }
+            if (ptrAddress == IntPtr.Zero)
+                throw new ArgumentNullException("[YOONBUFFER EXCEPTION] Address is null");
+            if (nLength <= 0)
+                throw new ArgumentOutOfRangeException("[YOONBUFFER EXCEPTION] Abnormal buffer length");
+            try
+            {
+                _pBuffer ??= new byte[nLength];
+                Marshal.Copy(ptrAddress, _pBuffer, 0, nLength);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[YOONBUFFER EXCEPTION] Marshal copy exception");
+                Console.Write(ex.ToString());
+                return false;
+            }
 
-        public bool Equals(IYoonBuffer pBuffer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CopyFrom(IYoonBuffer pBuffer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IYoonBuffer Clone()
-        {
-            throw new NotImplementedException();
+            return true;
         }
 
         public bool SetBuffer(byte[] pBuffer)
         {
-            throw new NotImplementedException();
+            if (pBuffer is not {Length: > 0})
+                throw new ArgumentException("[YOONBUFFER EXCEPTION] Abnormal buffer length");
+            try
+            {
+                _pBuffer ??= new byte[pBuffer.Length];
+                Array.Copy(pBuffer, _pBuffer, pBuffer.Length);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[YOONBUFFER EXCEPTION] Marshal copy exception");
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+
+            return true;
         }
         
         public bool SetBuffer(byte[] pBuffer, int nPlane)
@@ -663,6 +734,21 @@ namespace YoonFactory
         }
 
         public bool SetValue(byte value, int nX, int nY, int nPlane)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(IYoonBuffer pBuffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CopyFrom(IYoonBuffer pBuffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IYoonBuffer Clone()
         {
             throw new NotImplementedException();
         }
