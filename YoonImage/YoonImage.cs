@@ -51,7 +51,9 @@ namespace YoonFactory.Image
         protected const int DEFAULT_HEIGHT = 480;
         protected const int DEFAULT_CHANNEL = 1;
 
-        public string FilePath { get; protected set; }
+        public string FilePath { get; set; }
+
+        public string FileName => FileFactory.GetFileName(FilePath);
 
         public Bitmap Bitmap { get; protected set; } = null;
 

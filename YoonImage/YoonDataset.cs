@@ -43,8 +43,6 @@ namespace YoonFactory.Image
 
         public List<int> Labels => _pListObject.Select(pObject => pObject.Label).ToList();
 
-        public List<YoonImage> Images => _pListObject.Select(pObject => pObject.ObjectImage).ToList();
-
         public List<IYoonFigure> Features => _pListObject.Select(pObject => pObject.Feature).ToList();
 
         public List<int> PixelCounts => _pListObject.Select(pObject => pObject.PixelCount).ToList();
@@ -127,13 +125,6 @@ namespace YoonFactory.Image
             return new List<int>(Labels);
         }
 
-        public List<YoonImage> CopyImages()
-        {
-            if (_pListObject == null)
-                throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            return new List<YoonImage>(Images);
-        }
-
         public List<double> CopyScores()
         {
             if (_pListObject == null)
@@ -182,13 +173,6 @@ namespace YoonFactory.Image
             if (_pListObject == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
             return Labels.IndexOf(nLabel);
-        }
-
-        public int ImageIndexOf(YoonImage pImage)
-        {
-            if (_pListObject == null)
-                throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            return Images.IndexOf(pImage);
         }
 
         public YoonObject Search(int nLabel)
@@ -614,8 +598,8 @@ namespace YoonFactory.Image
                 {
                     if (pRect.Right != 0)
                     {
-                        _pListObject.Add(new YoonObject(pTempSet[i].Label, pObject,
-                            (YoonImage) pTempSet[i].ObjectImage.Clone(), pTempSet[i].Score, pTempSet[i].PixelCount));
+                        _pListObject.Add(new YoonObject(pTempSet[i].Label, pObject, pTempSet[i].Score,
+                            pTempSet[i].PixelCount));
                     }
                 }
                 else
@@ -704,8 +688,8 @@ namespace YoonFactory.Image
                 {
                     if (pRect.Right != 0)
                     {
-                        _pListObject.Add(new YoonObject(pListTemp[i].Label, pObject,
-                            (YoonImage) pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
+                        _pListObject.Add(new YoonObject(pListTemp[i].Label, pObject, pListTemp[i].Score,
+                            pListTemp[i].PixelCount));
                     }
                 }
                 else
@@ -794,8 +778,8 @@ namespace YoonFactory.Image
                 {
                     if (pRect.Right != 0)
                     {
-                        _pListObject.Add(new YoonObject(pListTemp[i].Label, pObject,
-                            (YoonImage) pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
+                        _pListObject.Add(new YoonObject(pListTemp[i].Label, pObject, pListTemp[i].Score,
+                            pListTemp[i].PixelCount));
                     }
                 }
                 else

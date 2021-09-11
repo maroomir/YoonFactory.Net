@@ -26,7 +26,7 @@ namespace YoonFactory
             if (this._disposed) return;
             if (disposing)
             {
-                ObjectImage.Dispose();
+                //
             }
 
             this._disposed = true;
@@ -42,7 +42,6 @@ namespace YoonFactory
         public double Score { get; set; } = DEFAULT_SCORE;
         public IYoonFigure Feature { get; set; }
         public IYoonVector Position { get; set; }
-        public YoonImage ObjectImage { get; set; }
         public int PixelCount { get; set; } = DEFAULT_PIX_COUNT;
 
         public YoonObject()
@@ -50,7 +49,6 @@ namespace YoonFactory
             Label = DEFAULT_LABEL;
             Score = DEFAULT_SCORE;
             PixelCount = DEFAULT_PIX_COUNT;
-            ObjectImage = new YoonImage();
             switch (Feature)
             {
                 case YoonRect2N:
@@ -88,12 +86,11 @@ namespace YoonFactory
             }
         }
 
-        public YoonObject(int nLabel, IYoonFigure pFeature, YoonImage pObjectImage)
+        public YoonObject(int nLabel, IYoonFigure pFeature)
         {
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = DEFAULT_PIX_COUNT;
-            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case YoonRect2N pRect2N:
@@ -129,13 +126,12 @@ namespace YoonFactory
             }
         }
 
-        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosCurrent, YoonImage pObjectImage)
+        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosCurrent)
         {
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = DEFAULT_PIX_COUNT;
             Position = pPosCurrent.Clone();
-            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case IYoonRect pRect:
@@ -152,12 +148,11 @@ namespace YoonFactory
             }
         }
 
-        public YoonObject(int nLabel, IYoonFigure pFeature, YoonImage pObjectImage, int nCount)
+        public YoonObject(int nLabel, IYoonFigure pFeature, int nCount)
         {
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = nCount;
-            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case YoonRect2N pRect2N:
@@ -193,14 +188,12 @@ namespace YoonFactory
             }
         }
 
-        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosCurrent, YoonImage pObjectImage,
-            int nCount)
+        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosCurrent, int nCount)
         {
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = nCount;
             Position = pPosCurrent.Clone();
-            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case IYoonRect pRect:
@@ -217,12 +210,11 @@ namespace YoonFactory
             }
         }
 
-        public YoonObject(int nLabel, IYoonFigure pFeature, YoonImage pObjectImage, double dScore, int nCount)
+        public YoonObject(int nLabel, IYoonFigure pFeature, double dScore, int nCount)
         {
             Label = nLabel;
             Score = dScore;
             PixelCount = nCount;
-            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case YoonRect2N pRect2N:
@@ -258,15 +250,12 @@ namespace YoonFactory
             }
         }
 
-        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosCurrent, YoonImage pObjectImage,
-            double dScore,
-            int nCount)
+        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosCurrent, double dScore, int nCount)
         {
             Label = nLabel;
             Score = dScore;
             PixelCount = nCount;
             Position = pPosCurrent.Clone();
-            ObjectImage = pObjectImage.Clone() as YoonImage;
             Feature = pFeature switch
             {
                 IYoonRect pRect => pRect.Clone(),
@@ -303,7 +292,6 @@ namespace YoonFactory
                 Label = pYoonObject.Label;
                 Score = pYoonObject.Score;
                 PixelCount = pYoonObject.PixelCount;
-                ObjectImage = pYoonObject.ObjectImage;
                 Feature = pYoonObject.Feature switch
                 {
                     IYoonRect pRect => pRect.Clone(),
@@ -318,8 +306,7 @@ namespace YoonFactory
 
         public IYoonParameter Clone()
         {
-            return new YoonObject(Label, Feature.Clone(), Position.Clone(), (YoonImage) ObjectImage.Clone(),
-                Score, PixelCount);
+            return new YoonObject(Label, Feature.Clone(), Position.Clone(), Score, PixelCount);
         }
 
         public bool Equals(IYoonParameter pObject)
@@ -332,7 +319,6 @@ namespace YoonFactory
                         pYoonObject.Score == Score &&
                         pRect.Equals(Feature) &&
                         pYoonObject.Position.Equals(Position) &&
-                        pYoonObject.ObjectImage == ObjectImage &&
                         pYoonObject.PixelCount == PixelCount)
                         return true;
                     break;
@@ -341,7 +327,6 @@ namespace YoonFactory
                         pYoonObject.Score == Score &&
                         pLine.Equals(Feature) &&
                         pYoonObject.Position.Equals(Position) &&
-                        pYoonObject.ObjectImage == ObjectImage &&
                         pYoonObject.PixelCount == PixelCount)
                         return true;
                     break;
@@ -350,7 +335,6 @@ namespace YoonFactory
                         pYoonObject.Score == Score &&
                         pVector.Equals(Feature) &&
                         pYoonObject.Position.Equals(Position) &&
-                        pYoonObject.ObjectImage == ObjectImage &&
                         pYoonObject.PixelCount == PixelCount)
                         return true;
                     break;
@@ -369,7 +353,6 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + Score.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonFigure>.Default.GetHashCode(Feature);
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector>.Default.GetHashCode(Position);
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonImage>.Default.GetHashCode(ObjectImage);
             hashCode = hashCode * -1521134295 + PixelCount.GetHashCode();
             return hashCode;
         }
@@ -382,7 +365,6 @@ namespace YoonFactory
                    Score == @object.Score &&
                    EqualityComparer<IYoonFigure>.Default.Equals(Feature, @object.Feature) &&
                    EqualityComparer<IYoonVector>.Default.Equals(Position, @object.Position) &&
-                   EqualityComparer<YoonImage>.Default.Equals(ObjectImage, @object.ObjectImage) &&
                    PixelCount == @object.PixelCount;
         }
 

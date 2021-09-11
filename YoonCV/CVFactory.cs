@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenCvSharp;
+using OpenCvSharp.Features2D;
+using OpenCvSharp.XFeatures2D;
 using YoonFactory.Files;
 using YoonFactory.Image;
 using Point = OpenCvSharp.Point;
@@ -13,6 +15,8 @@ namespace YoonFactory.CV
 {
     public static class CVFactory
     {
+        public const int MAX_FEATURES = 10000;
+        
         public static YoonObject FindTemplate(this CVImage pSourceImage, CVImage pTemplateImage, double dScore = 0.7) =>
             TemplateMatch.FindTemplate(pTemplateImage, pSourceImage, dScore);
 
@@ -62,6 +66,17 @@ namespace YoonFactory.CV
         public static CVImage FillFlood(this CVImage pSourceImage, YoonVector2N pVector, byte nThreshold,
             Color pFillColor) => Fill.FillFlood(pSourceImage, pVector, nThreshold, pFillColor);
 
+        public static YoonDataset FindLines(this CVImage pSourceImage, double dThresholdMin, double dThresholdMax,
+            int nThresholdHough = 150, int nMaxCount = 30) =>
+            LineMatch.FindLines(pSourceImage, dThresholdMin, dThresholdMax, nThresholdHough, nMaxCount);
+        
+        public static YoonDataset Sift(this CVImage pSourceImage, int nOctaves = 3, double dContrastThresh = 0.4,
+            double dEdgeThresh = 10.0, double dFilterSigma = 2.0) => FeatureDetector.Sift(pSourceImage, nOctaves,
+            dContrastThresh, dEdgeThresh, dFilterSigma);
+
+        public static YoonDataset Surf(this CVImage pSourceImage, double dMetricThresh = 1000.0, int nOctaves = 3,
+            int nScaleLevel = 4) => FeatureDetector.Surf(pSourceImage, dMetricThresh, nOctaves, nScaleLevel);
+        
         public static class VideoProcessor
         {
             public static List<CVImage> GetLocalFrames(string strFileName, int nStep = 1)
@@ -178,7 +193,7 @@ namespace YoonFactory.CV
                 }));
             }
         }
-
+        
         public static class Converter
         {
             public static Mat ToGrayMatrix(IntPtr pBufferAddress, int nWidth, int nHeight)
@@ -216,8 +231,8 @@ namespace YoonFactory.CV
             {
                 Rect pRectResult = FindTemplate(pTemplateImage.Matrix, pSourceImage.Matrix, out var dMatchScore, dScore,
                     TemplateMatchModes.CCoeffNormed);
-                return new YoonObject(0, pRectResult.ToYoonRect(), pSourceImage.CropImage(pRectResult.ToYoonRect()),
-                    dMatchScore, (int) (dMatchScore * pRectResult.Width * pRectResult.Height));
+                return new YoonObject(0, pRectResult.ToYoonRect(), dMatchScore,
+                    (int) (dMatchScore * pRectResult.Width * pRectResult.Height));
             }
 
             public static Rect FindTemplate(Mat pTemplateMatrix, Mat pSourceMatrix, out double dMatchScore,
@@ -237,10 +252,6 @@ namespace YoonFactory.CV
             }
         }
 
-        public static YoonDataset FindLines(this CVImage pSourceImage, double dThresholdMin, double dThresholdMax,
-            int nThresholdHough = 150, int nMaxCount = 30) =>
-            LineMatch.FindLines(pSourceImage, dThresholdMin, dThresholdMax, nThresholdHough, nMaxCount);
-
         public static class LineMatch
         {
             public static YoonDataset FindLines(CVImage pSourceImage, double dThresholdMin, double dThresholdMax,
@@ -251,12 +262,10 @@ namespace YoonFactory.CV
 
                 List<YoonLine2N> pListLine =
                     FindLines(pSourceImage.Matrix, dThresholdMin, dThresholdMax, nThresholdHough, nMaxCount);
-                YoonImage pResultImage = pSourceImage.Canny(dThresholdMin, dThresholdMax);
                 YoonDataset pResultDataset = new YoonDataset();
                 for (int i = 0; i < pListLine.Count; i++)
                 {
-                    pResultDataset.Add(new YoonObject(i, pListLine[i].Clone() as YoonLine2N, pListLine[i].CenterPos,
-                        pResultImage.Clone() as YoonImage));
+                    pResultDataset.Add(new YoonObject(i, pListLine[i].Clone() as YoonLine2N, pListLine[i].CenterPos));
                 }
 
                 return pResultDataset;
@@ -285,7 +294,7 @@ namespace YoonFactory.CV
                 return pListLine;
             }
         }
-
+        
         public static class TwoImageProcess
         {
             public static CVImage Add(CVImage pSourceImage, CVImage pObjectImage)
@@ -569,7 +578,7 @@ namespace YoonFactory.CV
             }
         }
 
-        public static class ColorDetection
+        public static class ColorDetector
         {
             public static CVImage DetectHSV(CVImage pSourceImage, byte nHue, byte nSaturation, byte nValue)
             {
@@ -598,7 +607,58 @@ namespace YoonFactory.CV
                 return pResultMatrix;
             }
         }
+        
+        public static class FeatureDetector
+        {
+            public static YoonDataset Sift(CVImage pSourceImage, int nOctaves = 3, double dContrastThresh = 0.4,
+                double dEdgeThresh = 10.0, double dFilterSigma = 2.0)
+            {
+                return Sift(pSourceImage.Matrix, nOctaves, dContrastThresh, dEdgeThresh, dFilterSigma);
+            }
 
+            public static YoonDataset Sift(Mat pSourceMatrix, int nOctaves, double dContrastThresh, double dEdgeThresh,
+                double dFilterSigma)
+            {
+               SIFT pDetector = SIFT.Create(MAX_FEATURES, nOctaves, dContrastThresh, dEdgeThresh, dFilterSigma);
+               KeyPoint[] pFeatures = pDetector.Detect(pSourceMatrix);
+               YoonDataset pDataset = new YoonDataset();
+               for (int iLabel = 0; iLabel < pFeatures.Length; iLabel++)
+               {
+                   KeyPoint pFeature = pFeatures[iLabel];
+                   YoonVector2N pFeaturePos = pFeature.Pt.ToPoint().ToYoonVector();
+                   int nSize = (int) pFeature.Size;
+                   YoonRect2N pFeatureArea = new YoonRect2N(pFeaturePos.X, pFeaturePos.Y, nSize, nSize);
+                   pDataset.Add(new YoonObject(iLabel, pFeatureArea, pFeaturePos));
+               }
+
+               return pDataset;
+            }
+
+            public static YoonDataset Surf(CVImage pSourceImage, double dMetricThresh = 1000.0, int nOctaves = 3,
+                int nScaleLevel = 4)
+            {
+                return Surf(pSourceImage.Matrix, dMetricThresh, nOctaves, nScaleLevel);
+            }
+            
+            public static YoonDataset Surf(Mat pSourceMatrix, double dMetricThresh = 1000.0, int nOctaves = 3,
+                int nScaleLevel = 4)
+            {
+                SURF pDetector = SURF.Create(dMetricThresh, nOctaves, nScaleLevel);
+                KeyPoint[] pFeatures = pDetector.Detect(pSourceMatrix);
+                YoonDataset pDataset = new YoonDataset();
+                for (int iLabel = 0; iLabel < pFeatures.Length; iLabel++)
+                {
+                    KeyPoint pFeature = pFeatures[iLabel];
+                    YoonVector2N pFeaturePos = pFeature.Pt.ToPoint().ToYoonVector();
+                    int nSize = (int) pFeature.Size;
+                    YoonRect2N pFeatureArea = new YoonRect2N(pFeaturePos.X, pFeaturePos.Y, nSize, nSize);
+                    pDataset.Add(new YoonObject(iLabel, pFeatureArea, pFeaturePos));
+                }
+
+                return pDataset;
+            }
+        }
+        
         public static class Transform
         {
             public static CVImage FlipX(CVImage pSourceImage) => new CVImage(FlipX(pSourceImage.Matrix));

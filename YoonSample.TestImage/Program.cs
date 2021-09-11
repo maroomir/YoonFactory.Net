@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.IO;
 using YoonFactory;
 using YoonFactory.Align;
@@ -22,7 +23,7 @@ namespace YoonSample.TestImage
         static void Main(string[] args)
         {
             Console.WriteLine("Select the processing mode = ");
-            Console.Write("Align, CVAlign, Drops, Glass, CVGlass >> ");
+            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Sift, Surf >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -45,6 +46,14 @@ namespace YoonSample.TestImage
                 case "cvglass":
                     _pClm.Write("Start CVGlass Detector");
                     ProcessCVGlass();
+                    break;
+                case "sift":
+                    _pClm.Write("Start SIFT Feature Detector");
+                    ProcessFeature("SIFT");
+                    break;
+                case "surf":
+                    _pClm.Write("Start SIFT Feature Detector");
+                    ProcessFeature("SURF");
                     break;
                 default:
                     break;
@@ -252,7 +261,7 @@ namespace YoonSample.TestImage
             _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pListResult.Count:F1}ms/img]");
             // Show Image
             foreach (YoonImage pImage in pListResult)
-                CVImage.ShowImage(pImage, pImage.FilePath);
+                CVImage.ShowImage(pImage, pImage.FileName);
         }
 
         static void ProcessGlass()
@@ -316,7 +325,87 @@ namespace YoonSample.TestImage
             pTimer.Stop();
             _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds / pListResult.Count:F1}ms/img]");
             foreach (CVImage pImage in pListResult)
-                pImage.ShowImage(pImage.FilePath);
+                pImage.ShowImage(pImage.FileName);
+        }
+
+        static void ProcessFeature(string strProcess)
+        {
+            // Parsing
+            _strRootDir = Path.Combine(_strRootDir, @"Feature");
+            List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
+            _pClm.Write("Image Load Completed");
+            // Insert Parameter
+            Dictionary<string, string> pDicArgs = new Dictionary<string, string>();
+            switch (strProcess)
+            {
+                case "SURF":
+                    Console.Write("MetricThreshold (default : 1000.0) >> ");
+                    pDicArgs.Add("MetricThreshold" ,Console.ReadLine());
+                    Console.Write("NumOctaves (default : 3) >> ");
+                    pDicArgs.Add("NumOctaves", Console.ReadLine());
+                    Console.Write("NumScaleLevels (default : 4) >> ");
+                    pDicArgs.Add("NumScaleLevels",Console.ReadLine());
+                    break;
+                case "SIFT":
+                    Console.Write("NumOctaves (default : 3) >> ");
+                    pDicArgs.Add("NumOctaves", Console.ReadLine());
+                    Console.Write("PeakThresh (default : 0) >> ");
+                    pDicArgs.Add("PeakThresh", Console.ReadLine());
+                    Console.Write("EdgeThresh (default : 10) >> ");
+                    pDicArgs.Add("EdgeThresh", Console.ReadLine());
+                    Console.Write("Magnif (default : 3) >> ");
+                    pDicArgs.Add("Magnif", Console.ReadLine());
+                    Console.Write("WindowSize (default : 2) >> ");
+                    pDicArgs.Add("WindowSize", Console.ReadLine());
+                    break;
+                default:
+                    return;
+            }
+            _pClm.Write(strProcess + " Parameter Input Completed");
+            // Image Processing
+            List<CVImage> pListResult = new List<CVImage>();
+            Stopwatch pTimer = new Stopwatch();
+            foreach (YoonImage pProcessImage in pListImage)
+            {
+                CVImage pResultImage = new CVImage(pProcessImage.ToGrayImage());
+                pResultImage.FilePath = pProcessImage.FilePath;
+                YoonDataset pResultDataset = new YoonDataset();
+                int nOctaves, nScaleLevel;
+                double dMetricThresh, dContrashThresh, dEdgeThresh, dFilter;
+                switch (strProcess)
+                {
+                    case "SURF":
+                        dMetricThresh = double.Parse(pDicArgs["MetricThreshold"]);
+                        nOctaves = int.Parse(pDicArgs["NumOctaves"]);
+                        nScaleLevel = int.Parse(pDicArgs["NumScaleLevels"]);
+                        pTimer.Reset();
+                        pTimer.Start();
+                        pResultDataset = pResultImage.Surf(dMetricThresh, nOctaves, nScaleLevel);
+                        pTimer.Stop();
+                        break;
+                    case "SIFT":
+                        nOctaves = int.Parse(pDicArgs["NumOctaves"]);
+                        dContrashThresh = double.Parse(pDicArgs["PeakThresh"]);
+                        dEdgeThresh = double.Parse(pDicArgs["EdgeThresh"]);
+                        dFilter = double.Parse(pDicArgs["WindowSize"]);
+                        pTimer.Reset();
+                        pTimer.Start();
+                        pResultDataset = pResultImage.Sift(nOctaves, dContrashThresh, dEdgeThresh, dFilter);
+                        pTimer.Stop();
+                        break;
+                    default:
+                        return;
+                }
+
+                _pClm.Write(
+                    $"Sample {pProcessImage.FileName} : Find {pResultDataset.Count:D} objects, {pTimer.ElapsedMilliseconds:F2} ms");
+                foreach (YoonObject pObject in pResultDataset)
+                    pResultImage.DrawCross(pObject.Position as YoonVector2N, Color.Aqua, 3, 1);
+                pListResult.Add(pResultImage);
+            }
+            
+            foreach (CVImage pShowImage in pListResult)
+                pShowImage.ShowImage(pShowImage.FileName);
         }
     }
 }

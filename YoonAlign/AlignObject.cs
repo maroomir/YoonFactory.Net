@@ -17,7 +17,6 @@ namespace YoonFactory
             Label = pOriginObject.Label;
             Score = pOriginObject.Score;
             PixelCount = pOriginObject.PixelCount;
-            ObjectImage = pOriginObject.ObjectImage.Clone() as YoonImage;
             Position = pOriginObject.Position.Clone();
             OriginPosition = pOriginObject.Position.Clone();
             Feature = pOriginObject.Feature.Clone();
@@ -29,7 +28,6 @@ namespace YoonFactory
             Label = pObject.Label;
             Score = pObject.Score;
             PixelCount = pObject.PixelCount;
-            ObjectImage = pObject.ObjectImage.Clone() as YoonImage;
             Position = pObject.Position.Clone();
             Feature = pObject.Feature.Clone();
             // Bring the origin object
@@ -38,16 +36,14 @@ namespace YoonFactory
             OriginFeature = pOrigin.OriginFeature.Clone();
         }
 
-        public AlignObject(YoonObject pOriginObject, YoonImage pImage, IYoonVector pVector) : this(pOriginObject)
+        public AlignObject(YoonObject pOriginObject, IYoonVector pVector) : this(pOriginObject)
         {
-            ObjectImage = pImage.Clone() as YoonImage;
             Position = pVector.Clone();
         }
 
-        public AlignObject(YoonObject pOriginObject, YoonImage pImage, IYoonFigure pFeature, IYoonVector pVector) :
+        public AlignObject(YoonObject pOriginObject, IYoonFigure pFeature, IYoonVector pVector) :
             this(pOriginObject)
         {
-            ObjectImage = pImage.Clone() as YoonImage;
             Position = pVector.Clone();
             Feature = pFeature.Clone();
         }
@@ -117,7 +113,6 @@ namespace YoonFactory
                 Label = pAlignObject.Label;
                 Score = pAlignObject.Score;
                 PixelCount = pAlignObject.PixelCount;
-                ObjectImage = pAlignObject.ObjectImage.Clone() as YoonImage;
                 Position = pAlignObject.Position.Clone();
                 OriginPosition = pAlignObject.OriginPosition.Clone();
                 Feature = pAlignObject.Feature.Clone();
@@ -139,7 +134,6 @@ namespace YoonFactory
                    EqualityComparer<IYoonFigure>.Default.Equals(OriginFeature, other.OriginFeature) &&
                    EqualityComparer<IYoonVector>.Default.Equals(Position, other.Position) &&
                    EqualityComparer<IYoonVector>.Default.Equals(OriginPosition, other.OriginPosition) &&
-                   EqualityComparer<YoonImage>.Default.Equals(ObjectImage, other.ObjectImage) &&
                    PixelCount == other.PixelCount;
         }
     }

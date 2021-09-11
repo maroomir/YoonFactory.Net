@@ -295,7 +295,7 @@ namespace YoonFactory.Image
                 YoonRect2N pResultRect = FindPatternAsBinary(pPatternImage.GetGrayBuffer(), pPatternImage.Width,
                     pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
                     out double dScore, out int nPixelCount, true);
-                return new YoonObject(0, pResultRect, pSourceImage.CropImage(pResultRect), dScore, nPixelCount);
+                return new YoonObject(0, pResultRect, dScore, nPixelCount);
             }
 
             public static YoonRect2N FindPatternAsBinary(byte[] pPatternBuffer, int nPatternWidth, int nPatternHeight,
@@ -394,7 +394,7 @@ namespace YoonFactory.Image
                 YoonRect2N pResultRect = FindPatternAsBinary(pScanArea, pPatternImage.GetGrayBuffer(),
                     pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width,
                     pSourceImage.Height, out double dScore, out int nPixelCount);
-                return new YoonObject(0, pResultRect, pSourceImage.CropImage(pResultRect), dScore, nPixelCount);
+                return new YoonObject(0, pResultRect, dScore, nPixelCount);
             }
 
             public static YoonRect2N FindPatternAsBinary(YoonRect2N pScanArea, byte[] pPatternBuffer, int nPatternWidth,
@@ -478,7 +478,7 @@ namespace YoonFactory.Image
                     YoonRect2N pRectResult = FindPattern(pPatternImage.GetGrayBuffer(), pPatternImage.Width,
                         pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
                         (byte) nDiffThreshold, out double dScore, out int nPixelCount);
-                    return new YoonObject(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore, nPixelCount);
+                    return new YoonObject(0, pRectResult, dScore, nPixelCount);
                 }
 
                 if (pPatternImage.Channel == 4 && pSourceImage.Channel == 4)
@@ -486,7 +486,7 @@ namespace YoonFactory.Image
                     YoonRect2N pRectResult = FindPattern(pPatternImage.GetARGBBuffer(), pPatternImage.Width,
                         pPatternImage.Height, pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
                         nDiffThreshold, out double dScore, out int nPixelCount);
-                    return new YoonObject(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore, nPixelCount);
+                    return new YoonObject(0, pRectResult, dScore, nPixelCount);
                 }
 
                 throw new FormatException("[YOONIMAGE EXCEPTION] Image format arguments is not comportable");
@@ -625,8 +625,7 @@ namespace YoonFactory.Image
                 YoonRect2N pRectResult = FindPattern(pScanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width,
                     pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
                     nDiffThreshold, out double dScore, out int nPixelCount);
-                return new YoonObject(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore,
-                    nPixelCount);
+                return new YoonObject(0, pRectResult, dScore, nPixelCount);
             }
 
             public static YoonRect2N FindPattern(YoonRect2N pScanArea, byte[] pPatternBuffer, int nPatternWidth,
@@ -712,7 +711,7 @@ namespace YoonFactory.Image
                         pSourceImage.Height, nDiffThreshold, 10, bWhite),
                     _ => new YoonLine2N()
                 };
-                return new YoonObject(0, pLine, pLine.CenterPos, pSourceImage.Clone() as YoonImage);
+                return new YoonObject(0, pLine, pLine.CenterPos);
             }
 
             public static YoonObject FindLine(YoonImage pSourceImage, YoonRect2N pScanArea, eYoonDir2D nScanDir,
@@ -734,7 +733,7 @@ namespace YoonFactory.Image
                         pScanImage.Height, nDiffThreshold, 10, bWhite),
                     _ => new YoonLine2N()
                 };
-                return new YoonObject(0, pLine, pLine.CenterPos, pScanImage.Clone() as YoonImage);
+                return new YoonObject(0, pLine, pLine.CenterPos);
             }
 
             public static YoonLine2N FindRight(byte[] pSourceBuffer, int nWidth, int nHeight, int nDiffThreshold,
@@ -2204,7 +2203,6 @@ namespace YoonFactory.Image
             public static YoonObject FindMaxBlob(byte[] pBuffer, int nImageWidth, YoonRect2N pScanArea,
                 byte nThreshold, bool bWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
-                YoonImage pMaxImage = new YoonImage(1, 1, 1);
                 int nMaxLength = 0;
                 int nMaxLabel = 0;
                 double dMaxScore = 0.0;
@@ -2243,7 +2241,6 @@ namespace YoonFactory.Image
                         nMaxLength = nLength;
                         nMaxLabel = pDataset[iObject].Label;
                         dMaxScore = pDataset[iObject].Score;
-                        pMaxImage = pDataset[iObject].ObjectImage;
                         pMaxArea.CenterPos.X = pScanArea.Left + pRectFeature.Left + pRectFeature.Width / 2;
                         pMaxArea.CenterPos.Y = pScanArea.Top + pRectFeature.Top + pRectFeature.Height / 2;
                         pMaxArea.Width = pRectFeature.Right - pRectFeature.Left;
@@ -2251,7 +2248,7 @@ namespace YoonFactory.Image
                     }
                 }
 
-                return new YoonObject(nMaxLabel, pMaxArea, (YoonImage) pMaxImage.Clone(), dMaxScore, nMaxLength);
+                return new YoonObject(nMaxLabel, pMaxArea, dMaxScore, nMaxLength);
             }
 
             public static YoonObject FindMaxBlob(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
@@ -2508,9 +2505,8 @@ namespace YoonFactory.Image
 
                 // Erase the small drops less then the binding counts
                 YoonRect2N pResultRect = new YoonRect2N(-1, -1, -1, -1);
-                YoonImage pResultImage = new YoonImage(1, 1, 1);
                 if (pListBindings.Count < nBindCount)
-                    return new YoonObject(0, pResultRect, pResultImage, pListBindings.Count);
+                    return new YoonObject(0, pResultRect, pListBindings.Count);
                 // Concrete the rectangle from the binding points
                 pResultRect = new YoonRect2N(pListBindings);
                 if (pScanArea != null)
@@ -2521,7 +2517,7 @@ namespace YoonFactory.Image
 
                 pResultRect.SetVerifiedArea(0, 0, nWidth, nHeight);
                 if (pResultRect.Width == 0 || pResultRect.Height == 0)
-                    return new YoonObject(0, pResultRect, pResultImage, pListBindings.Count);
+                    return new YoonObject(0, pResultRect, pListBindings.Count);
                 byte[] pBufferCrop = new byte[pResultRect.Width * pResultRect.Height];
                 for (int iY = 0; iY < pResultRect.Height; iY++)
                 {
@@ -2533,10 +2529,7 @@ namespace YoonFactory.Image
                     }
                 }
 
-                pResultImage = new YoonImage(pBufferCrop, pResultRect.Width, pResultRect.Height,
-                    PixelFormat.Format8bppIndexed);
-
-                return new YoonObject(0, pResultRect, pResultImage, pListBindings.Count);
+                return new YoonObject(0, pResultRect, pListBindings.Count);
             }
         }
 
