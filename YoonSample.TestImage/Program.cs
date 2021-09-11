@@ -340,11 +340,11 @@ namespace YoonSample.TestImage
             {
                 case "SURF":
                     Console.Write("MetricThreshold (default : 1000.0) >> ");
-                    pDicArgs.Add("MetricThreshold" ,Console.ReadLine());
+                    pDicArgs.Add("MetricThreshold", Console.ReadLine());
                     Console.Write("NumOctaves (default : 3) >> ");
                     pDicArgs.Add("NumOctaves", Console.ReadLine());
                     Console.Write("NumScaleLevels (default : 4) >> ");
-                    pDicArgs.Add("NumScaleLevels",Console.ReadLine());
+                    pDicArgs.Add("NumScaleLevels", Console.ReadLine());
                     break;
                 case "SIFT":
                     Console.Write("NumOctaves (default : 3) >> ");
@@ -361,7 +361,9 @@ namespace YoonSample.TestImage
                 default:
                     return;
             }
+
             _pClm.Write(strProcess + " Parameter Input Completed");
+            _pClm.Write(pDicArgs.Log());
             // Image Processing
             List<CVImage> pListResult = new List<CVImage>();
             Stopwatch pTimer = new Stopwatch();
@@ -403,9 +405,14 @@ namespace YoonSample.TestImage
                     pResultImage.DrawCross(pObject.Position as YoonVector2N, Color.Aqua, 3, 1);
                 pListResult.Add(pResultImage);
             }
-            
+
             foreach (CVImage pShowImage in pListResult)
+            {
                 pShowImage.ShowImage(pShowImage.FileName);
+                string strImagePath =
+                    FileFactory.ModifyFilePath(pShowImage.FilePath, "result_" + pShowImage.FileName);
+                pShowImage.SaveImage(strImagePath);
+            }
         }
     }
 }

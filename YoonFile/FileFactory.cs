@@ -33,7 +33,7 @@ namespace YoonFactory.Files
             {
                 if (!pFile.Exists)
                 {
-                    if (!bCreateFile) return false;
+                    if (!bCreateFile) return true;
                     FileStream pStream = pFile.Create();
                     pStream.Close();
                     return true;
@@ -86,6 +86,12 @@ namespace YoonFactory.Files
         {
             if (!VerifyFilePath(strPath)) return "";
             return new FileInfo(strPath).Name;
+        }
+
+        public static string ModifyFilePath(string strPath, string strModifiedName)
+        {
+            if (!VerifyFilePath(strPath)) return "";
+            return Path.Combine(GetParantsRoot(strPath), strModifiedName);
         }
 
         public static string GetParantsRoot(string strPath, int nStep = 1)
