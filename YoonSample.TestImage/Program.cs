@@ -52,7 +52,7 @@ namespace YoonSample.TestImage
                     ProcessFeature("SIFT");
                     break;
                 case "surf":
-                    _pClm.Write("Start SIFT Feature Detector");
+                    _pClm.Write("Start SURF Feature Detector");
                     ProcessFeature("SURF");
                     break;
                 default:

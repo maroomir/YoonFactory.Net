@@ -1,8 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
-
 namespace YoonFactory
 {
     public static class DefaultExtensions
@@ -17,18 +12,5 @@ namespace YoonFactory
                 pResult[i] = pSource[i + nStart];
             return pResult;
         }
-
-        public static string Log<K, V>(this Dictionary<K, V> pDic)
-        {
-            string strLog = "";
-            foreach (K pKey in pDic.Keys)
-            {
-                strLog += pKey.ToString() + ":" + pDic[pKey].ToString();
-                strLog += "/";
-            }
-
-            return strLog;
-        }
-
     }
 }

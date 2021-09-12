@@ -32,6 +32,12 @@ namespace YoonFactory.Param
             ParameterType = pType;
         }
 
+        public void SetParameter(params string[] pArgs)
+        {
+            if (pArgs.Length != Parameter.GetLength()) return;
+            Parameter.Set(pArgs);
+        }
+
         public bool Equals(YoonParameter pParam)
         {
             return pParam.Parameter.Equals(Parameter) && pParam.ParameterType == ParameterType &&
