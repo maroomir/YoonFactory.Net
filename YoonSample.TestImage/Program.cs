@@ -23,7 +23,7 @@ namespace YoonSample.TestImage
         static void Main(string[] args)
         {
             Console.WriteLine("Select the processing mode = ");
-            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Sift, Surf >> ");
+            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Sift, Surf, Attach >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -54,6 +54,10 @@ namespace YoonSample.TestImage
                 case "surf":
                     _pClm.Write("Start SURF Feature Detector");
                     ProcessFeature("SURF");
+                    break;
+                case "attach":
+                    _pClm.Write("Start Attach Process");
+                    ProcessAttach();
                     break;
                 default:
                     break;
@@ -413,6 +417,26 @@ namespace YoonSample.TestImage
                     FileFactory.ModifyFilePath(pShowImage.FilePath, "result_" + pShowImage.FileName);
                 pShowImage.SaveImage(strImagePath);
             }
+        }
+
+        static void ProcessAttach()
+        {
+            // Parsing
+            _strRootDir = Path.Combine(_strRootDir, @"Attach");
+            List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
+            _pClm.Write("Image Load Completed");
+            // Image Processing
+            Stopwatch pTimer = new Stopwatch();
+            pTimer.Reset();
+            pTimer.Start();
+            int nDefaultSize = 200;
+            for(int iImage = 0; iImage < pListImage.Count; iImage++)
+            {
+                pListImage[iImage] = pListImage[iImage].ResizeToKeepRatio(nDefaultSize, nDefaultSize);
+                CVImage.ShowImage(pListImage[iImage], "Resize");
+            }
+            YoonImage pResultImage = YoonImage.AttachImage(2, 2, pListImage);
+            CVImage.ShowImage(pResultImage, "Mixed");
         }
     }
 }

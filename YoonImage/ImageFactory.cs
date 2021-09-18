@@ -130,11 +130,14 @@ namespace YoonFactory.Image
         public static void GetLevelInfo(this YoonImage pSourceImage, YoonRect2N scanArea, out int nMin, out int nMax,
             out int nAverage) => PixelInspector.GetLevelInfo(pSourceImage, scanArea, out nMin, out nMax, out nAverage);
 
-        public static YoonImage Zoom(this YoonImage pSourceImage, double dRatio) =>
-            Transform.Zoom(pSourceImage, dRatio);
+        public static YoonImage Resize(this YoonImage pSourceImage, double dRatio) =>
+            Transform.Resize(pSourceImage, dRatio);
 
-        public static YoonImage Zoom(this YoonImage pSourceImage, double dRatioX, double dRatioY) =>
-            Transform.Zoom(pSourceImage, dRatioX, dRatioY);
+        public static YoonImage Resize(this YoonImage pSourceImage, int nWidth, int nHeight) =>
+            Transform.Resize(pSourceImage, nWidth, nHeight);
+        
+        public static YoonImage ResizeToKeepRatio(this YoonImage pSourceImage, int nWidth, int nHeight) =>
+            Transform.ResizeToKeepRatio(pSourceImage, nWidth, nHeight);
 
         public static YoonImage Rotate(this YoonImage pSourceImage, YoonVector2N vecCenter, double dAngle) =>
             Transform.Rotate(pSourceImage, vecCenter, dAngle);
@@ -4145,46 +4148,56 @@ namespace YoonFactory.Image
         public static class Transform
         {
             //  Image 확대, 축소하기.
-            public static YoonImage Zoom(YoonImage pSourceImage, double dRatio)
+            public static YoonImage Resize(YoonImage pSourceImage, double dRatio)
             {
                 if (pSourceImage.Channel == 1)
                     return new YoonImage(
-                        Zoom(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
-                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
+                        Resize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
+                        (int) (pSourceImage.Width * dRatio), (int) (pSourceImage.Height * dRatio), PixelFormat.Format8bppIndexed);
                 if (pSourceImage.Channel == 4)
                     return new YoonImage(
-                        Zoom(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
-                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
+                        Resize(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
+                        (int) (pSourceImage.Width * dRatio), (int) (pSourceImage.Height * dRatio), PixelFormat.Format32bppArgb);
                 throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
             }
 
-            public static YoonImage Zoom(YoonImage pSourceImage, double dRatioX, double dRatioY)
+            public static YoonImage Resize(YoonImage pSourceImage, int nDestWidth, int nDestHeight)
             {
                 if (pSourceImage.Channel == 1)
                     return new YoonImage(
-                        Zoom(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatioX, dRatioY),
-                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
+                        Resize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                            nDestWidth, nDestHeight), nDestWidth, nDestHeight, PixelFormat.Format8bppIndexed);
                 if (pSourceImage.Channel == 4)
                     return new YoonImage(
-                        Zoom(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatioX, dRatioY),
-                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
+                        Resize(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
+                            nDestWidth, nDestHeight), nDestWidth, nDestHeight, PixelFormat.Format32bppArgb);
                 throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
             }
 
-            public static byte[] Zoom(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
+            public static YoonImage ResizeToKeepRatio(YoonImage pSourceImage, int nDestWidth, int nDestHeight)
             {
-                return Zoom(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
+                double dDestRatio = nDestWidth / nDestHeight;
+                int nSourceWidth = (int) (dDestRatio * pSourceImage.Height);
+                int nSourceHeight = pSourceImage.Height;
+                return Resize(
+                    pSourceImage.CropImage(new YoonRect2N(pSourceImage.CenterPos, nSourceWidth, nSourceHeight)),
+                    nDestWidth, nDestHeight);
+            }
+
+            public static byte[] Resize(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
+            {
+                return Resize(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
                     (int) (nSourceHeight * dRatio));
             }
 
-            public static byte[] Zoom(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX,
+            public static byte[] Resize(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX,
                 double dRatioY)
             {
-                return Zoom(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
+                return Resize(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
                     (int) (nSourceHeight * dRatioY));
             }
 
-            public static byte[] Zoom(byte[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
+            public static byte[] Resize(byte[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
                 int nDestHeight)
             {
                 double dRatioX = nDestWidth / (double) (nSourceWidth - 1);
@@ -4224,19 +4237,19 @@ namespace YoonFactory.Image
                 return pDestination;
             }
 
-            public static int[] Zoom(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
+            public static int[] Resize(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
             {
-                return Zoom(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
+                return Resize(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
                     (int) (nSourceHeight * dRatio));
             }
 
-            public static int[] Zoom(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX, double dRatioY)
+            public static int[] Resize(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX, double dRatioY)
             {
-                return Zoom(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
+                return Resize(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
                     (int) (nSourceHeight * dRatioY));
             }
 
-            public static int[] Zoom(int[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
+            public static int[] Resize(int[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
                 int nDestHeight)
             {
                 double dRatioX = nDestWidth / (nSourceWidth - 1);
