@@ -465,6 +465,7 @@ namespace YoonFactory.Image
 
         public virtual bool SaveImage(string strPath)
         {
+            if (Channel != 1) return false;
             try
             {
                 if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png"))
@@ -481,7 +482,7 @@ namespace YoonFactory.Image
 
             return false;
         }
-        
+
         public Bitmap CopyBitmap()
         {
             if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
@@ -509,23 +510,49 @@ namespace YoonFactory.Image
 
         public virtual YoonImage CropImage(YoonRect2N pCropArea)
         {
-            YoonImage pImageResult = new YoonImage(pCropArea.Width, pCropArea.Height, PixelFormat.Format8bppIndexed);
-            for (int iY = 0; iY < pCropArea.Height; iY++)
+            switch (Channel)
             {
-                int nY = pCropArea.Top + iY;
-                if (nY >= Bitmap.Height) continue;
-                byte[] pByte = new byte[pCropArea.Width];
-                for (int iX = 0; iX < pCropArea.Width; iX++)
-                {
-                    int nX = pCropArea.Left + iX;
-                    if (nX >= Bitmap.Width) continue;
-                    pByte[iX] = Math.Max((byte) 0, Math.Min(GetGrayPixel(iX, iY), (byte) 255));
-                }
+                case 1:
+                    YoonImage pImageResult8Bit =
+                        new YoonImage(pCropArea.Width, pCropArea.Height, PixelFormat.Format8bppIndexed);
+                    for (int iY = 0; iY < pCropArea.Height; iY++)
+                    {
+                        int nY = pCropArea.Top + iY;
+                        if (nY >= Bitmap.Height) continue;
+                        byte[] pByte = new byte[pCropArea.Width];
+                        for (int iX = 0; iX < pCropArea.Width; iX++)
+                        {
+                            int nX = pCropArea.Left + iX;
+                            if (nX >= Bitmap.Width) continue;
+                            pByte[iX] = Math.Max((byte) 0, Math.Min(GetGrayPixel(iX, iY), (byte) 255));
+                        }
 
-                pImageResult.SetGrayLine(pByte, iY);
+                        pImageResult8Bit.SetGrayLine(pByte, iY);
+                    }
+
+                    return pImageResult8Bit;
+                case 4:
+                    YoonImage pImageResult32Bit =
+                        new YoonImage(pCropArea.Width, pCropArea.Height, PixelFormat.Format32bppArgb);
+                    for (int iY = 0; iY < pCropArea.Height; iY++)
+                    {
+                        int nY = pCropArea.Top + iY;
+                        if (nY >= Bitmap.Height) continue;
+                        int[] pByte = new int[pCropArea.Width];
+                        for (int iX = 0; iX < pCropArea.Width; iX++)
+                        {
+                            int nX = pCropArea.Left + iX;
+                            if (nX >= Bitmap.Width) continue;
+                            pByte[iX] = Math.Max(0, Math.Min(GetARGBPixel(iX, iY), int.MaxValue));
+                        }
+
+                        pImageResult32Bit.SetARGBLine(pByte, iY);
+                    }
+
+                    return pImageResult32Bit;
             }
 
-            return pImageResult;
+            throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
         }
 
         public static YoonImage AttachImage(params YoonImage[] pImages)
@@ -533,6 +560,12 @@ namespace YoonFactory.Image
             return AttachImage(1, pImages.Length, pImages);
         }
 
+        public static YoonImage AttachImage(int nRows, int nCols, List<YoonImage> pListImage)
+        {
+            Debug.Assert(pListImage != null, nameof(pListImage) + " != null");
+            return AttachImage(nRows, nCols, pListImage.ToArray());
+        }
+        
         public static YoonImage AttachImage(int nRows, int nCols, params YoonImage[] pImages)
         {
             if (pImages.Length < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
@@ -551,23 +584,19 @@ namespace YoonFactory.Image
             int nPartHeight = pImages[0].Height;
             int nPartChannel = pImages[0].Channel;
             YoonImage pImageResult = new YoonImage(nPartWidth * nCols, nPartHeight * nRows, nPartChannel);
-            for (int iRows = 0; iRows < nRows; iRows++)
+            for (int iRow = 0; iRow < nRows; iRow++)
             {
-                for (int iCols = 0; iCols < nCols; iCols++)
+                for (int iCol = 0; iCol < nCols; iCol++)
                 {
-                    Rectangle pArea = new Rectangle(iCols * nPartWidth, iRows * nPartHeight, nPartWidth, nPartHeight);
+                    Rectangle pArea = new Rectangle(iCol * nPartWidth, iRow * nPartHeight, nPartWidth, nPartHeight);
                     switch (nPartChannel)
                     {
                         case 1:
-                            byte[] pGrayBuffer = pImages[iRows * nCols + iCols].GetGrayBuffer();
+                            byte[] pGrayBuffer = pImages[iRow * nCols + iCol].GetGrayBuffer();
                             pImageResult.Print8bitBuffer(pGrayBuffer, pArea);
                             break;
-                        case 3:
-                            byte[] pRGBBuffer = pImages[iRows * nCols + iCols].GetRGBBuffer();
-                            pImageResult.Print24bitBuffer(pRGBBuffer, pArea);
-                            break;
                         case 4:
-                            int[] pARGBBuffer = pImages[iRows * nCols + iCols].GetARGBBuffer();
+                            int[] pARGBBuffer = pImages[iRow * nCols + iCol].GetARGBBuffer();
                             pImageResult.Print32bitBuffer(pARGBBuffer, pArea);
                             break;
                     }
@@ -575,12 +604,6 @@ namespace YoonFactory.Image
             }
 
             return pImageResult;
-        }
-
-        public static YoonImage AttachImage(int nRows, int nCols, List<YoonImage> pListImage)
-        {
-            Debug.Assert(pListImage != null, nameof(pListImage) + " != null");
-            return AttachImage(nRows, nCols, pListImage.ToArray());
         }
 
         public virtual YoonImage ToGrayImage()
@@ -1718,7 +1741,7 @@ namespace YoonFactory.Image
                     pBytePixel[0] = pBlue[iY * Bitmap.Width + iX];
                     pBytePixel[1] = pGreen[iY * Bitmap.Width + iX];
                     pBytePixel[2] = pRed[iY * Bitmap.Width + iX];
-                    pBytePixel[3] = (byte) 0xFF; // Alpha = Max (0xFF)
+                    pBytePixel[3] = (byte) 0x00; // Use Alpha Min (0x00), Do not use Max (0xFF)
                     pPixel[iX] = BitConverter.ToInt32(pBytePixel, 0);
                 }
 

@@ -45,6 +45,22 @@ namespace YoonFactory.CV
             return true;
         }
 
+        public override bool SaveImage(string strPath)
+        {
+            FilePath = strPath;
+            try
+            {
+                Cv2.ImWrite(strPath, Matrix);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return false;
+        }
+
         public Mat CopyMatrix()
         {
             return Matrix.Clone();

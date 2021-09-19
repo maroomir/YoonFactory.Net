@@ -4150,13 +4150,21 @@ namespace YoonFactory.Image
             //  Image 확대, 축소하기.
             public static YoonImage Resize(YoonImage pSourceImage, double dRatio)
             {
-                if (pSourceImage.Channel == 1)
+                if (pSourceImage.Channel == 1 && dRatio >= 1.0)
                     return new YoonImage(
-                        Resize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
+                        Upsample(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
                         (int) (pSourceImage.Width * dRatio), (int) (pSourceImage.Height * dRatio), PixelFormat.Format8bppIndexed);
-                if (pSourceImage.Channel == 4)
+                if (pSourceImage.Channel == 1 && dRatio < 1.0)
                     return new YoonImage(
-                        Resize(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
+                        Downsample(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
+                        (int) (pSourceImage.Width * dRatio), (int) (pSourceImage.Height * dRatio), PixelFormat.Format8bppIndexed);
+                if (pSourceImage.Channel == 4 && dRatio >= 1.0)
+                    return new YoonImage(
+                        Upsample(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
+                        (int) (pSourceImage.Width * dRatio), (int) (pSourceImage.Height * dRatio), PixelFormat.Format32bppArgb);
+                if (pSourceImage.Channel == 4 && dRatio < 1.0)
+                    return new YoonImage(
+                        Downsample(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
                         (int) (pSourceImage.Width * dRatio), (int) (pSourceImage.Height * dRatio), PixelFormat.Format32bppArgb);
                 throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
             }
@@ -4164,13 +4172,27 @@ namespace YoonFactory.Image
             public static YoonImage Resize(YoonImage pSourceImage, int nDestWidth, int nDestHeight)
             {
                 if (pSourceImage.Channel == 1)
+                {
+                    if (nDestWidth >= pSourceImage.Width || nDestHeight >= pSourceImage.Height)
+                        return new YoonImage(
+                            Upsample(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                                nDestWidth, nDestHeight), nDestWidth, nDestHeight, PixelFormat.Format8bppIndexed);
                     return new YoonImage(
-                        Resize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                        Downsample(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
                             nDestWidth, nDestHeight), nDestWidth, nDestHeight, PixelFormat.Format8bppIndexed);
+                }
+
                 if (pSourceImage.Channel == 4)
+                {
+                    if (nDestWidth >= pSourceImage.Width || nDestHeight >= pSourceImage.Height)
+                        return new YoonImage(
+                            Upsample(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
+                                nDestWidth, nDestHeight), nDestWidth, nDestHeight, PixelFormat.Format32bppArgb);
                     return new YoonImage(
-                        Resize(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
+                        Downsample(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
                             nDestWidth, nDestHeight), nDestWidth, nDestHeight, PixelFormat.Format32bppArgb);
+                }
+
                 throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
             }
 
@@ -4184,20 +4206,20 @@ namespace YoonFactory.Image
                     nDestWidth, nDestHeight);
             }
 
-            public static byte[] Resize(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
+            public static byte[] Upsample(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
             {
-                return Resize(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
+                return Upsample(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
                     (int) (nSourceHeight * dRatio));
             }
 
-            public static byte[] Resize(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX,
+            public static byte[] Upsample(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX,
                 double dRatioY)
             {
-                return Resize(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
+                return Upsample(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
                     (int) (nSourceHeight * dRatioY));
             }
 
-            public static byte[] Resize(byte[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
+            public static byte[] Upsample(byte[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
                 int nDestHeight)
             {
                 double dRatioX = nDestWidth / (double) (nSourceWidth - 1);
@@ -4236,24 +4258,56 @@ namespace YoonFactory.Image
 
                 return pDestination;
             }
-
-            public static int[] Resize(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
+            
+            public static byte[] Downsample(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
             {
-                return Resize(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
+                return Downsample(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
                     (int) (nSourceHeight * dRatio));
             }
 
-            public static int[] Resize(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX, double dRatioY)
+            public static byte[] Downsample(byte[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX,
+                double dRatioY)
             {
-                return Resize(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
+                return Downsample(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
                     (int) (nSourceHeight * dRatioY));
             }
 
-            public static int[] Resize(int[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
+            public static byte[] Downsample(byte[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
                 int nDestHeight)
             {
-                double dRatioX = nDestWidth / (nSourceWidth - 1);
-                double dRatioY = nDestHeight / (nSourceHeight - 1);
+                double dRatioX = nDestWidth / (double) (nSourceWidth - 1);
+                double dRatioY = nDestHeight / (double) (nSourceHeight - 1);
+                byte[] pDestination = new byte[nDestWidth * nDestHeight];
+                for (int iY = 0; iY < nDestHeight; iY++)
+                {
+                    for (int iX = 0; iX < nDestWidth; iX++)
+                    {
+                        int iSourceX = (int) (iX / dRatioX);
+                        int iSourceY = (int) (iY / dRatioY);
+                        pDestination[iY * nDestWidth + iX] = pBuffer[iSourceY * nSourceWidth + iSourceX];
+                    }
+                }
+
+                return pDestination;
+            }
+
+            public static int[] Upsample(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
+            {
+                return Upsample(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
+                    (int) (nSourceHeight * dRatio));
+            }
+
+            public static int[] Upsample(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX, double dRatioY)
+            {
+                return Upsample(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
+                    (int) (nSourceHeight * dRatioY));
+            }
+
+            public static int[] Upsample(int[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
+                int nDestHeight)
+            {
+                double dRatioX = nDestWidth / (double) (nSourceWidth - 1);
+                double dRatioY = nDestHeight / (double) (nSourceHeight - 1);
                 int[] pDestination = new int[nDestWidth * nDestHeight];
                 for (int j = 1; j < nSourceHeight; j++)
                 {
@@ -4288,7 +4342,39 @@ namespace YoonFactory.Image
 
                 return pDestination;
             }
+            
+            public static int[] Downsample(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatio)
+            {
+                return Downsample(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatio),
+                    (int) (nSourceHeight * dRatio));
+            }
 
+            public static int[] Downsample(int[] pBuffer, int nSourceWidth, int nSourceHeight, double dRatioX,
+                double dRatioY)
+            {
+                return Downsample(pBuffer, nSourceWidth, nSourceHeight, (int) (nSourceWidth * dRatioX),
+                    (int) (nSourceHeight * dRatioY));
+            }
+            
+            public static int[] Downsample(int[] pBuffer, int nSourceWidth, int nSourceHeight, int nDestWidth,
+                int nDestHeight)
+            {
+                double dRatioX = nDestWidth / (double) (nSourceWidth - 1);
+                double dRatioY = nDestHeight / (double) (nSourceHeight - 1);
+                int[] pDestination = new int[nDestWidth * nDestHeight];
+                for (int iY = 0; iY < nDestHeight; iY++)
+                {
+                    for (int iX = 0; iX < nDestWidth; iX++)
+                    {
+                        int iSourceX = (int) (iX / dRatioX);
+                        int iSourceY = (int) (iY / dRatioY);
+                        pDestination[iY * nDestWidth + iX] = pBuffer[iSourceY * nSourceWidth + iSourceX];
+                    }
+                }
+
+                return pDestination;
+            }
+            
             //  회전.
             public static YoonImage Rotate(YoonImage pSourceImage, YoonVector2N vecCenter, double dAngle)
             {
