@@ -449,7 +449,7 @@ namespace YoonFactory.Image
             if (!IsFileExist()) return false;
             try
             {
-                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png"))
+                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png", ".exif", ".tiff"))
                 {
                     Bitmap = (Bitmap) System.Drawing.Image.FromFile(FilePath);
                     return true;
@@ -465,13 +465,21 @@ namespace YoonFactory.Image
 
         public virtual bool SaveImage(string strPath)
         {
-            if (Channel != 1) return false;
             try
             {
-                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png"))
+                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png", ".exif", ".tiff"))
                 {
                     FilePath = strPath;
-                    Bitmap.Save(strPath);
+                    if (strPath.Contains(".bmp"))
+                        Bitmap.Save(strPath, ImageFormat.Bmp);
+                    else if (strPath.Contains(".jpg"))
+                        Bitmap.Save(strPath, ImageFormat.Jpeg);
+                    else if (strPath.Contains(".png"))
+                        Bitmap.Save(strPath, ImageFormat.Png);
+                    else if (strPath.Contains(".exif"))
+                        Bitmap.Save(strPath, ImageFormat.Exif);
+                    else if (strPath.Contains(".tiff"))
+                        Bitmap.Save(strPath, ImageFormat.Tiff);
                     return true;
                 }
             }
@@ -565,7 +573,7 @@ namespace YoonFactory.Image
             Debug.Assert(pListImage != null, nameof(pListImage) + " != null");
             return AttachImage(nRows, nCols, pListImage.ToArray());
         }
-        
+
         public static YoonImage AttachImage(int nRows, int nCols, params YoonImage[] pImages)
         {
             if (pImages.Length < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
@@ -584,23 +592,52 @@ namespace YoonFactory.Image
             int nPartHeight = pImages[0].Height;
             int nPartChannel = pImages[0].Channel;
             YoonImage pImageResult = new YoonImage(nPartWidth * nCols, nPartHeight * nRows, nPartChannel);
-            for (int iRow = 0; iRow < nRows; iRow++)
+            switch (nPartChannel)
             {
-                for (int iCol = 0; iCol < nCols; iCol++)
-                {
-                    Rectangle pArea = new Rectangle(iCol * nPartWidth, iRow * nPartHeight, nPartWidth, nPartHeight);
-                    switch (nPartChannel)
+                case 1:
+                    byte[] pGrayBuffer = new byte[nRows * nCols * nPartWidth * nPartHeight];
+                    for (int iRow = 0; iRow < nRows; iRow++)
                     {
-                        case 1:
-                            byte[] pGrayBuffer = pImages[iRow * nCols + iCol].GetGrayBuffer();
-                            pImageResult.Print8bitBuffer(pGrayBuffer, pArea);
-                            break;
-                        case 4:
-                            int[] pARGBBuffer = pImages[iRow * nCols + iCol].GetARGBBuffer();
-                            pImageResult.Print32bitBuffer(pARGBBuffer, pArea);
-                            break;
+                        for (int iCol = 0; iCol < nCols; iCol++)
+                        {
+                            int nStartX = iCol * nPartWidth;
+                            int nStartY = iRow * nPartHeight;
+                            byte[] pTempBuffer8Bit = pImages[iRow * nCols + iCol].GetGrayBuffer();
+                            for (int iY = 0; iY < nPartHeight; iY++)
+                            {
+                                for (int iX = 0; iX < nPartWidth; iX++)
+                                {
+                                    pGrayBuffer[(nStartY + iY) * (nPartWidth * nCols) + (nStartX + iX)] =
+                                        pTempBuffer8Bit[iY * nPartWidth + iX];
+                                }
+                            }
+                        }
                     }
-                }
+
+                    pImageResult.SetGrayImage(pGrayBuffer);
+                    break;
+                case 4:
+                    int[] pARGBBuffer = new int[nRows * nCols * nPartWidth * nPartHeight];
+                    for (int iRow = 0; iRow < nRows; iRow++)
+                    {
+                        for (int iCol = 0; iCol < nCols; iCol++)
+                        {
+                            int nStartX = iCol * nPartWidth;
+                            int nStartY = iRow * nPartHeight;
+                            int[] pTempBuffer32Bit = pImages[iRow * nCols + iCol].GetARGBBuffer();
+                            for (int iY = 0; iY < nPartHeight; iY++)
+                            {
+                                for (int iX = 0; iX < nPartWidth; iX++)
+                                {
+                                    pARGBBuffer[(nStartY + iY) * (nPartWidth * nCols) + (nStartX + iX)] =
+                                        pTempBuffer32Bit[iY * nPartWidth + iX];
+                                }
+                            }
+                        }
+                    }
+
+                    pImageResult.SetARGBImage(pARGBBuffer);
+                    break;
             }
 
             return pImageResult;

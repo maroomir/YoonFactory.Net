@@ -434,14 +434,13 @@ namespace YoonSample.TestImage
             {
                 pListImage[iImage] = pListImage[iImage].ToARGBImage();
                 pListImage[iImage] = pListImage[iImage].ResizeToKeepRatio(nDefaultSize, nDefaultSize);
-                CVImage.ShowImage(pListImage[iImage], "Resize");
             }
 
             YoonImage pResultImage = YoonImage.AttachImage(2, 2, pListImage);
             pTimer.Stop();
             _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds}ms]");
             CVImage.ShowImage(pResultImage, "Mixed");
-            pResultImage.SaveImage(Path.Combine(_strRootDir, @"Result.bmp"));
+            //pResultImage.SaveImage(Path.Combine(_strRootDir, @"Result.jpg"));
         }
     }
 }
