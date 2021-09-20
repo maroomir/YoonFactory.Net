@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Drawing.Printing;
 using System.IO;
 using YoonFactory;
@@ -23,7 +24,7 @@ namespace YoonSample.TestImage
         static void Main(string[] args)
         {
             Console.WriteLine("Select the processing mode = ");
-            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Sift, Surf, Attach >> ");
+            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Sift, Surf, Attach, Add, Corner >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -58,6 +59,14 @@ namespace YoonSample.TestImage
                 case "attach":
                     _pClm.Write("Start Attach Process");
                     ProcessAttach();
+                    break;
+                case "add":
+                    _pClm.Write("Start Add Process");
+                    ProcessTwoProcess("ADD_WEIGHT");
+                    break;
+                case "corner":
+                    _pClm.Write("Start Corner Detector");
+                    ProcessCorner();
                     break;
                 default:
                     break;
@@ -386,7 +395,7 @@ namespace YoonSample.TestImage
                         nScaleLevel = int.Parse(pDicArgs["NumScaleLevels"]);
                         pTimer.Reset();
                         pTimer.Start();
-                        pResultDataset = pResultImage.Surf(dMetricThresh, nOctaves, nScaleLevel);
+                        pResultDataset = pResultImage.FindSurfFeature(dMetricThresh, nOctaves, nScaleLevel);
                         pTimer.Stop();
                         break;
                     case "SIFT":
@@ -396,7 +405,7 @@ namespace YoonSample.TestImage
                         dFilter = double.Parse(pDicArgs["WindowSize"]);
                         pTimer.Reset();
                         pTimer.Start();
-                        pResultDataset = pResultImage.Sift(nOctaves, dContrashThresh, dEdgeThresh, dFilter);
+                        pResultDataset = pResultImage.FindSiftFeature(nOctaves, dContrashThresh, dEdgeThresh, dFilter);
                         pTimer.Stop();
                         break;
                     default:
@@ -406,7 +415,7 @@ namespace YoonSample.TestImage
                 _pClm.Write(
                     $"Sample {pProcessImage.FileName} : Find {pResultDataset.Count:D} objects, {pTimer.ElapsedMilliseconds:F2} ms");
                 foreach (YoonObject pObject in pResultDataset)
-                    pResultImage.DrawCross(pObject.Position as YoonVector2N, Color.Aqua, 3, 1);
+                    pResultImage.DrawFigure(pObject.Feature, Color.Aqua, 3, 1);
                 pListResult.Add(pResultImage);
             }
 
@@ -416,6 +425,39 @@ namespace YoonSample.TestImage
                 string strImagePath =
                     FileFactory.ModifyFilePath(pShowImage.FilePath, "result_" + pShowImage.FileName);
                 pShowImage.SaveImage(strImagePath);
+            }
+        }
+
+        static void ProcessCorner()
+        {
+            // Parsing
+            _strRootDir = Path.Combine(_strRootDir, @"Harris");
+            List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
+            _pClm.Write("Image Load Completed");
+            // Insert Parameter
+            Dictionary<string, string> pDicArgs = new Dictionary<string, string>();
+            Console.Write("KSize (default : 0.04) >> ");
+            pDicArgs.Add("KSize", Console.ReadLine());
+            Console.Write("Threshold (default : 100) >> ");
+            pDicArgs.Add("Threshold", Console.ReadLine());
+            _pClm.Write("Parameter Input Completed");
+            _pClm.Write(pDicArgs.Log());
+            Stopwatch pTimer = new Stopwatch();
+            foreach (YoonImage pImage in pListImage)
+            {
+                double dKSize = double.Parse(pDicArgs["KSize"]);
+                int nThreshold = int.Parse(pDicArgs["Threshold"]);
+                pTimer.Reset();
+                pTimer.Start();
+                CVImage pResultImage = new CVImage(pImage.ToGrayImage());
+                pResultImage = pResultImage.Resize(480, 640);
+                YoonDataset pResultDataset = pResultImage.FindHarrisFeature(nThresh:nThreshold, dKSize:dKSize);
+                pTimer.Stop();
+                _pClm.Write(
+                    $"Sample {pImage.FileName} : Find {pResultDataset.Count:D} objects, {pTimer.ElapsedMilliseconds:F2} ms");
+                foreach (YoonObject pObject in pResultDataset)
+                    pResultImage.DrawFigure(pObject.Feature, Color.Aqua, 2, 1);
+                pResultImage.ShowImage(pImage.FileName);
             }
         }
 
@@ -443,17 +485,37 @@ namespace YoonSample.TestImage
             //pResultImage.SaveImage(Path.Combine(_strRootDir, @"Result.jpg"));
         }
 
-        static void ProcessTWoProcess(string strProcess)
+        static void ProcessTwoProcess(string strProcess)
         {
             // Parsing
-            _strRootDir = Path.Combine(_strRootDir, @"Feature");
+            _strRootDir = Path.Combine(_strRootDir, @"TwoProcess");
             List<CVImage> pListImage = CVImage.LoadImages(_strRootDir);
             _pClm.Write("Image Load Completed");
+            // Image Processing
+            Stopwatch pTimer = new Stopwatch();
+            pTimer.Reset();
+            pTimer.Start();
+            CVImage pResultImage = null;
+            int nDefaultWidth = 6000;
+            int nDefaultHeight = 4500;
+            foreach (CVImage pImage in pListImage)
+            {
+                pImage.ResizeToKeepRatio(nDefaultWidth, nDefaultHeight);
+                pImage.ShowImage(pImage.FileName);
+            }
+
             switch (strProcess)
             {
                 case "ADD":
+                    pResultImage = CVFactory.TwoImageProcess.Add(pListImage[0], pListImage[1]);
+                    break;
+                case "ADD_WEIGHT":
+                    Console.Write("Write the source weight (0 ~ 1) >> ");
+                    double dWeight = double.Parse(Console.ReadLine() ?? "0.00");
+                    pResultImage = CVFactory.TwoImageProcess.Add(pListImage[0], pListImage[1], dWeight);
                     break;
             }
+            pResultImage?.ShowImage(strProcess);
         }
     }
 }

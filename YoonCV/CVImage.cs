@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using YoonFactory.Files;
@@ -34,7 +35,7 @@ namespace YoonFactory.CV
         {
             if (!FileFactory.VerifyDirectory(strRoot)) return null;
             List<CVImage> pListImage = new List<CVImage>();
-            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".png"))
+            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".jpeg", ".png"))
             {
                 CVImage pImage = new CVImage();
                 if (pImage.LoadImage(strFilePath))
@@ -49,6 +50,13 @@ namespace YoonFactory.CV
             FilePath = strPath;
             if (!IsFileExist()) return false;
             Bitmap = Cv2.ImRead(strPath).ToBitmap();
+            if (Bitmap.PixelFormat == PixelFormat.Format24bppRgb)
+            {
+                Bitmap pBitmap = Bitmap.Clone(new Rectangle(0, 0, Bitmap.Width, Bitmap.Height),
+                    PixelFormat.Format32bppArgb);
+                Bitmap = pBitmap;
+            }
+
             return true;
         }
 
@@ -57,6 +65,13 @@ namespace YoonFactory.CV
             FilePath = strPath;
             if (!IsFileExist()) return false;
             Bitmap = Cv2.ImRead(strPath, nMode).ToBitmap();
+            if (Bitmap.PixelFormat == PixelFormat.Format24bppRgb)
+            {
+                Bitmap pBitmap = Bitmap.Clone(new Rectangle(0, 0, Bitmap.Width, Bitmap.Height),
+                    PixelFormat.Format32bppArgb);
+                Bitmap = pBitmap;
+            }
+
             return true;
         }
 

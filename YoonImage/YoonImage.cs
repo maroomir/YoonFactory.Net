@@ -1759,7 +1759,7 @@ namespace YoonFactory.Image
             return bResult;
         }
 
-        public bool SetARGBImageWithPlane(byte[] pRed, byte[] pGreen, byte[] pBlue)
+        public bool SetARGBImageWithPlane(byte[] pRed, byte[] pGreen, byte[] pBlue, bool bMax = true)
         {
             if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
@@ -1778,7 +1778,7 @@ namespace YoonFactory.Image
                     pBytePixel[0] = pBlue[iY * Bitmap.Width + iX];
                     pBytePixel[1] = pGreen[iY * Bitmap.Width + iX];
                     pBytePixel[2] = pRed[iY * Bitmap.Width + iX];
-                    pBytePixel[3] = (byte) 0x00; // Use Alpha Min (0x00), Do not use Max (0xFF)
+                    pBytePixel[3] = bMax ? (byte) 0xFF : (byte) 0x00; // Use Alpha Min (0x00), Do not use Max (0xFF)
                     pPixel[iX] = BitConverter.ToInt32(pBytePixel, 0);
                 }
 

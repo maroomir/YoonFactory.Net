@@ -4198,7 +4198,7 @@ namespace YoonFactory.Image
 
             public static YoonImage ResizeToKeepRatio(YoonImage pSourceImage, int nDestWidth, int nDestHeight)
             {
-                double dDestRatio = nDestWidth / nDestHeight;
+                double dDestRatio = nDestWidth / (double)nDestHeight;
                 int nSourceWidth = (int) (dDestRatio * pSourceImage.Height);
                 int nSourceHeight = pSourceImage.Height;
                 return Resize(
