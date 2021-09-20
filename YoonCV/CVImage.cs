@@ -1,5 +1,6 @@
 ﻿using YoonFactory.Image;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
@@ -27,6 +28,20 @@ namespace YoonFactory.CV
         {
             FilePath = pImage.FilePath;
             Bitmap = pImage.CopyBitmap();
+        }
+
+        public new static List<CVImage> LoadImages(string strRoot)
+        {
+            if (!FileFactory.VerifyDirectory(strRoot)) return null;
+            List<CVImage> pListImage = new List<CVImage>();
+            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".png"))
+            {
+                CVImage pImage = new CVImage();
+                if (pImage.LoadImage(strFilePath))
+                    pListImage.Add(pImage);
+            }
+
+            return pListImage;
         }
 
         public override bool LoadImage(string strPath)

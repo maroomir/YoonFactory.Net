@@ -442,5 +442,18 @@ namespace YoonSample.TestImage
             CVImage.ShowImage(pResultImage, "Mixed");
             //pResultImage.SaveImage(Path.Combine(_strRootDir, @"Result.jpg"));
         }
+
+        static void ProcessTWoProcess(string strProcess)
+        {
+            // Parsing
+            _strRootDir = Path.Combine(_strRootDir, @"Feature");
+            List<CVImage> pListImage = CVImage.LoadImages(_strRootDir);
+            _pClm.Write("Image Load Completed");
+            switch (strProcess)
+            {
+                case "ADD":
+                    break;
+            }
+        }
     }
 }

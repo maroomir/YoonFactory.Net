@@ -304,10 +304,30 @@ namespace YoonFactory.CV
                 return new CVImage(Add(pSourceImage.Matrix, pObjectImage.Matrix));
             }
 
+            public static CVImage Add(CVImage pSourceImage, CVImage pObjectImage, double dSourceWeight)
+            {
+                if (dSourceWeight is > 1 or < 0)
+                    throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Image size is not same");
+                return new CVImage(Add(pSourceImage.Matrix, dSourceWeight, pObjectImage.Matrix, 1 - dSourceWeight));
+            }
+
             public static Mat Add(Mat pSourceMatrix, Mat pObjectMatrix)
             {
                 Mat pResultMatrix = new Mat();
                 Cv2.Add(pSourceMatrix, pObjectMatrix, pResultMatrix);
+                return pResultMatrix;
+            }
+
+            public static Mat Add(Mat pSourceMatrix, double dSourceWeight, Mat pObjectMatrix, double dObjectWeight)
+            {
+                if (dSourceWeight == 0 && dObjectWeight == 0)
+                    throw new ArgumentException("[YOONCV EXCEPTION] Weight value is abnormal");
+                if (pSourceMatrix.Width != pObjectMatrix.Width || pSourceMatrix.Height != pObjectMatrix.Height)
+                    throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Image size is not same");
+                dSourceWeight = dSourceWeight / (dSourceWeight + dObjectWeight);
+                dObjectWeight = dObjectWeight / (dSourceWeight + dObjectWeight);
+                Mat pResultMatrix = new Mat();
+                Cv2.AddWeighted(pSourceMatrix, dSourceWeight, pObjectMatrix, dObjectWeight, 0, pResultMatrix);
                 return pResultMatrix;
             }
 
