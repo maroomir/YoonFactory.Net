@@ -23,6 +23,9 @@ namespace YoonFactory.CV
         public static CVImage Add(this CVImage pSourceImage, CVImage pObjectImage) =>
             TwoImageProcess.Add(pSourceImage, pObjectImage);
 
+        public static CVImage Add(this CVImage pSourceImage, CVImage pObjectImage, double dSourceWeight) =>
+            TwoImageProcess.Add(pSourceImage, pObjectImage, dSourceWeight);
+
         public static CVImage Subtract(this CVImage pSourceImage, CVImage pObjectImage) =>
             TwoImageProcess.Subtract(pSourceImage, pObjectImage);
 
@@ -733,7 +736,7 @@ namespace YoonFactory.CV
 
             public static void SiftMatching(Mat pSourceMatrix, Mat pObjectMatrix,
                 out YoonDataset pSourceDataset, out YoonDataset pObjectDataset,
-                int nOctaves, double dContrastThresh, double dEdgeThresh, double dFilterSigma)
+                int nOctaves, double dContrastThresh, double dEdgeThresh, double dFilterSigma, double dRateScore = 0.5)
             {
                 SIFT pDetector = SIFT.Create(MAX_FEATURES, nOctaves, dContrastThresh, dEdgeThresh, dFilterSigma);
                 BFMatcher pMatcher = new BFMatcher();
@@ -749,7 +752,10 @@ namespace YoonFactory.CV
                 int nLabelNo = 0;
                 for (int i = 0; i < pMatchArray.Length; i++)
                 {
-                    if (pMatchArray[i][0].Distance < pMatchArray[i][1].Distance * 0.3)
+                    double dDistanceBest = pMatchArray[i][0].Distance;
+                    double dDistanceSecond = pMatchArray[i][1].Distance;
+                    // Best distance is little then the second place distance
+                    if ( dDistanceBest < dDistanceSecond * dRateScore)
                     {
                         DMatch pMatchResult = pMatchArray[i][0];
                         // Input the source data-set

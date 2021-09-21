@@ -24,7 +24,7 @@ namespace YoonSample.TestImage
         static void Main(string[] args)
         {
             Console.WriteLine("Select the processing mode = ");
-            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Sift, Surf, Attach, Add, Corner >> ");
+            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Sift, Surf, Harris, Attach, Add, Rotate >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -56,6 +56,10 @@ namespace YoonSample.TestImage
                     _pClm.Write("Start SURF Feature Detector");
                     ProcessFeature("SURF");
                     break;
+                case "harris":
+                    _pClm.Write("Start HARRIS Feature Detector");
+                    ProcessFeature("HARRIS");
+                    break;
                 case "attach":
                     _pClm.Write("Start Attach Process");
                     ProcessAttach();
@@ -64,9 +68,9 @@ namespace YoonSample.TestImage
                     _pClm.Write("Start Add Process");
                     ProcessTwoProcess("ADD_WEIGHT");
                     break;
-                case "corner":
+                case "rotate":
                     _pClm.Write("Start Corner Detector");
-                    ProcessCorner();
+                    ProcessRotDetection();
                     break;
                 default:
                     break;
@@ -371,6 +375,16 @@ namespace YoonSample.TestImage
                     Console.Write("WindowSize (default : 2) >> ");
                     pDicArgs.Add("WindowSize", Console.ReadLine());
                     break;
+                case "HARRIS":
+                    Console.Write("BlockSize (default : 2) >> ");
+                    pDicArgs.Add("BlockSize", Console.ReadLine());
+                    Console.Write("ApertureSize (default : 3) >> ");
+                    pDicArgs.Add("ApertureSize", Console.ReadLine());
+                    Console.Write("KSize (default : 0.04) >> ");
+                    pDicArgs.Add("KSize", Console.ReadLine());
+                    Console.Write("Threshold (default : 100) >> ");
+                    pDicArgs.Add("Threshold", Console.ReadLine());
+                    break;
                 default:
                     return;
             }
@@ -382,11 +396,11 @@ namespace YoonSample.TestImage
             Stopwatch pTimer = new Stopwatch();
             foreach (YoonImage pProcessImage in pListImage)
             {
-                CVImage pResultImage = new CVImage(pProcessImage.ToGrayImage());
+                CVImage pResultImage = new CVImage(pProcessImage.ToGrayImage().ResizeToKeepRatio(512, 512));
                 pResultImage.FilePath = pProcessImage.FilePath;
                 YoonDataset pResultDataset = new YoonDataset();
-                int nOctaves, nScaleLevel;
-                double dMetricThresh, dContrashThresh, dEdgeThresh, dFilter;
+                int nOctaves, nScaleLevel, nBlockSize, nApertureSize, nHarrisThresh;
+                double dMetricThresh, dContrashThresh, dEdgeThresh, dFilter, dKSize;
                 switch (strProcess)
                 {
                     case "SURF":
@@ -408,6 +422,17 @@ namespace YoonSample.TestImage
                         pResultDataset = pResultImage.FindSiftFeature(nOctaves, dContrashThresh, dEdgeThresh, dFilter);
                         pTimer.Stop();
                         break;
+                    case "HARRIS":
+                        nBlockSize = int.Parse(pDicArgs["BlockSize"]);
+                        nApertureSize = int.Parse(pDicArgs["ApertureSize"]);
+                        dKSize = double.Parse(pDicArgs["KSize"]);
+                        nHarrisThresh = int.Parse(pDicArgs["Threshold"]);
+                        pTimer.Reset();
+                        pTimer.Start();
+                        pResultDataset =
+                            pResultImage.FindHarrisFeature(nHarrisThresh, nBlockSize, nApertureSize, dKSize);
+                        pTimer.Stop();
+                        break;
                     default:
                         return;
                 }
@@ -424,41 +449,63 @@ namespace YoonSample.TestImage
                 pShowImage.ShowImage(pShowImage.FileName);
                 string strImagePath =
                     FileFactory.ModifyFilePath(pShowImage.FilePath, "result_" + pShowImage.FileName);
-                pShowImage.SaveImage(strImagePath);
+                //pShowImage.SaveImage(strImagePath);
             }
         }
 
-        static void ProcessCorner()
+        static void ProcessRotDetection()
         {
             // Parsing
-            _strRootDir = Path.Combine(_strRootDir, @"Harris");
+            _strRootDir = Path.Combine(_strRootDir, @"RotDetection");
             List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
             _pClm.Write("Image Load Completed");
             // Insert Parameter
             Dictionary<string, string> pDicArgs = new Dictionary<string, string>();
-            Console.Write("KSize (default : 0.04) >> ");
-            pDicArgs.Add("KSize", Console.ReadLine());
-            Console.Write("Threshold (default : 100) >> ");
-            pDicArgs.Add("Threshold", Console.ReadLine());
+            Console.Write("NumOctaves (default : 3) >> ");
+            pDicArgs.Add("NumOctaves", Console.ReadLine());
+            Console.Write("PeakThresh (default : 0.04) >> ");
+            pDicArgs.Add("PeakThresh", Console.ReadLine());
+            Console.Write("EdgeThresh (default : 10) >> ");
+            pDicArgs.Add("EdgeThresh", Console.ReadLine());
+            Console.Write("Magnif (default : 3) >> ");
+            pDicArgs.Add("Magnif", Console.ReadLine());
+            Console.Write("WindowSize (default : 1.6) >> ");
+            pDicArgs.Add("WindowSize", Console.ReadLine());
             _pClm.Write("Parameter Input Completed");
             _pClm.Write(pDicArgs.Log());
+            // Parse Parameter
+            int nOctaves = int.Parse(pDicArgs["NumOctaves"]);
+            double dContrashThresh = double.Parse(pDicArgs["PeakThresh"]);
+            double dEdgeThresh = double.Parse(pDicArgs["EdgeThresh"]);
+            double dFilter = double.Parse(pDicArgs["WindowSize"]);
+            // Get matching parameter in the root directory
             Stopwatch pTimer = new Stopwatch();
-            foreach (YoonImage pImage in pListImage)
+            CVImage pPipelineImage1 = new CVImage(pListImage[0].ToGrayImage().ResizeToKeepRatio(2048, 2048));
+            CVImage pPipelineImage2 = new CVImage(pListImage[1].ToGrayImage().ResizeToKeepRatio(2048, 2048));
+            pPipelineImage1.FilePath = pListImage[0].FilePath;
+            pPipelineImage2.FilePath = pListImage[1].FilePath;
+            pTimer.Reset();
+            pTimer.Start();
+            CVFactory.FeatureMatch.SiftMatching(pPipelineImage1, pPipelineImage2, out YoonDataset pDataset1,
+                out YoonDataset pDataset2,
+                nOctaves, dContrashThresh, dEdgeThresh, dFilter);
+            pTimer.Stop();
+            _pClm.Write(
+                $"Find {pDataset1.Count} objects, {pTimer.ElapsedMilliseconds:F2} ms");
+            if (pDataset1.Count != pDataset2.Count)
+                throw new Exception("Dataset is not same each other");
+            CVImage pResultImage = pPipelineImage1.Add(pPipelineImage2, 0.7);
+            for (int i = 0; i < pDataset1.Count; i++)
             {
-                double dKSize = double.Parse(pDicArgs["KSize"]);
-                int nThreshold = int.Parse(pDicArgs["Threshold"]);
-                pTimer.Reset();
-                pTimer.Start();
-                CVImage pResultImage = new CVImage(pImage.ToGrayImage());
-                pResultImage = pResultImage.Resize(480, 640);
-                YoonDataset pResultDataset = pResultImage.FindHarrisFeature(nThresh:nThreshold, dKSize:dKSize);
-                pTimer.Stop();
-                _pClm.Write(
-                    $"Sample {pImage.FileName} : Find {pResultDataset.Count:D} objects, {pTimer.ElapsedMilliseconds:F2} ms");
-                foreach (YoonObject pObject in pResultDataset)
-                    pResultImage.DrawFigure(pObject.Feature, Color.Aqua, 2, 1);
-                pResultImage.ShowImage(pImage.FileName);
+                YoonVector2N pPosition1 = pDataset1[i].Position as YoonVector2N;
+                YoonVector2N pPosition2 = pDataset2[i].Position as YoonVector2N;
+                YoonLine2N pLine = new YoonLine2N(pPosition1, pPosition2);
+                pResultImage.DrawLine(pPosition1, pPosition2, Color.Cyan, 1);
+                pResultImage.DrawCross(pPosition1, Color.Red, 5, 1);
+                pResultImage.DrawCross(pPosition2, Color.Red, 5, 1);
             }
+
+            pResultImage.ShowImage("Combines");
         }
 
         static void ProcessAttach()

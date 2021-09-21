@@ -662,8 +662,8 @@ namespace YoonFactory.Image
                                                                   0.114f * pBufferRGB[j * Bitmap.Width + i, 2]); 
                         }
                     }
-
                     break;
+                case PixelFormat.Format32bppRgb:
                 case PixelFormat.Format32bppArgb:
                     byte[,] pBufferARGB = Scan32bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size));
                     for (int j = 0; j < Bitmap.Height; j++)
@@ -676,7 +676,6 @@ namespace YoonFactory.Image
                                                                   0.114f * pBufferARGB[j * Bitmap.Width + i, 3]);
                         }
                     }
-
                     break;
                 default:
                     throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
@@ -1923,7 +1922,7 @@ namespace YoonFactory.Image
 
         private byte[,] Scan32bitPlaneBuffer(Rectangle pRect)
         {
-            if (Format != PixelFormat.Format32bppArgb)
+            if (Channel != 4)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
             if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
