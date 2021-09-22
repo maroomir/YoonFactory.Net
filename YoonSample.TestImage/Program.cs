@@ -24,7 +24,7 @@ namespace YoonSample.TestImage
         static void Main(string[] args)
         {
             Console.WriteLine("Select the processing mode = ");
-            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Sift, Surf, Harris, Attach, Add, Rotate >> ");
+            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Feature, Attach, FeatureMatch >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -48,27 +48,32 @@ namespace YoonSample.TestImage
                     _pClm.Write("Start CVGlass Detector");
                     ProcessCVGlass();
                     break;
-                case "sift":
-                    _pClm.Write("Start SIFT Feature Detector");
-                    ProcessFeature("SIFT");
-                    break;
-                case "surf":
-                    _pClm.Write("Start SURF Feature Detector");
-                    ProcessFeature("SURF");
-                    break;
-                case "harris":
-                    _pClm.Write("Start HARRIS Feature Detector");
-                    ProcessFeature("HARRIS");
+                case "feature":
+                    Console.WriteLine("Select the processing mode = ");
+                    Console.Write("SIFT, SURF, HARRIS >> ");
+                    string strFeatureModule = Console.ReadLine().ToLower();
+                    switch (strFeatureModule)
+                    {
+                        case "sift":
+                            _pClm.Write("Start SIFT Feature Detector");
+                            ProcessFeature("SIFT");
+                            break;
+                        case "surf":
+                            _pClm.Write("Start SURF Feature Detector");
+                            ProcessFeature("SURF");
+                            break;
+                        case "harris":
+                            _pClm.Write("Start HARRIS Feature Detector");
+                            ProcessFeature("HARRIS");
+                            break;
+                    }
+
                     break;
                 case "attach":
                     _pClm.Write("Start Attach Process");
                     ProcessAttach();
                     break;
-                case "add":
-                    _pClm.Write("Start Add Process");
-                    ProcessTwoProcess("ADD_WEIGHT");
-                    break;
-                case "rotate":
+                case "featurematch":
                     _pClm.Write("Start Corner Detector");
                     ProcessRotDetection();
                     break;
@@ -511,58 +516,36 @@ namespace YoonSample.TestImage
         static void ProcessAttach()
         {
             // Parsing
-            _strRootDir = Path.Combine(_strRootDir, @"Attach");
-            List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
+            _strRootDir = Path.Combine(_strRootDir, @"Collage");
+            List<YoonImage> pListCollage = YoonImage.LoadImages(_strRootDir, "lena");
+            YoonImage pAddImage = new YoonImage(Path.Combine(_strRootDir, @"profile.jpg"));
+            //CVImage.ShowImage(pAddImage, "Object");
+            //CVImage.ShowImage(pAddImage.ToARGBImage(false), "Object");
+            //CVImage.ShowImage(pAddImage.ToARGBImage(false).ResizeToKeepRatio(600, 600), "object");
             _pClm.Write("Image Load Completed");
-            // Image Processing
+            // Attach Processing
             Stopwatch pTimer = new Stopwatch();
             pTimer.Reset();
             pTimer.Start();
-            int nDefaultSize = 200;
-            for (int iImage = 0; iImage < pListImage.Count; iImage++)
+            for (int iImage = 0; iImage < pListCollage.Count; iImage++)
             {
-                pListImage[iImage] = pListImage[iImage].ToARGBImage();
-                pListImage[iImage] = pListImage[iImage].ResizeToKeepRatio(nDefaultSize, nDefaultSize);
+                pListCollage[iImage] = pListCollage[iImage].ToARGBImage(false).ResizeToKeepRatio(200, 200);
             }
 
-            YoonImage pResultImage = YoonImage.AttachImage(2, 2, pListImage);
+            YoonImage pCollageImage = YoonImage.AttachImage(3, 3, pListCollage);
             pTimer.Stop();
-            _pClm.Write($"Image Processing Completed [{pTimer.ElapsedMilliseconds}ms]");
-            CVImage.ShowImage(pResultImage, "Mixed");
-            //pResultImage.SaveImage(Path.Combine(_strRootDir, @"Result.jpg"));
-        }
-
-        static void ProcessTwoProcess(string strProcess)
-        {
-            // Parsing
-            _strRootDir = Path.Combine(_strRootDir, @"TwoProcess");
-            List<CVImage> pListImage = CVImage.LoadImages(_strRootDir);
-            _pClm.Write("Image Load Completed");
-            // Image Processing
-            Stopwatch pTimer = new Stopwatch();
+            _pClm.Write($"Attatch Processing Completed [{pTimer.ElapsedMilliseconds}ms]");
+            CVImage.ShowImage(pCollageImage, "Mixed");
+            // Add Processing
             pTimer.Reset();
             pTimer.Start();
-            CVImage pResultImage = null;
-            int nDefaultWidth = 6000;
-            int nDefaultHeight = 4500;
-            foreach (CVImage pImage in pListImage)
-            {
-                pImage.ResizeToKeepRatio(nDefaultWidth, nDefaultHeight);
-                pImage.ShowImage(pImage.FileName);
-            }
-
-            switch (strProcess)
-            {
-                case "ADD":
-                    pResultImage = CVFactory.TwoImageProcess.Add(pListImage[0], pListImage[1]);
-                    break;
-                case "ADD_WEIGHT":
-                    Console.Write("Write the source weight (0 ~ 1) >> ");
-                    double dWeight = double.Parse(Console.ReadLine() ?? "0.00");
-                    pResultImage = CVFactory.TwoImageProcess.Add(pListImage[0], pListImage[1], dWeight);
-                    break;
-            }
-            pResultImage?.ShowImage(strProcess);
+            CVImage pSourceImage = new CVImage(pCollageImage);
+            CVImage pObjectImage = new CVImage(pAddImage.ToARGBImage(false).ResizeToKeepRatio(600, 600));
+            CVImage pResultImage = CVFactory.TwoImageProcess.Add(pSourceImage, pObjectImage, 0.8);
+            pTimer.Stop();
+            _pClm.Write($"Add Processing Completed [{pTimer.ElapsedMilliseconds}ms]");
+            pObjectImage.ShowImage("Object");
+            pResultImage?.ShowImage("Add Logo");
         }
     }
 }

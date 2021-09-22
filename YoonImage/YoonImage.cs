@@ -432,6 +432,16 @@ namespace YoonFactory.Image
             return pListImage;
         }
 
+        public static List<YoonImage> LoadImages(string strRoot, string strContainName)
+        {
+            if (!FileFactory.VerifyDirectory(strRoot)) return null;
+            List<YoonImage> pListImage = new List<YoonImage>();
+            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".png"))
+                if (strFilePath.Contains(strContainName))
+                    pListImage.Add(new YoonImage(strFilePath));
+            return pListImage;
+        }
+
         public static int SaveImages(string strRoot, List<YoonImage> pListImage)
         {
             if (FileFactory.VerifyDirectory(strRoot)) return -1;
@@ -666,6 +676,7 @@ namespace YoonFactory.Image
                 case PixelFormat.Format32bppRgb:
                 case PixelFormat.Format32bppArgb:
                     byte[,] pBufferARGB = Scan32bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size));
+                    
                     for (int j = 0; j < Bitmap.Height; j++)
                     {
                         for (int i = 0; i < Bitmap.Width; i++)
@@ -686,24 +697,62 @@ namespace YoonFactory.Image
 
         public virtual YoonImage ToRGBImage()
         {
-            if (Channel != 1)
-                throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
-            byte[] pBuffer = GetGrayBuffer();
+            if (Channel == 3)
+                return this;
             YoonImage pImageResult = new YoonImage(Width, Height, PixelFormat.Format24bppRgb);
-            return pImageResult.SetRGBImageWithPlane(pBuffer, pBuffer, pBuffer)
-                ? pImageResult
-                : new YoonImage(Width, Height, PixelFormat.Format24bppRgb);
+            switch (Format)
+            {
+                case PixelFormat.Format8bppIndexed:
+                    byte[] pBuffer = GetGrayBuffer();
+                    return pImageResult.SetRGBImageWithPlane(pBuffer, pBuffer, pBuffer)
+                        ? pImageResult
+                        : new YoonImage(Width, Height, PixelFormat.Format24bppRgb);
+                case PixelFormat.Format32bppRgb:
+                case PixelFormat.Format32bppArgb:
+                    byte[,] pBufferARGB = Scan32bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size));
+                    byte[] pBufferRed = pBufferARGB.GetColumn(1);
+                    byte[] pBufferGreen = pBufferARGB.GetColumn(2);
+                    byte[] pBufferBlue = pBufferARGB.GetColumn(3);
+                    return pImageResult.SetRGBImageWithPlane(pBufferRed, pBufferGreen, pBufferBlue)
+                        ? pImageResult
+                        : new YoonImage(Width, Height, PixelFormat.Format24bppRgb);
+                default:
+                    throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
+            }
         }
-        
-        public virtual YoonImage ToARGBImage()
+
+        public virtual YoonImage ToARGBImage(bool bAlphaMax = true)
         {
-            if (Channel != 1)
-                throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
-            byte[] pBuffer = GetGrayBuffer();
             YoonImage pImageResult = new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
-            return pImageResult.SetARGBImageWithPlane(pBuffer, pBuffer, pBuffer)
-                ? pImageResult
-                : new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
+            byte[] pBufferRed, pBufferGreen, pBufferBlue;
+            switch (Format)
+            {
+                case PixelFormat.Format8bppIndexed:
+                    byte[] pBuffer = GetGrayBuffer();
+                    return pImageResult.SetARGBImageWithPlane(pBuffer, pBuffer, pBuffer, bAlphaMax)
+                        ? pImageResult
+                        : new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
+                case PixelFormat.Format24bppRgb:
+                    byte[,] pBufferRGB = Scan24bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size));
+                    pBufferRed = pBufferRGB.GetColumn(0);
+                    pBufferGreen = pBufferRGB.GetColumn(1);
+                    pBufferBlue = pBufferRGB.GetColumn(2);
+                    return pImageResult.SetARGBImageWithPlane(pBufferRed, pBufferGreen, pBufferBlue, bAlphaMax)
+                        ? pImageResult
+                        : new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
+                case PixelFormat.Format32bppRgb:
+                    byte[,] pBuffer32RGB = Scan24bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size));
+                    pBufferRed = pBuffer32RGB.GetColumn(1);
+                    pBufferGreen = pBuffer32RGB.GetColumn(2);
+                    pBufferBlue = pBuffer32RGB.GetColumn(3);
+                    return pImageResult.SetARGBImageWithPlane(pBufferRed, pBufferGreen, pBufferBlue, bAlphaMax)
+                        ? pImageResult
+                        : new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
+                case PixelFormat.Format32bppArgb:
+                    return this;
+                default:
+                    throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
+            }
         }
 
         private async Task ConvertGrey()
@@ -1758,7 +1807,7 @@ namespace YoonFactory.Image
             return bResult;
         }
 
-        public bool SetARGBImageWithPlane(byte[] pRed, byte[] pGreen, byte[] pBlue, bool bMax = true)
+        public bool SetARGBImageWithPlane(byte[] pRed, byte[] pGreen, byte[] pBlue, bool bAlpahMax = true)
         {
             if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
@@ -1777,7 +1826,7 @@ namespace YoonFactory.Image
                     pBytePixel[0] = pBlue[iY * Bitmap.Width + iX];
                     pBytePixel[1] = pGreen[iY * Bitmap.Width + iX];
                     pBytePixel[2] = pRed[iY * Bitmap.Width + iX];
-                    pBytePixel[3] = bMax ? (byte) 0xFF : (byte) 0x00; // Use Alpha Min (0x00), Do not use Max (0xFF)
+                    pBytePixel[3] = bAlpahMax ? (byte) 0xFF : (byte) 0x00; // Use Alpha Min (0x00), Do not use Max (0xFF)
                     pPixel[iX] = BitConverter.ToInt32(pBytePixel, 0);
                 }
 
@@ -1868,12 +1917,12 @@ namespace YoonFactory.Image
                 {
                     for (int i = 0; i < pRect.Width; i++)
                     {
-                        byte[] pBytePixel = new byte[3]; // {R, G, B}
+                        byte[] pBytePixel = new byte[3]; // {B, G, R}
                         Marshal.Copy(pImageData.Scan0 + (j * pRect.Width * 3 + i * 3), pBytePixel, 0,
                             pBytePixel.Length);
-                        pPixelPlanes[j * pRect.Width + i, 0] = pBytePixel[0]; // R
+                        pPixelPlanes[j * pRect.Width + i, 0] = pBytePixel[2]; // R
                         pPixelPlanes[j * pRect.Width + i, 1] = pBytePixel[1]; // G
-                        pPixelPlanes[j * pRect.Width + i, 2] = pBytePixel[2]; // B
+                        pPixelPlanes[j * pRect.Width + i, 2] = pBytePixel[0]; // B
                     }
                 });
                 Bitmap.UnlockBits(pImageData);

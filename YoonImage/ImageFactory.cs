@@ -4200,8 +4200,19 @@ namespace YoonFactory.Image
             {
                 double dDestRatio = nDestWidth / (double) nDestHeight;
                 // Resize width or height in the source range
-                int nSourceWidth = (dDestRatio >= 1) ? pSourceImage.Width : (int) (pSourceImage.Height * dDestRatio);
-                int nSourceHeight = (dDestRatio <= 1) ? pSourceImage.Height : (int) (pSourceImage.Width / dDestRatio);
+                int nSourceWidth = 0, nSourceHeight = 0;
+                if (dDestRatio == 1.0)
+                {
+                    nSourceWidth = (pSourceImage.Width < pSourceImage.Height)
+                        ? pSourceImage.Width
+                        : pSourceImage.Height;
+                    nSourceHeight = nSourceWidth;
+                }
+                else
+                {
+                    nSourceWidth = (dDestRatio > 1) ? pSourceImage.Width : (int) (pSourceImage.Height * dDestRatio);
+                    nSourceHeight = (dDestRatio < 1) ? pSourceImage.Height : (int) (pSourceImage.Width / dDestRatio);
+                }
                 return Resize(
                     pSourceImage.CropImage(new YoonRect2N(pSourceImage.CenterPos, nSourceWidth, nSourceHeight)),
                     nDestWidth, nDestHeight);
