@@ -67,7 +67,7 @@ namespace YoonFactory.Files
         {
             if (!VerifyFilePath(strPath, bCreateFile)) return false;
             FileInfo pFile = new FileInfo(strPath);
-            if (pFile.Extension == strExt) return true;
+            if (String.Equals(pFile.Extension, strExt, StringComparison.CurrentCultureIgnoreCase)) return true;
             if (!bChangeExtension) return false;
             string strFilePath = Path.Combine(pFile.DirectoryName!, Path.GetFileNameWithoutExtension(strPath) + strExt);
             if (!VerifyFilePath(strFilePath, bCreateFile)) return false;
@@ -207,7 +207,7 @@ namespace YoonFactory.Files
             {
                 FileInfo pFile = new FileInfo(strRoot);
                 foreach (string strExt in pArgs)
-                    if (pFile.Extension == strExt)
+                    if (String.Equals(pFile.Extension, strExt, StringComparison.CurrentCultureIgnoreCase))
                         pListFile.Add(pFile.FullName);
             }
 

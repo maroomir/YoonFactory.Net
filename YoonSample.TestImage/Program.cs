@@ -24,7 +24,7 @@ namespace YoonSample.TestImage
         static void Main(string[] args)
         {
             Console.WriteLine("Select the processing mode = ");
-            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Feature, Attach, FeatureMatch >> ");
+            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Feature, Attach, BFMatch >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -73,9 +73,9 @@ namespace YoonSample.TestImage
                     _pClm.Write("Start Attach Process");
                     ProcessAttach();
                     break;
-                case "featurematch":
+                case "bfmatch":
                     _pClm.Write("Start Corner Detector");
-                    ProcessRotDetection();
+                    ProcessBFMatch();
                     break;
                 default:
                     break;
@@ -458,10 +458,13 @@ namespace YoonSample.TestImage
             }
         }
 
-        static void ProcessRotDetection()
+        static void ProcessBFMatch()
         {
             // Parsing
-            _strRootDir = Path.Combine(_strRootDir, @"RotDetection");
+            Console.Write("Select Root (chair, airpod) >> ");
+            string strRootMode = Console.ReadLine()?.ToLower();
+            if (string.IsNullOrEmpty(strRootMode)) return;
+            _strRootDir = Path.Combine(_strRootDir, @"BFMatch", strRootMode);
             List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
             _pClm.Write("Image Load Completed");
             // Insert Parameter

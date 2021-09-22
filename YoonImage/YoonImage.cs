@@ -64,7 +64,7 @@ namespace YoonFactory.Image
         {
             get
             {
-                return Bitmap.PixelFormat switch
+                return Bitmap?.PixelFormat switch
                 {
                     PixelFormat.Format8bppIndexed => 1,
                     PixelFormat.Format16bppArgb1555 => 2,
