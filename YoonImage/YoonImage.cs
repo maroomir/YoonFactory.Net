@@ -372,6 +372,194 @@ namespace YoonFactory.Image
             Bitmap = (Bitmap) pBitmap.Clone();
         }
 
+        #region STATIC FUNCTIONS
+        
+        public static List<YoonImage> LoadImages(string strRoot)
+        {
+            if (!FileFactory.VerifyDirectory(strRoot)) return null;
+            List<YoonImage> pListImage = new List<YoonImage>();
+            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".jpeg", ".png",
+                ".exif", ".tiff"))
+                pListImage.Add(new YoonImage(strFilePath));
+            return pListImage;
+        }
+
+        public static List<YoonImage> LoadImages(string strRoot, string strContainName)
+        {
+            if (!FileFactory.VerifyDirectory(strRoot)) return null;
+            List<YoonImage> pListImage = new List<YoonImage>();
+            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".jpeg", ".png",
+                ".exif", ".tiff"))
+                if (strFilePath.Contains(strContainName))
+                    pListImage.Add(new YoonImage(strFilePath));
+            return pListImage;
+        }
+
+        public static int SaveImages(string strRoot, List<YoonImage> pListImage)
+        {
+            if (FileFactory.VerifyDirectory(strRoot)) return -1;
+            int nCountSave = 0;
+            for (int iCount = 0; iCount < pListImage.Count; iCount++)
+                if (pListImage[iCount]?.SaveImage(Path.Combine(strRoot, $"{iCount}.bmp")) == true)
+                    nCountSave++;
+
+            return nCountSave;
+        }
+
+        public static YoonImage AttachImages(params YoonImage[] pImages)
+        {
+            return AttachImages(1, pImages.Length, pImages);
+        }
+
+        public static YoonImage AttachImages(int nRows, int nCols, List<YoonImage> pListImage)
+        {
+            Debug.Assert(pListImage != null, nameof(pListImage) + " != null");
+            return AttachImages(nRows, nCols, pListImage.ToArray());
+        }
+
+        public static YoonImage AttachImages(int nRows, int nCols, params YoonImage[] pImages)
+        {
+            if (pImages.Length < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
+            for (int iImage = 1; iImage < pImages.Length; iImage++)
+            {
+                if (pImages[iImage - 1].Width != pImages[iImage].Width ||
+                    pImages[iImage - 1].Height != pImages[iImage].Height ||
+                    pImages[iImage - 1].Format != pImages[iImage].Format)
+                    throw new ArgumentException("[YOONIMAGE ERROR] Image size is not same each other");
+            }
+
+            if (pImages.Length < nRows * nCols)
+                throw new ArgumentException("[YOONIMAGE ERROR] Image size is not same each other");
+
+            int nPartWidth = pImages[0].Width;
+            int nPartHeight = pImages[0].Height;
+            int nPartChannel = pImages[0].Channel;
+            YoonImage pImageResult = new YoonImage(nPartWidth * nCols, nPartHeight * nRows, nPartChannel);
+            switch (nPartChannel)
+            {
+                case 1:
+                    byte[] pGrayBuffer = new byte[nRows * nCols * nPartWidth * nPartHeight];
+                    for (int iRow = 0; iRow < nRows; iRow++)
+                    {
+                        for (int iCol = 0; iCol < nCols; iCol++)
+                        {
+                            int nStartX = iCol * nPartWidth;
+                            int nStartY = iRow * nPartHeight;
+                            byte[] pTempBuffer8Bit = pImages[iRow * nCols + iCol].GetGrayBuffer();
+                            for (int iY = 0; iY < nPartHeight; iY++)
+                            {
+                                for (int iX = 0; iX < nPartWidth; iX++)
+                                {
+                                    pGrayBuffer[(nStartY + iY) * (nPartWidth * nCols) + (nStartX + iX)] =
+                                        pTempBuffer8Bit[iY * nPartWidth + iX];
+                                }
+                            }
+                        }
+                    }
+
+                    pImageResult.SetGrayImage(pGrayBuffer);
+                    break;
+                case 4:
+                    int[] pARGBBuffer = new int[nRows * nCols * nPartWidth * nPartHeight];
+                    for (int iRow = 0; iRow < nRows; iRow++)
+                    {
+                        for (int iCol = 0; iCol < nCols; iCol++)
+                        {
+                            int nStartX = iCol * nPartWidth;
+                            int nStartY = iRow * nPartHeight;
+                            int[] pTempBuffer32Bit = pImages[iRow * nCols + iCol].GetARGBBuffer();
+                            for (int iY = 0; iY < nPartHeight; iY++)
+                            {
+                                for (int iX = 0; iX < nPartWidth; iX++)
+                                {
+                                    pARGBBuffer[(nStartY + iY) * (nPartWidth * nCols) + (nStartX + iX)] =
+                                        pTempBuffer32Bit[iY * nPartWidth + iX];
+                                }
+                            }
+                        }
+                    }
+
+                    pImageResult.SetARGBImage(pARGBBuffer);
+                    break;
+            }
+
+            return pImageResult;
+        }
+
+        public static List<YoonImage> ResizeImages(int nDestWidth, int nDestHeight, List<YoonImage> pListImage)
+        {
+            if (pListImage.Count < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
+            List<YoonImage> pListResult = new List<YoonImage>();
+            foreach (YoonImage pSourceImage in pListImage)
+            {
+                pListResult.Add(pSourceImage.ResizeToKeepRatio(nDestWidth, nDestHeight));
+            }
+
+            return pListResult;
+        }
+
+        public static YoonImage[] ResizeImages(int nDestWidth, int nDestHeight, params YoonImage[] pImages)
+        {
+            if (pImages.Length < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
+            YoonImage[] pResultImages = new YoonImage[pImages.Length];
+            for (int i = 0; i < pImages.Length; i++)
+            {
+                pResultImages[i] = pImages[i].ResizeToKeepRatio(nDestWidth, nDestHeight);
+            }
+
+            return pResultImages;
+        }
+        
+        public static List<YoonImage> ToGrayImages(List<YoonImage> pListImage)
+        {
+            if (pListImage.Count < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
+            List<YoonImage> pListResult = new List<YoonImage>();
+            foreach (YoonImage pSourceImage in pListImage)
+            {
+                pListResult.Add(pSourceImage.ToGrayImage());
+            }
+
+            return pListResult;
+        }
+
+        public static YoonImage[] ToGrayImages(params YoonImage[] pImages)
+        {
+            if (pImages.Length < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
+            YoonImage[] pResultImages = new YoonImage[pImages.Length];
+            for (int i = 0; i < pImages.Length; i++)
+            {
+                pResultImages[i] = pImages[i].ToGrayImage();
+            }
+
+            return pResultImages;
+        }
+
+        public static List<YoonImage> ToARGBImages(List<YoonImage> pListImage)
+        {
+            if (pListImage.Count < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
+            List<YoonImage> pListResult = new List<YoonImage>();
+            foreach (YoonImage pSourceImage in pListImage)
+            {
+                pListResult.Add(pSourceImage.ToARGBImage());
+            }
+
+            return pListResult;
+        }
+
+        public static YoonImage[] ToARGBImages(params YoonImage[] pImages)
+        {
+            if (pImages.Length < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
+            YoonImage[] pResultImages = new YoonImage[pImages.Length];
+            for (int i = 0; i < pImages.Length; i++)
+            {
+                pResultImages[i] = pImages[i].ToARGBImage();
+            }
+
+            return pResultImages;
+        }
+
+        #endregion
+
         public void CopyFrom(IYoonFile pFile)
         {
             if (pFile is YoonImage pImage)
@@ -423,43 +611,13 @@ namespace YoonFactory.Image
             return (pArea.Left >= 0 && pArea.Top >= 0 && pArea.Right <= Bitmap.Width && pArea.Bottom <= Bitmap.Height);
         }
 
-        public static List<YoonImage> LoadImages(string strRoot)
-        {
-            if (!FileFactory.VerifyDirectory(strRoot)) return null;
-            List<YoonImage> pListImage = new List<YoonImage>();
-            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".png"))
-                pListImage.Add(new YoonImage(strFilePath));
-            return pListImage;
-        }
-
-        public static List<YoonImage> LoadImages(string strRoot, string strContainName)
-        {
-            if (!FileFactory.VerifyDirectory(strRoot)) return null;
-            List<YoonImage> pListImage = new List<YoonImage>();
-            foreach (string strFilePath in FileFactory.GetExtensionFilePaths(strRoot, ".bmp", ".jpg", ".png"))
-                if (strFilePath.Contains(strContainName))
-                    pListImage.Add(new YoonImage(strFilePath));
-            return pListImage;
-        }
-
-        public static int SaveImages(string strRoot, List<YoonImage> pListImage)
-        {
-            if (FileFactory.VerifyDirectory(strRoot)) return -1;
-            int nCountSave = 0;
-            for (int iCount = 0; iCount < pListImage.Count; iCount++)
-                if (pListImage[iCount]?.SaveImage(Path.Combine(strRoot, $"{iCount}.bmp")) == true)
-                    nCountSave++;
-
-            return nCountSave;
-        }
-
         public virtual bool LoadImage(string strPath)
         {
             FilePath = strPath;
             if (!IsFileExist()) return false;
             try
             {
-                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png", ".exif", ".tiff"))
+                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".jpeg", ".png", ".exif", ".tiff"))
                 {
                     Bitmap = (Bitmap) System.Drawing.Image.FromFile(FilePath);
                     return true;
@@ -477,12 +635,12 @@ namespace YoonFactory.Image
         {
             try
             {
-                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".png", ".exif", ".tiff"))
+                if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".jpeg", ".png", ".exif", ".tiff"))
                 {
                     FilePath = strPath;
                     if (strPath.Contains(".bmp"))
                         Bitmap.Save(strPath, ImageFormat.Bmp);
-                    else if (strPath.Contains(".jpg"))
+                    else if (strPath.Contains(".jpg") || strPath.Contains(".jpeg"))
                         Bitmap.Save(strPath, ImageFormat.Jpeg);
                     else if (strPath.Contains(".png"))
                         Bitmap.Save(strPath, ImageFormat.Png);
@@ -572,87 +730,7 @@ namespace YoonFactory.Image
 
             throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
         }
-
-        public static YoonImage AttachImage(params YoonImage[] pImages)
-        {
-            return AttachImage(1, pImages.Length, pImages);
-        }
-
-        public static YoonImage AttachImage(int nRows, int nCols, List<YoonImage> pListImage)
-        {
-            Debug.Assert(pListImage != null, nameof(pListImage) + " != null");
-            return AttachImage(nRows, nCols, pListImage.ToArray());
-        }
-
-        public static YoonImage AttachImage(int nRows, int nCols, params YoonImage[] pImages)
-        {
-            if (pImages.Length < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
-            for (int iImage = 1; iImage < pImages.Length; iImage++)
-            {
-                if (pImages[iImage - 1].Width != pImages[iImage].Width ||
-                    pImages[iImage - 1].Height != pImages[iImage].Height ||
-                    pImages[iImage - 1].Format != pImages[iImage].Format)
-                    throw new ArgumentException("[YOONIMAGE ERROR] Image size is not same each other");
-            }
-
-            if (pImages.Length < nRows * nCols)
-                throw new ArgumentException("[YOONIMAGE ERROR] Image size is not same each other");
-
-            int nPartWidth = pImages[0].Width;
-            int nPartHeight = pImages[0].Height;
-            int nPartChannel = pImages[0].Channel;
-            YoonImage pImageResult = new YoonImage(nPartWidth * nCols, nPartHeight * nRows, nPartChannel);
-            switch (nPartChannel)
-            {
-                case 1:
-                    byte[] pGrayBuffer = new byte[nRows * nCols * nPartWidth * nPartHeight];
-                    for (int iRow = 0; iRow < nRows; iRow++)
-                    {
-                        for (int iCol = 0; iCol < nCols; iCol++)
-                        {
-                            int nStartX = iCol * nPartWidth;
-                            int nStartY = iRow * nPartHeight;
-                            byte[] pTempBuffer8Bit = pImages[iRow * nCols + iCol].GetGrayBuffer();
-                            for (int iY = 0; iY < nPartHeight; iY++)
-                            {
-                                for (int iX = 0; iX < nPartWidth; iX++)
-                                {
-                                    pGrayBuffer[(nStartY + iY) * (nPartWidth * nCols) + (nStartX + iX)] =
-                                        pTempBuffer8Bit[iY * nPartWidth + iX];
-                                }
-                            }
-                        }
-                    }
-
-                    pImageResult.SetGrayImage(pGrayBuffer);
-                    break;
-                case 4:
-                    int[] pARGBBuffer = new int[nRows * nCols * nPartWidth * nPartHeight];
-                    for (int iRow = 0; iRow < nRows; iRow++)
-                    {
-                        for (int iCol = 0; iCol < nCols; iCol++)
-                        {
-                            int nStartX = iCol * nPartWidth;
-                            int nStartY = iRow * nPartHeight;
-                            int[] pTempBuffer32Bit = pImages[iRow * nCols + iCol].GetARGBBuffer();
-                            for (int iY = 0; iY < nPartHeight; iY++)
-                            {
-                                for (int iX = 0; iX < nPartWidth; iX++)
-                                {
-                                    pARGBBuffer[(nStartY + iY) * (nPartWidth * nCols) + (nStartX + iX)] =
-                                        pTempBuffer32Bit[iY * nPartWidth + iX];
-                                }
-                            }
-                        }
-                    }
-
-                    pImageResult.SetARGBImage(pARGBBuffer);
-                    break;
-            }
-
-            return pImageResult;
-        }
-
+        
         public virtual YoonImage ToGrayImage()
         {
             if (Channel == 1)

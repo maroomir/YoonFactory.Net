@@ -535,7 +535,7 @@ namespace YoonSample.TestImage
                 pListCollage[iImage] = pListCollage[iImage].ToARGBImage(false).ResizeToKeepRatio(200, 200);
             }
 
-            YoonImage pCollageImage = YoonImage.AttachImage(3, 3, pListCollage);
+            YoonImage pCollageImage = YoonImage.AttachImages(3, 3, pListCollage);
             pTimer.Stop();
             _pClm.Write($"Attatch Processing Completed [{pTimer.ElapsedMilliseconds}ms]");
             CVImage.ShowImage(pCollageImage, "Mixed");
