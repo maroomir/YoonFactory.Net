@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -121,7 +122,12 @@ namespace YoonFactory.Image
                 nWidth = DEFAULT_WIDTH;
                 nHeight = DEFAULT_HEIGHT;
             }
-
+            // Fix the issue when size is violate the Properties of Bitmap
+            // Maintain the bitmap size to multiple of 4
+            /*
+            nWidth = (nWidth / 4) * 4;
+            nHeight = (nHeight / 4) * 4;
+            */
             Bitmap = new Bitmap(nWidth, nHeight, GetDefaultFormat(nPlane));
             ColorPalette pPallete = Bitmap.Palette;
             switch (Bitmap.PixelFormat)
@@ -142,7 +148,12 @@ namespace YoonFactory.Image
                 nWidth = DEFAULT_WIDTH;
                 nHeight = DEFAULT_HEIGHT;
             }
-
+            // Fix the issue when size is violate the Properties of Bitmap
+            // Maintain the bitmap size to multiple of 4
+            /*
+            nWidth = (nWidth / 4) * 4;
+            nHeight = (nHeight / 4) * 4;
+            */
             Bitmap = new Bitmap(nWidth, nHeight, nFormat);
             ColorPalette pPallete = Bitmap.Palette;
             switch (Bitmap.PixelFormat)
@@ -510,6 +521,30 @@ namespace YoonFactory.Image
             return pResultImages;
         }
         
+        public static List<YoonImage> CropImages(YoonRect2N pRect, List<YoonImage> pListImage)
+        {
+            if (pListImage.Count < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
+            List<YoonImage> pListResult = new List<YoonImage>();
+            foreach (YoonImage pSourceImage in pListImage)
+            {
+                pListResult.Add(pSourceImage.CropImage(pRect));
+            }
+
+            return pListResult;
+        }
+
+        public static YoonImage[] CropImages(YoonRect2N pRect, params YoonImage[] pImages)
+        {
+            if (pImages.Length < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
+            YoonImage[] pResultImages = new YoonImage[pImages.Length];
+            for (int i = 0; i < pImages.Length; i++)
+            {
+                pResultImages[i] = pImages[i].CropImage(pRect);
+            }
+
+            return pResultImages;
+        }
+
         public static List<YoonImage> ToGrayImages(List<YoonImage> pListImage)
         {
             if (pListImage.Count < 2) throw new ArgumentException("[YOONIMAGE ERROR] Image count is too less");
@@ -611,6 +646,26 @@ namespace YoonFactory.Image
             return (pArea.Left >= 0 && pArea.Top >= 0 && pArea.Right <= Bitmap.Width && pArea.Bottom <= Bitmap.Height);
         }
 
+        private Bitmap TrimBitmap(Bitmap pSourceBitmap)
+        {
+            if (pSourceBitmap.Width % 4 == 0) return pSourceBitmap;
+
+            int nWidth = (pSourceBitmap.Width / 4) * 4;
+            int nHeight = pSourceBitmap.Height;
+            Bitmap pResultBitmap = new Bitmap(nWidth, pSourceBitmap.Height, pSourceBitmap.PixelFormat);
+            using Graphics pGraphics = Graphics.FromImage(pSourceBitmap);
+            pGraphics.CompositingQuality = CompositingQuality.HighQuality;
+            pGraphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            pGraphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            pGraphics.DrawImage(pSourceBitmap,
+                new Rectangle(0, 0, pResultBitmap.Width, pResultBitmap.Height),
+                new Rectangle(0, 0, pSourceBitmap.Width, pSourceBitmap.Height),
+                GraphicsUnit.Pixel);
+            pGraphics.Flush();
+
+            return pResultBitmap;
+        }
+
         public virtual bool LoadImage(string strPath)
         {
             FilePath = strPath;
@@ -619,6 +674,8 @@ namespace YoonFactory.Image
             {
                 if (FileFactory.VerifyFileExtensions(strPath, ".bmp", ".jpg", ".jpeg", ".png", ".exif", ".tiff"))
                 {
+                    // Fix the issue when size is violate the Properties of Bitmap
+                    // Maintain the bitmap size to multiple of 4
                     Bitmap = (Bitmap) System.Drawing.Image.FromFile(FilePath);
                     return true;
                 }
@@ -686,6 +743,10 @@ namespace YoonFactory.Image
 
         public virtual YoonImage CropImage(YoonRect2N pCropArea)
         {
+            // Fix the issue when size is violate the Properties of Bitmap
+            // Maintain the bitmap size to multiple of 4
+            pCropArea.Width = (pCropArea.Width / 4) * 4;
+            pCropArea.Height = (pCropArea.Height / 4) * 4;
             switch (Channel)
             {
                 case 1:
