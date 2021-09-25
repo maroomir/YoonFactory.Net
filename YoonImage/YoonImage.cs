@@ -719,7 +719,7 @@ namespace YoonFactory.Image
                         {
                             int nX = pCropArea.Left + iX;
                             if (nX >= Bitmap.Width) continue;
-                            pByte[iX] = Math.Max(0, Math.Min(GetARGBPixel(iX, iY), int.MaxValue));
+                            pByte[iX] = GetARGBPixel(iX, iY);
                         }
 
                         pImageResult32Bit.SetARGBLine(pByte, iY);
