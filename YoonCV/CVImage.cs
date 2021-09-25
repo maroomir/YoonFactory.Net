@@ -91,6 +91,37 @@ namespace YoonFactory.CV
             return false;
         }
 
+        public override CVImage ToARGBImage(bool bAlphaMax = true)
+        {
+            switch (Matrix.Channels())
+            {
+                case 1:
+                    return new CVImage(Matrix.CvtColor(ColorConversionCodes.GRAY2BGR)
+                        .CvtColor(ColorConversionCodes.BGR2BGRA));
+                case 3:
+                    return new CVImage(Matrix.CvtColor(ColorConversionCodes.BGR2BGRA));
+                case 4:
+                    return this;
+                default:
+                    throw new FormatException("[YOONCV] Image Dimension is abnormal");
+            }
+        }
+
+        public override YoonImage ToGrayImage()
+        {
+            switch (Matrix.Channels())
+            {
+                case 1:
+                    return this;
+                case 3:
+                    return new CVImage(Matrix.CvtColor(ColorConversionCodes.BGR2GRAY));
+                case 4:
+                    return new CVImage(Matrix.CvtColor(ColorConversionCodes.BGRA2GRAY));
+                default:
+                    throw new FormatException("[YOONCV] Image Dimension is abnormal");
+            }
+        }
+
         public Mat CopyMatrix()
         {
             return Matrix.Clone();
