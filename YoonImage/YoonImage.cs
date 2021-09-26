@@ -124,10 +124,7 @@ namespace YoonFactory.Image
             }
             // Fix the issue when size is violate the Properties of Bitmap
             // Maintain the bitmap size to multiple of 4
-            /*
             nWidth = (nWidth / 4) * 4;
-            nHeight = (nHeight / 4) * 4;
-            */
             Bitmap = new Bitmap(nWidth, nHeight, GetDefaultFormat(nPlane));
             ColorPalette pPallete = Bitmap.Palette;
             switch (Bitmap.PixelFormat)
@@ -150,10 +147,7 @@ namespace YoonFactory.Image
             }
             // Fix the issue when size is violate the Properties of Bitmap
             // Maintain the bitmap size to multiple of 4
-            /*
             nWidth = (nWidth / 4) * 4;
-            nHeight = (nHeight / 4) * 4;
-            */
             Bitmap = new Bitmap(nWidth, nHeight, nFormat);
             ColorPalette pPallete = Bitmap.Palette;
             switch (Bitmap.PixelFormat)
@@ -652,18 +646,8 @@ namespace YoonFactory.Image
 
             int nWidth = (pSourceBitmap.Width / 4) * 4;
             int nHeight = pSourceBitmap.Height;
-            Bitmap pResultBitmap = new Bitmap(nWidth, pSourceBitmap.Height, pSourceBitmap.PixelFormat);
-            using Graphics pGraphics = Graphics.FromImage(pSourceBitmap);
-            pGraphics.CompositingQuality = CompositingQuality.HighQuality;
-            pGraphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            pGraphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            pGraphics.DrawImage(pSourceBitmap,
-                new Rectangle(0, 0, pResultBitmap.Width, pResultBitmap.Height),
-                new Rectangle(0, 0, pSourceBitmap.Width, pSourceBitmap.Height),
-                GraphicsUnit.Pixel);
-            pGraphics.Flush();
 
-            return pResultBitmap;
+            return new Bitmap(pSourceBitmap, new Size(nWidth, nHeight));
         }
 
         public virtual bool LoadImage(string strPath)
@@ -676,7 +660,8 @@ namespace YoonFactory.Image
                 {
                     // Fix the issue when size is violate the Properties of Bitmap
                     // Maintain the bitmap size to multiple of 4
-                    Bitmap = (Bitmap) System.Drawing.Image.FromFile(FilePath);
+                    Bitmap pBitmap = (Bitmap) System.Drawing.Image.FromFile(FilePath);
+                    Bitmap = (pBitmap.Width % 4 == 0) ? pBitmap.Clone() as Bitmap : TrimBitmap(pBitmap);
                     return true;
                 }
             }
@@ -746,7 +731,6 @@ namespace YoonFactory.Image
             // Fix the issue when size is violate the Properties of Bitmap
             // Maintain the bitmap size to multiple of 4
             pCropArea.Width = (pCropArea.Width / 4) * 4;
-            pCropArea.Height = (pCropArea.Height / 4) * 4;
             switch (Channel)
             {
                 case 1:
