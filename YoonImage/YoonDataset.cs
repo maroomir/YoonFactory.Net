@@ -51,6 +51,72 @@ namespace YoonFactory.Image
 
         public List<IYoonVector> Positions => _pListObject.Select(pObject => pObject.Position).ToList();
 
+        public static YoonDataset FromVector2Ds(List<YoonVector2D> pListVector)
+        {
+            YoonDataset pResultDataset = new YoonDataset();
+            for (int i = 0; i < pListVector.Count; i++)
+            {
+                pResultDataset.Add(new YoonObject(i, pListVector[i]));
+            }
+
+            return pResultDataset;
+        }
+        
+        public static YoonDataset FromVector2Ds(params YoonVector2D[] pVectors)
+        {
+            YoonDataset pResultDataset = new YoonDataset();
+            for (int i = 0; i < pVectors.Length; i++)
+            {
+                pResultDataset.Add(new YoonObject(i, pVectors[i]));
+            }
+
+            return pResultDataset;
+        }
+        
+        public static YoonDataset FromVector2Ns(List<YoonVector2N> pListVector)
+        {
+            YoonDataset pResultDataset = new YoonDataset();
+            for (int i = 0; i < pListVector.Count; i++)
+            {
+                pResultDataset.Add(new YoonObject(i, pListVector[i]));
+            }
+
+            return pResultDataset;
+        }
+
+        public static YoonDataset FromVector2Ns(params YoonVector2N[] pVectors)
+        {
+            YoonDataset pResultDataset = new YoonDataset();
+            for (int i = 0; i < pVectors.Length; i++)
+            {
+                pResultDataset.Add(new YoonObject(i, pVectors[i]));
+            }
+
+            return pResultDataset;
+        }
+        
+        public static YoonDataset FromRect2Ds(List<YoonRect2D> pListRects)
+        {
+            YoonDataset pResultDataset = new YoonDataset();
+            for (int i = 0; i < pListRects.Count; i++)
+            {
+                pResultDataset.Add(new YoonObject(i, pListRects[i]));
+            }
+
+            return pResultDataset;
+        }
+        
+        public static YoonDataset FromRect2Ns(List<YoonRect2N> pListRects)
+        {
+            YoonDataset pResultDataset = new YoonDataset();
+            for (int i = 0; i < pListRects.Count; i++)
+            {
+                pResultDataset.Add(new YoonObject(i, pListRects[i]));
+            }
+
+            return pResultDataset;
+        }
+
         public YoonObject this[int index]
         {
             get
