@@ -24,7 +24,7 @@ namespace YoonSample.TestImage
         static void Main(string[] args)
         {
             Console.WriteLine("Select the processing mode = ");
-            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Feature, Attach, BFMatch >> ");
+            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Feature, Attach, Perspective >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -73,8 +73,8 @@ namespace YoonSample.TestImage
                     _pClm.Write("Start Attach Process");
                     ProcessAttach();
                     break;
-                case "bfmatch":
-                    _pClm.Write("Start Corner Detector");
+                case "perspective":
+                    _pClm.Write("Start Perspective transform");
                     ProcessPerspectiveTransform();
                     break;
                 default:
@@ -488,8 +488,8 @@ namespace YoonSample.TestImage
             double dFilter = double.Parse(pDicArgs["WindowSize"]);
             // Get matching parameter in the root directory
             Stopwatch pTimer = new Stopwatch();
-            CVImage pPipelineImage1 = new CVImage(pListImage[0].ToGrayImage().ResizeToKeepRatio(2048, 2048));
-            CVImage pPipelineImage2 = new CVImage(pListImage[1].ToGrayImage().ResizeToKeepRatio(2048, 2048));
+            CVImage pPipelineImage1 = new CVImage(pListImage[0].ToGrayImage().ResizeToKeepRatio(1024, 1024));
+            CVImage pPipelineImage2 = new CVImage(pListImage[1].ToGrayImage().ResizeToKeepRatio(1024, 1024));
             pPipelineImage1.FilePath = pListImage[0].FilePath;
             pPipelineImage2.FilePath = pListImage[1].FilePath;
             pTimer.Reset();
