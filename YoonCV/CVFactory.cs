@@ -739,12 +739,69 @@ namespace YoonFactory.CV
 
         public static class FeatureMatch
         {
+            public static void SurfMatching(CVImage pSourceImage, CVImage pObjectImage,
+                out YoonDataset pSourceInliers, out YoonDataset pObjectInliers,
+                double dMetricThresh = 1000.0, int nOctaves = 3, int nScaleLevel = 4, double dRateScore = 0.5)
+            {
+                SurfMatching(pSourceImage.Matrix, pObjectImage.Matrix, out pSourceInliers, out pObjectInliers,
+                    dMetricThresh, nOctaves, nScaleLevel, dRateScore);
+            }
+
             public static void SiftMatching(CVImage pSourceImage, CVImage pObjectImage,
                 out YoonDataset pSourceInliers, out YoonDataset pObjectInliers,
                 int nOctaves = 3, double dContrastThresh = 0.4, double dEdgeThresh = 10.0, double dFilterSigma = 2.0)
             {
                 SiftMatching(pSourceImage.Matrix, pObjectImage.Matrix, out pSourceInliers, out pObjectInliers,
                     nOctaves, dContrastThresh, dEdgeThresh, dFilterSigma);
+            }
+
+            public static void SurfMatching(Mat pSourceMatrix, Mat pObjectMatrix,
+                out YoonDataset pSourceInliers, out YoonDataset pObjectInliers,
+                double dMetricThresh, int nOctaves, int nScaleLevel, double dRateScore = 0.5)
+            {
+                SURF pDetector = SURF.Create(dMetricThresh, nOctaves, nScaleLevel);
+                BFMatcher pMatcher = new BFMatcher();
+                pSourceInliers = new YoonDataset();
+                pObjectInliers = new YoonDataset();
+                // SURF Detection
+                Mat pSourceDescriptor = new Mat();
+                Mat pObjectDescriptor = new Mat();
+                pDetector.DetectAndCompute(pSourceMatrix, null, out KeyPoint[] pSourceFeatures, pSourceDescriptor);
+                pDetector.DetectAndCompute(pObjectMatrix, null, out KeyPoint[] pObjectFeatures, pObjectDescriptor);
+                // Matching the feature each others
+                DMatch[][] pMatchArray = pMatcher.KnnMatch(pSourceDescriptor, pObjectDescriptor, 2);
+                int nLabelNo = 0;
+                for (int i = 0; i < pMatchArray.Length; i++)
+                {
+                    double dDistanceBest = pMatchArray[i][0].Distance;
+                    double dDistanceSecond = pMatchArray[i][1].Distance;
+                    // Best distance is little then the second place distance
+                    if (dDistanceBest < dDistanceSecond * dRateScore)
+                    {
+                        DMatch pMatchResult = pMatchArray[i][0];
+                        // Input the source data-set
+                        int iSource = pMatchResult.QueryIdx;
+                        int nSourceSize = (int) pSourceFeatures[iSource].Size;
+                        YoonVector2N pSourcePos = pSourceFeatures[iSource].Pt.ToPoint().ToYoonVector();
+                        YoonRect2N pSourceFigure = new YoonRect2N(pSourcePos.X, pSourcePos.Y, nSourceSize, nSourceSize);
+                        pSourceInliers.Add(new YoonObject(nLabelNo, pSourceFigure, pSourcePos));
+                        // Input the object data-set
+                        int iObject = pMatchResult.TrainIdx;
+                        int nObjectSize = (int) pObjectFeatures[iObject].Size;
+                        YoonVector2N pObjectPos = pObjectFeatures[iObject].Pt.ToPoint().ToYoonVector();
+                        YoonRect2N pObjectFigure = new YoonRect2N(pObjectPos.X, pObjectPos.Y, nObjectSize, nObjectSize);
+                        pObjectInliers.Add(new YoonObject(nLabelNo, pObjectFigure, pObjectPos));
+                        nLabelNo++;
+                    }
+                }
+
+                // Release memories
+                pSourceDescriptor.Dispose();
+                pObjectDescriptor.Dispose();
+                pMatcher.Dispose();
+                pDetector.Dispose();
+                GC.Collect(0, GCCollectionMode.Default);
+                GC.WaitForFullGCComplete();
             }
 
             public static void SiftMatching(Mat pSourceMatrix, Mat pObjectMatrix,
