@@ -129,7 +129,6 @@ namespace YoonFactory
         T[] Array { get; set; }
         double Angle2D(IYoonVector pObjectVector);
         eYoonDir2D Direction { get; set; }
-        IYoonCartesian<T> Cartesian { get; set; }
         eYoonDir2D DirectionTo(IYoonVector pObjectVector);
         void SetMinValue(T minX, T minY);
         void SetMaxValue(T maxX, T maxY);
@@ -159,7 +158,6 @@ namespace YoonFactory
         double AngleX(IYoonVector pVector);
         double AngleY(IYoonVector pVector);
         double AngleZ(IYoonVector pVector);
-        IYoonCartesian<T> Cartesian { get; set; }
         IYoonVector GetScaleVector(T dScaleX, T dScaleY, T dScaleZ);
         IYoonVector GetNextVector(T dMoveX, T dMoveY, T dMoveZ);
         IYoonVector GetNextVector(IYoonVector pVector);
@@ -169,45 +167,6 @@ namespace YoonFactory
         void RotateX(double dAngle);
         void RotateY(double dAngle);
         void RotateZ(double dAngle);
-    }
-
-    public interface IYoonJoint
-    {
-        IYoonJoint Clone();
-        void CopyFrom(IYoonJoint pJoint);
-    }
-
-    public interface IYoonJoint<T> : IYoonJoint where T : IComparable, IComparable<T>
-    {
-        T J1 { get; set; }
-        T J2 { get; set; }
-        T J3 { get; set; }
-        T J4 { get; set; }
-        T J5 { get; set; }
-        T J6 { get; set; }
-        T[] ToArray { get; }
-
-        void Zero();
-    }
-
-    public interface IYoonCartesian
-    {
-        IYoonCartesian Clone();
-        void CopyFrom(IYoonCartesian pCart);
-    }
-
-    public interface IYoonCartesian<T> : IYoonCartesian where T : IComparable, IComparable<T>
-    {
-        T X { get; set; }
-        T Y { get; set; }
-        T Z { get; set; }
-        T RX { get; set; }
-        T RY { get; set; }
-        T RZ { get; set; }
-        T[] Array { get; set; }
-
-        void Zero();
-        void Unit();
     }
 
     public interface IYoonLine : IYoonFigure

@@ -132,22 +132,7 @@ namespace YoonFactory
 
             set => Array[1] = value;
         }
-        public IYoonCartesian<int> Cartesian
-        {
-            get => new YoonCartesianN(X, Y, 0, 0, 0, 0);
-            set
-            {
-                try
-                {
-                    X = value.X;
-                    Y = value.Y;
-                }
-                catch
-                {
-                    //
-                }
-            }
-        }
+        
         public int[] Array { get; set; } = new int[3];
 
         public YoonVector2N()
@@ -351,7 +336,6 @@ namespace YoonFactory
                    W == other.W &&
                    X == other.X &&
                    Y == other.Y &&
-                   EqualityComparer<IYoonCartesian<int>>.Default.Equals(Cartesian, other.Cartesian) &&
                    EqualityComparer<int[]>.Default.Equals(Array, other.Array);
         }
 
@@ -363,7 +347,6 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + W.GetHashCode();
             hashCode = hashCode * -1521134295 + X.GetHashCode();
             hashCode = hashCode * -1521134295 + Y.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCartesian<int>>.Default.GetHashCode(Cartesian);
             hashCode = hashCode * -1521134295 + EqualityComparer<int[]>.Default.GetHashCode(Array);
             return hashCode;
         }
@@ -559,22 +542,6 @@ namespace YoonFactory
             get => Array[1];
 
             set => Array[1] = value;
-        }
-        public IYoonCartesian<double> Cartesian
-        {
-            get => new YoonCartesianD(X, Y, 0, 0, 0, 0);
-            set
-            {
-                try
-                {
-                    X = value.X;
-                    Y = value.Y;
-                }
-                catch
-                {
-                    //
-                }
-            }
         }
         public double[] Array { get; set; } = new double[3];
 
@@ -783,7 +750,6 @@ namespace YoonFactory
                    W == other.W &&
                    X == other.X &&
                    Y == other.Y &&
-                   EqualityComparer<IYoonCartesian<double>>.Default.Equals(Cartesian, other.Cartesian) &&
                    EqualityComparer<double[]>.Default.Equals(Array, other.Array);
         }
 
@@ -795,7 +761,6 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + W.GetHashCode();
             hashCode = hashCode * -1521134295 + X.GetHashCode();
             hashCode = hashCode * -1521134295 + Y.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCartesian<double>>.Default.GetHashCode(Cartesian);
             hashCode = hashCode * -1521134295 + EqualityComparer<double[]>.Default.GetHashCode(Array);
             return hashCode;
         }
@@ -829,10 +794,6 @@ namespace YoonFactory
         {
             return new YoonVector2D(v1.X + v2.X, v1.Y + v2.Y);
         }
-        public static YoonVector2D operator +(YoonVector2D v, YoonCartesianD c)
-        {
-            return new YoonVector2D(v.X + c.X, v.Y + c.Y);
-        }
         public static YoonVector2D operator +(YoonVector2D v, eYoonDir2D d)
         {
             YoonVector2D pVector = new YoonVector2D(d);
@@ -845,10 +806,6 @@ namespace YoonFactory
         public static YoonVector2D operator -(YoonVector2D v)
         {
             return new YoonVector2D(-v.X, -v.Y);
-        }
-        public static YoonVector2D operator -(YoonVector2D v, YoonCartesianD c)
-        {
-            return new YoonVector2D(v.X - c.X, v.Y - c.Y);
         }
         public static YoonVector2D operator -(YoonVector2D v, eYoonDir2D d)
         {
@@ -946,24 +903,6 @@ namespace YoonFactory
             get => Array[2];
 
             set => Array[2] = value;
-        }
-
-        public IYoonCartesian<double> Cartesian
-        {
-            get => new YoonCartesianD(X, Y, Z, 0, 0, 0);
-            set
-            {
-                try
-                {
-                    X = value.X;
-                    Y = value.Y;
-                    Z = value.Z;
-                }
-                catch
-                {
-                    //
-                }
-            }
         }
 
         public double[] Array { get; set; } = new double[4];
@@ -1150,7 +1089,6 @@ namespace YoonFactory
                    X == other.X &&
                    Y == other.Y &&
                    Z == other.Z &&
-                   EqualityComparer<IYoonCartesian<double>>.Default.Equals(Cartesian, other.Cartesian) &&
                    EqualityComparer<double[]>.Default.Equals(Array, other.Array);
         }
 
@@ -1162,7 +1100,6 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + X.GetHashCode();
             hashCode = hashCode * -1521134295 + Y.GetHashCode();
             hashCode = hashCode * -1521134295 + Z.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCartesian<double>>.Default.GetHashCode(Cartesian);
             hashCode = hashCode * -1521134295 + EqualityComparer<double[]>.Default.GetHashCode(Array);
             return hashCode;
         }
@@ -1191,10 +1128,6 @@ namespace YoonFactory
         {
             return new YoonVector3D(pVectorSource.X + pVectorObject.X, pVectorSource.Y + pVectorObject.Y, pVectorSource.Z + pVectorObject.Z);
         }
-        public static YoonVector3D operator +(YoonVector3D pVector, YoonCartesianD pCart)
-        {
-            return new YoonVector3D(pVector.X + pCart.X, pVector.Y + pCart.Y, pVector.Z + pCart.Z);
-        }
         public static YoonVector3D operator -(YoonVector3D pVectorSource, YoonVector3D pVectorObject)
         {
             return new YoonVector3D(pVectorSource.X - pVectorObject.X, pVectorSource.Y - pVectorObject.Y, pVectorSource.Z - pVectorObject.Z);
@@ -1202,10 +1135,6 @@ namespace YoonFactory
         public static YoonVector3D operator -(YoonVector3D pVector)
         {
             return new YoonVector3D(-pVector.X, -pVector.Y, -pVector.Z);
-        }
-        public static YoonVector3D operator -(YoonVector3D pVector, YoonCartesianD pCart)
-        {
-            return new YoonVector3D(pVector.X - pCart.X, pVector.Y - pCart.Y, pVector.Z - pCart.Z);
         }
         public static YoonVector3D operator /(YoonVector3D pVector, double dAngle)
         {
