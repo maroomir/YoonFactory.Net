@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenCvSharp;
@@ -10,6 +11,7 @@ using OpenCvSharp.XFeatures2D;
 using YoonFactory.Files;
 using YoonFactory.Image;
 using Point = OpenCvSharp.Point;
+using Size = OpenCvSharp.Size;
 
 namespace YoonFactory.CV
 {
@@ -894,8 +896,98 @@ namespace YoonFactory.CV
                     throw new NullReferenceException("[YOONCV EXCEPTION] Homography Matrix is null");
                 return Cv2.PerspectiveTransform(pPoints, pHomography);
             }
+            
+            public static void ChessboardCalibration(Mat pSourceMatrix, int nRows, int nCols,
+                double nPartWith, double nPartHeight,
+                double dOffsetX = 0.0, double dOffsetY = 0.0, double dOffsetZ = 0.0,
+                int nFilterSize = 5, int nTermCount = 30, double dRate = 0.001)
+            {
+                // Parameter initialize
+                nRows = nRows - 1; // corners = count - 1
+                nCols = nCols - 1;
+                TermCriteria pCriteria = TermCriteria.Both(nTermCount, dRate);
+                List<Point3f[]> pListObjectPoints = new List<Point3f[]>();
+                List<Point2f[]> pListImagePoints = new List<Point2f[]>();
+                // Construct the object points in the chessboard
+                Point3f[] pObjectPoints = new Point3f[nRows * nCols];
+                for (int iY = 0; iY < nRows; iY++)
+                {
+                    for (int iX = 0; iX < nCols; iX++)
+                    {
+                        pObjectPoints[iY * nCols + iX] = new Point3f((float)(nPartWith * iX + dOffsetX),
+                            (float)(nPartHeight * iY + dOffsetY), (float)dOffsetZ);
+                    }
+                }
+                // Inspect the image points from the chessboard corners algorithm
+                if (Cv2.FindChessboardCorners(pSourceMatrix, new Size(nCols, nRows), out Point2f[] pImagePoints,
+                    ChessboardFlags.Accuracy | ChessboardFlags.FastCheck))
+                {
+                    pImagePoints = Cv2.CornerSubPix(pSourceMatrix, pImagePoints, new Size(nFilterSize, nFilterSize),
+                        new Size(-1, -1), pCriteria);
+                    pListObjectPoints.Add(pObjectPoints);
+                    pListImagePoints.Add(pImagePoints);
+                    double[,] pCameraMatrix = new double[3, 3];
+                    double[] pDistCoefficient = new double[8];
+                    Cv2.CalibrateCamera(pListObjectPoints.ToArray(), pListImagePoints.ToArray(), pSourceMatrix.Size(),
+                        pCameraMatrix, pDistCoefficient, out Vec3d[] pRotationVectors, out Vec3d[] pTransVector);
+                    // Insert the YoonCalibration?
+                }
+            }
+            
+            public static void ChessboardCalibration(List<Mat> pListSource, int nRows, int nCols,
+                double nPartWith, double nPartHeight,
+                double dOffsetX = 0.0, double dOffsetY = 0.0, double dOffsetZ = 0.0,
+                int nFilterSize = 5, int nTermCount = 30, double dRate = 0.001)
+            {
+                if (pListSource.Count < 1)
+                    throw new ArgumentException("[YOONCV EXCEPTION] Image count is not enough");
+                for (int iImage = 0; iImage < pListSource.Count; iImage++)
+                {
+                    if (pListSource[iImage].Rows != pListSource[0].Rows ||
+                        pListSource[iImage].Cols != pListSource[0].Cols)
+                        throw new ArgumentException("[YOONCV EXCEPTION] Image size is not same each others");
+                }
+                // Parameter initialize
+                nRows = nRows - 1; // corners = count - 1
+                nCols = nCols - 1;
+                int nImageWidth = pListSource[0].Cols;
+                int nImageHeight = pListSource[0].Rows;
+                TermCriteria pCriteria = TermCriteria.Both(nTermCount, dRate);
+                List<Point3f[]> pListObjectPoints = new List<Point3f[]>();
+                List<Point2f[]> pListImagePoints = new List<Point2f[]>();
+                // Construct the object points in the chessboard
+                Point3f[] pObjectPoints = new Point3f[nRows * nCols];
+                for (int iY = 0; iY < nRows; iY++)
+                {
+                    for (int iX = 0; iX < nCols; iX++)
+                    {
+                        pObjectPoints[iY * nCols + iX] = new Point3f((float)(nPartWith * iX + dOffsetX),
+                            (float)(nPartHeight * iY + dOffsetY), (float)dOffsetZ);
+                    }
+                }
+
+                // Inspect the image points from the chessboard corners algorithm
+                foreach (Mat pSourceMat in pListSource)
+                {
+                    if (Cv2.FindChessboardCorners(pSourceMat, new Size(nCols, nRows), out Point2f[] pImagePoints,
+                        ChessboardFlags.Accuracy | ChessboardFlags.FastCheck))
+                    {
+                        pImagePoints = Cv2.CornerSubPix(pSourceMat, pImagePoints, new Size(nFilterSize, nFilterSize),
+                            new Size(-1, -1), pCriteria);
+                        pListObjectPoints.Add(pObjectPoints);
+                        pListImagePoints.Add(pImagePoints);
+                    }
+                }
+
+                double[,] pCameraMatrix = new double[3, 3];
+                double[] pDistCoefficient = new double[8];
+                Cv2.CalibrateCamera(pListObjectPoints.ToArray(), pListImagePoints.ToArray(),
+                    new Size(nImageWidth, nImageHeight),
+                    pCameraMatrix, pDistCoefficient, out Vec3d[] pRotationVectors, out Vec3d[] pTransVector);
+                // Insert the YoonCalibration?
+            }
         }
-        
+
         public static class Transform
         {
             public static CVImage FlipX(CVImage pSourceImage) => new CVImage(FlipX(pSourceImage.Matrix));
