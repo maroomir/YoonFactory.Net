@@ -934,24 +934,24 @@ namespace YoonFactory.CV
                 }
             }
             
-            public static void ChessboardCalibration(List<Mat> pListSource, int nRows, int nCols,
+            public static void ChessboardCalibration(List<Mat> pListMatrix, int nRows, int nCols,
                 double nPartWith, double nPartHeight,
                 double dOffsetX = 0.0, double dOffsetY = 0.0, double dOffsetZ = 0.0,
                 int nFilterSize = 5, int nTermCount = 30, double dRate = 0.001)
             {
-                if (pListSource.Count < 1)
+                if (pListMatrix.Count < 1)
                     throw new ArgumentException("[YOONCV EXCEPTION] Image count is not enough");
-                for (int iImage = 0; iImage < pListSource.Count; iImage++)
+                for (int iImage = 0; iImage < pListMatrix.Count; iImage++)
                 {
-                    if (pListSource[iImage].Rows != pListSource[0].Rows ||
-                        pListSource[iImage].Cols != pListSource[0].Cols)
+                    if (pListMatrix[iImage].Rows != pListMatrix[0].Rows ||
+                        pListMatrix[iImage].Cols != pListMatrix[0].Cols)
                         throw new ArgumentException("[YOONCV EXCEPTION] Image size is not same each others");
                 }
                 // Parameter initialize
                 nRows = nRows - 1; // corners = count - 1
                 nCols = nCols - 1;
-                int nImageWidth = pListSource[0].Cols;
-                int nImageHeight = pListSource[0].Rows;
+                int nImageWidth = pListMatrix[0].Cols;
+                int nImageHeight = pListMatrix[0].Rows;
                 TermCriteria pCriteria = TermCriteria.Both(nTermCount, dRate);
                 List<Point3f[]> pListObjectPoints = new List<Point3f[]>();
                 List<Point2f[]> pListImagePoints = new List<Point2f[]>();
@@ -965,14 +965,13 @@ namespace YoonFactory.CV
                             (float)(nPartHeight * iY + dOffsetY), (float)dOffsetZ);
                     }
                 }
-
                 // Inspect the image points from the chessboard corners algorithm
-                foreach (Mat pSourceMat in pListSource)
+                foreach (Mat pSourceMatrix in pListMatrix)
                 {
-                    if (Cv2.FindChessboardCorners(pSourceMat, new Size(nCols, nRows), out Point2f[] pImagePoints,
+                    if (Cv2.FindChessboardCorners(pSourceMatrix, new Size(nCols, nRows), out Point2f[] pImagePoints,
                         ChessboardFlags.Accuracy | ChessboardFlags.FastCheck))
                     {
-                        pImagePoints = Cv2.CornerSubPix(pSourceMat, pImagePoints, new Size(nFilterSize, nFilterSize),
+                        pImagePoints = Cv2.CornerSubPix(pSourceMatrix, pImagePoints, new Size(nFilterSize, nFilterSize),
                             new Size(-1, -1), pCriteria);
                         pListObjectPoints.Add(pObjectPoints);
                         pListImagePoints.Add(pImagePoints);

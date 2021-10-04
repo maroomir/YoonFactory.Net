@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace YoonFactory
 {
@@ -50,6 +51,20 @@ namespace YoonFactory
             for (int i = 0; i < nRows; i++)
             {
                 pResult[i] = pSource[i, nCol];
+            }
+
+            return pResult;
+        }
+
+        public static T[] ToArray1D<T>(this T[,] pSource)
+        {
+            T[] pResult = new T[pSource.Length];
+            for (int j = 0; j < pSource.GetLength(0); j++)
+            {
+                for (int i = 0; i < pSource.GetLength(1); i++)
+                {
+                    pResult[j * pSource.GetLength(1) + i] = pSource[i, j];
+                }
             }
 
             return pResult;

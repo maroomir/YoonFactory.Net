@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\YoonFactory\YoonFactory.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="NumSharp" Version="0.30.0" />
+    </ItemGroup>
+
+</Project>

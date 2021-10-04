@@ -41,9 +41,21 @@ namespace YoonFactory
             matrix_12 = matrix_21 = 0;
         }
 
-        public YoonMatrix2X2Int(IYoonMatrix m)
+        public YoonMatrix2X2Int(IYoonMatrix pMatrix)
         {
-            this.CopyFrom(m);
+            this.CopyFrom(pMatrix);
+        }
+
+        public YoonMatrix2X2Int(int[,] pArray)
+        {
+            if (pArray.Length != 4) return;
+            for (int j = 0; j < 2; j++)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    Array[i, j] = pArray[i, j];
+                }
+            }
         }
 
         public int[,] Array { get; set; } = new int[2, 2];
@@ -232,9 +244,21 @@ namespace YoonFactory
             matrix_12 = matrix_21 = 0;
         }
 
-        public YoonMatrix2X2Double(IYoonMatrix m)
+        public YoonMatrix2X2Double(IYoonMatrix pMatrix)
         {
-            this.CopyFrom(m);
+            this.CopyFrom(pMatrix);
+        }
+
+        public YoonMatrix2X2Double(double[,] pArray)
+        {
+            if (pArray.Length != 4) return;
+            for (int j = 0; j < 2; j++)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    Array[i, j] = pArray[i, j];
+                }
+            }
         }
 
         public double[,] Array { get; set; } = new double[2, 2];
@@ -465,6 +489,18 @@ namespace YoonFactory
         public YoonMatrix3X3Int(IYoonMatrix pMatrix)
         {
             this.CopyFrom(pMatrix);
+        }
+
+        public YoonMatrix3X3Int(int[,] pArray)
+        {
+            if (pArray.Length != 9) return;
+            for (int j = 0; j < 3; j++)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    Array[i, j] = pArray[i, j];
+                }
+            }
         }
 
         public int[,] Array { get; set; } = new int[3, 3];
@@ -769,6 +805,18 @@ namespace YoonFactory
         public YoonMatrix3X3Double(IYoonMatrix pMatrix)
         {
             this.CopyFrom(pMatrix);
+        }
+
+        public YoonMatrix3X3Double(double[,] pArray)
+        {
+            if (pArray.Length != 9) return;
+            for (int j = 0; j < 3; j++)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    Array[i, j] = pArray[i, j];
+                }
+            }
         }
 
         public double[,] Array { get; set; } = new double[3, 3];
@@ -1216,6 +1264,18 @@ namespace YoonFactory
         public YoonMatrix4X4Double(IYoonMatrix pMatrix)
         {
             this.CopyFrom(pMatrix);
+        }
+        
+        public YoonMatrix4X4Double(double[,] pArray)
+        {
+            if (pArray.Length != 16) return;
+            for (int j = 0; j < 4; j++)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    Array[i, j] = pArray[i, j];
+                }
+            }
         }
 
         public double[,] Array { get; set; } = new double[4, 4];
