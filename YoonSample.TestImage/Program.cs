@@ -24,7 +24,7 @@ namespace YoonSample.TestImage
         static void Main(string[] args)
         {
             Console.WriteLine("Select the processing mode = ");
-            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Feature, Attach, Perspective >> ");
+            Console.Write("Align, CVAlign, Drops, Glass, CVGlass, Feature, Attach, Perspective, Epiline >> ");
             string strSelectionModule = Console.ReadLine();
             switch (strSelectionModule.ToLower())
             {
@@ -76,6 +76,10 @@ namespace YoonSample.TestImage
                 case "perspective":
                     _pClm.Write("Start Perspective transform");
                     ProcessPerspectiveTransform();
+                    break;
+                case "epiline":
+                    _pClm.Write("Start Epiline Process");
+                    ProcessEpiline();
                     break;
                 default:
                     break;
@@ -461,7 +465,7 @@ namespace YoonSample.TestImage
         static void ProcessPerspectiveTransform()
         {
             // Parsing
-            Console.Write("Select Root (chair, airpod) >> ");
+            Console.Write("Select Root (chair, airpod, toy) >> ");
             string strRootMode = Console.ReadLine()?.ToLower();
             if (string.IsNullOrEmpty(strRootMode)) return;
             _strRootDir = Path.Combine(_strRootDir, @"BFMatch", strRootMode);
@@ -529,7 +533,7 @@ namespace YoonSample.TestImage
             YoonDataset pPointSet = YoonDataset.FromVector2Ns(pListPoint);
             pTimer.Reset();
             pTimer.Start();
-            YoonDataset pTransformSet1 = pPointSet.PerspectiveTransform(pDataset1, pDataset2);
+            YoonDataset pTransformSet1 = pPointSet.FindPerspectiveTransform(pDataset1, pDataset2);
             pTimer.Stop();
             _pClm.Write($"Get the perspective transform for the first image, {pTimer.ElapsedMilliseconds:F2} ms");
             CVImage pMatrixImage1 = new CVImage(pPipelineImage1.Clone() as YoonImage);
@@ -541,7 +545,102 @@ namespace YoonSample.TestImage
             pMatrixImage1.ShowImage("Result1");
             pTimer.Reset();
             pTimer.Start();
-            YoonDataset pTransformSet2 = pPointSet.PerspectiveTransform(pDataset2, pDataset1);
+            YoonDataset pTransformSet2 = pPointSet.FindPerspectiveTransform(pDataset2, pDataset1);
+            pTimer.Stop();
+            _pClm.Write($"Get the perspective transform for the second image, {pTimer.ElapsedMilliseconds:F2} ms");
+            CVImage pMatrixImage2 = new CVImage(pPipelineImage2.Clone() as YoonImage);
+            for (int iPos = 0; iPos < pTransformSet2.Count; iPos++)
+            {
+                YoonVector2D pPosition = (YoonVector2D) pTransformSet2[iPos].Position;
+                pMatrixImage2.DrawCross(pPosition.ToVector2N(), Color.Blue);
+            }
+            pMatrixImage2.ShowImage("Result2");
+        }
+        
+        static void ProcessEpiline()
+        {
+            // Parsing
+            Console.Write("Select Root (chair, airpod, toy) >> ");
+            string strRootMode = Console.ReadLine()?.ToLower();
+            if (string.IsNullOrEmpty(strRootMode)) return;
+            _strRootDir = Path.Combine(_strRootDir, @"BFMatch", strRootMode);
+            List<YoonImage> pListImage = YoonImage.LoadImages(_strRootDir);
+            _pClm.Write("Image Load Completed");
+            // Insert Parameter
+            Dictionary<string, string> pDicArgs = new Dictionary<string, string>();
+            Console.Write("NumOctaves (default : 3) >> ");
+            pDicArgs.Add("NumOctaves", Console.ReadLine());
+            Console.Write("PeakThresh (default : 0.04) >> ");
+            pDicArgs.Add("PeakThresh", Console.ReadLine());
+            Console.Write("EdgeThresh (default : 10) >> ");
+            pDicArgs.Add("EdgeThresh", Console.ReadLine());
+            Console.Write("Magnif (default : 3) >> ");
+            pDicArgs.Add("Magnif", Console.ReadLine());
+            Console.Write("WindowSize (default : 1.6) >> ");
+            pDicArgs.Add("WindowSize", Console.ReadLine());
+            _pClm.Write("Parameter Input Completed");
+            _pClm.Write(pDicArgs.Log());
+            // Parse Parameter
+            int nOctaves = int.Parse(pDicArgs["NumOctaves"]);
+            double dContrashThresh = double.Parse(pDicArgs["PeakThresh"]);
+            double dEdgeThresh = double.Parse(pDicArgs["EdgeThresh"]);
+            double dFilter = double.Parse(pDicArgs["WindowSize"]);
+            // Get matching parameter in the root directory
+            Stopwatch pTimer = new Stopwatch();
+            CVImage pPipelineImage1 = new CVImage(pListImage[0].ToGrayImage().ResizeToKeepRatio(1024, 1024));
+            CVImage pPipelineImage2 = new CVImage(pListImage[1].ToGrayImage().ResizeToKeepRatio(1024, 1024));
+            pPipelineImage1.FilePath = pListImage[0].FilePath;
+            pPipelineImage2.FilePath = pListImage[1].FilePath;
+            pTimer.Reset();
+            pTimer.Start();
+            CVFactory.FeatureMatch.SiftMatching(pPipelineImage1, pPipelineImage2, out YoonDataset pDataset1,
+                out YoonDataset pDataset2,
+                nOctaves, dContrashThresh, dEdgeThresh, dFilter);
+            pTimer.Stop();
+            _pClm.Write(
+                $"Find {pDataset1.Count} objects, {pTimer.ElapsedMilliseconds:F2} ms");
+            if (pDataset1.Count != pDataset2.Count)
+                throw new Exception("Dataset is not same each other");
+            CVImage pCombineImage = pPipelineImage1.Add(pPipelineImage2, 0.7);
+            for (int i = 0; i < pDataset1.Count; i++)
+            {
+                YoonVector2N pPosition1 = pDataset1[i].Position as YoonVector2N;
+                YoonVector2N pPosition2 = pDataset2[i].Position as YoonVector2N;
+                YoonLine2N pLine = new YoonLine2N(pPosition1, pPosition2);
+                pCombineImage.DrawLine(pPosition1, pPosition2, Color.Cyan, 1);
+                pCombineImage.DrawCross(pPosition1, Color.Red, 5, 1);
+                pCombineImage.DrawCross(pPosition2, Color.Red, 5, 1);
+            }
+
+            pCombineImage.ShowImage("Combines");
+            // Get perspective transform as each other images
+            List<YoonVector2N> pListPoint = new List<YoonVector2N>();
+            int nStep = 100;
+            for (int jStep = 0; jStep < pPipelineImage1.Height / nStep; jStep++)
+            {
+                for (int iStep = 0; iStep < pPipelineImage1.Width / nStep; iStep++)
+                {
+                    pListPoint.Add(new YoonVector2N(nStep * iStep, nStep * jStep));
+                }
+            }
+
+            _pClm.Write($"Ready the points have same space {pListPoint.Count} ea");
+            YoonDataset pPointSet = YoonDataset.FromVector2Ns(pListPoint);
+            pTimer.Reset();
+            pTimer.Start();
+            YoonDataset pTransformSet1 = pPointSet.FindPerspectiveTransform(pDataset1, pDataset2);
+            pTimer.Stop();
+            _pClm.Write($"Get the perspective transform for the first image, {pTimer.ElapsedMilliseconds:F2} ms");
+            CVImage pMatrixImage1 = new CVImage(pPipelineImage1.Clone() as YoonImage);
+            for (int iPos = 0; iPos < pTransformSet1.Count; iPos++)
+            {
+                YoonVector2D pPosition = (YoonVector2D) pTransformSet1[iPos].Position;
+                pMatrixImage1.DrawCross(pPosition.ToVector2N(), Color.Red);
+            }
+            pMatrixImage1.ShowImage("Result1");
+            pTimer.Reset();
+            pTimer.Start();
+            YoonDataset pTransformSet2 = pPointSet.FindPerspectiveTransform(pDataset2, pDataset1);
             pTimer.Stop();
             _pClm.Write($"Get the perspective transform for the second image, {pTimer.ElapsedMilliseconds:F2} ms");
             CVImage pMatrixImage2 = new CVImage(pPipelineImage2.Clone() as YoonImage);

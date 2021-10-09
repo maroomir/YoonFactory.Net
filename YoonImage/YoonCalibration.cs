@@ -1,6 +1,4 @@
-﻿using NumSharp;
-
-namespace YoonFactory.Image
+﻿namespace YoonFactory.Image
 {
     public class YoonCalibration
     {
@@ -28,14 +26,31 @@ namespace YoonFactory.Image
         };
 
         public YoonMatrix3X3Double RotationMatrix => new YoonMatrix3X3Double(_pRotArray);
-        
+
         public YoonVector3D Transpose => new YoonVector3D(_pTransArray[0], _pTransArray[1], _pTransArray[2]);
 
-        private NDArray CalibrationMatrix()
+        public YoonCalibration(double dFx, double dFy, double dCx, double dCy, double dSkew,
+            double[,] pRotArray, double[] pTransArray)
         {
-            NDArray pRotationArray = new NDArray(_pRotArray.ToArray1D(), new Shape(3, 4));
-            NDArray pTransArray = new NDArray(_pTransArray, new Shape(3, 1));
-            return np.hstack(pRotationArray, pTransArray);
+            _dFx = dFx;
+            _dFy = dFy;
+            _dCx = dCx;
+            _dCy = dCy;
+            _dSkew = dSkew;
+            _pRotArray = pRotArray.Clone() as double[,];
+            _pTransArray = pTransArray.Clone() as double[];
+        }
+
+        public YoonCalibration(YoonVector2D pFocalVector, YoonVector2D pPrincipleVector, double dSkew,
+            double[,] pRotArray, double[] pTransArray)
+        {
+            _dFx = pFocalVector.X;
+            _dFy = pFocalVector.Y;
+            _dCx = pPrincipleVector.X;
+            _dCy = pPrincipleVector.Y;
+            _dSkew = dSkew;
+            _pRotArray = pRotArray.Clone() as double[,];
+            _pTransArray = pTransArray.Clone() as double[];
         }
     }
 }

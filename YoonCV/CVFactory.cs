@@ -101,9 +101,9 @@ namespace YoonFactory.CV
         public static CVImage Resize(this CVImage pSourceImage, int nDestWidth, int nDestHeight) =>
             Transform.Resize(pSourceImage, nDestWidth, nDestHeight);
         
-        public static YoonDataset PerspectiveTransform(this YoonDataset pPointSet, YoonDataset pSourceInliers,
+        public static YoonDataset FindPerspectiveTransform(this YoonDataset pPointSet, YoonDataset pSourceInliers,
             YoonDataset pObjectInliers)
-            => Calibration.PerspectiveTransform(pPointSet, pSourceInliers, pObjectInliers);
+            => Calibration.FindPerspectiveTransform(pPointSet, pSourceInliers, pObjectInliers);
         
         public static class VideoProcessor
         {
@@ -858,7 +858,7 @@ namespace YoonFactory.CV
 
         public static class Calibration
         {
-            public static YoonDataset PerspectiveTransform(YoonDataset pPointSet, YoonDataset pSourceInliers,
+            public static YoonDataset FindPerspectiveTransform(YoonDataset pPointSet, YoonDataset pSourceInliers,
                 YoonDataset pObjectInliers)
             {
                 IYoonVector[] pVectors = pPointSet.Positions.ToArray();
@@ -868,7 +868,7 @@ namespace YoonFactory.CV
                     pSourcePoints[iPos] = pVectors[iPos].ToCVPoint2D();
                 }
 
-                Point2d[] pResultPoints = PerspectiveTransform(pSourceInliers, pObjectInliers, pSourcePoints);
+                Point2d[] pResultPoints = FindPerspectiveTransform(pSourceInliers, pObjectInliers, pSourcePoints);
                 YoonDataset pResultDataset = new YoonDataset();
                 for (int iLabel = 0; iLabel < pResultPoints.Length; iLabel++)
                 {
@@ -878,7 +878,7 @@ namespace YoonFactory.CV
                 return pResultDataset;
             }
 
-            public static Point2d[] PerspectiveTransform(YoonDataset pSourceInliers, YoonDataset pObjectInliers,
+            public static Point2d[] FindPerspectiveTransform(YoonDataset pSourceInliers, YoonDataset pObjectInliers,
                 params Point2d[] pPoints)
             {
                 if (pSourceInliers.Count != pObjectInliers.Count)
@@ -896,16 +896,34 @@ namespace YoonFactory.CV
                     throw new NullReferenceException("[YOONCV EXCEPTION] Homography Matrix is null");
                 return Cv2.PerspectiveTransform(pPoints, pHomography);
             }
+
+            public static void FindEpiline(YoonDataset pSourceInliers, YoonDataset pObjectInliers,
+                double dDistThreshold = 1.0, double dConfidence = 0.9)
+            {
+                if(pSourceInliers.Count != pObjectInliers.Count)
+                    throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Dataset length is not same");
+                Point2d[] pSourcePoints = new Point2d[pSourceInliers.Count];
+                Point2d[] pObjectPoints = new Point2d[pObjectInliers.Count];
+                for (int i = 0; i < pSourceInliers.Count; i++)
+                {
+                    pSourcePoints[i] = pSourceInliers[i].Position.ToCVPoint2D();
+                    pObjectPoints[i] = pObjectInliers[i].Position.ToCVPoint2D();
+                }
+
+                Mat pMask = new Mat();
+                Mat pFundamentalMat = Cv2.FindFundamentalMat(pSourcePoints, pObjectPoints, FundamentalMatMethods.Ransac,
+                    dDistThreshold, dConfidence, pMask);
+            }
             
             public static void ChessboardCalibration(Mat pSourceMatrix, int nRows, int nCols,
                 double nPartWith, double nPartHeight,
                 double dOffsetX = 0.0, double dOffsetY = 0.0, double dOffsetZ = 0.0,
-                int nFilterSize = 5, int nTermCount = 30, double dRate = 0.001)
+                int nFilterSize = 5, int nTermCount = 30, double dEpsilon = 0.001)
             {
                 // Parameter initialize
                 nRows = nRows - 1; // corners = count - 1
                 nCols = nCols - 1;
-                TermCriteria pCriteria = TermCriteria.Both(nTermCount, dRate);
+                TermCriteria pCriteria = TermCriteria.Both(nTermCount, dEpsilon);
                 List<Point3f[]> pListObjectPoints = new List<Point3f[]>();
                 List<Point2f[]> pListImagePoints = new List<Point2f[]>();
                 // Construct the object points in the chessboard
@@ -930,14 +948,14 @@ namespace YoonFactory.CV
                     double[] pDistCoefficient = new double[8];
                     Cv2.CalibrateCamera(pListObjectPoints.ToArray(), pListImagePoints.ToArray(), pSourceMatrix.Size(),
                         pCameraMatrix, pDistCoefficient, out Vec3d[] pRotationVectors, out Vec3d[] pTransVector);
-                    // Insert the YoonCalibration?
+                    // Output the Calibration Parameter?
                 }
             }
             
             public static void ChessboardCalibration(List<Mat> pListMatrix, int nRows, int nCols,
                 double nPartWith, double nPartHeight,
                 double dOffsetX = 0.0, double dOffsetY = 0.0, double dOffsetZ = 0.0,
-                int nFilterSize = 5, int nTermCount = 30, double dRate = 0.001)
+                int nFilterSize = 5, int nTermCount = 30, double dEpsilon = 0.001)
             {
                 if (pListMatrix.Count < 1)
                     throw new ArgumentException("[YOONCV EXCEPTION] Image count is not enough");
@@ -952,7 +970,7 @@ namespace YoonFactory.CV
                 nCols = nCols - 1;
                 int nImageWidth = pListMatrix[0].Cols;
                 int nImageHeight = pListMatrix[0].Rows;
-                TermCriteria pCriteria = TermCriteria.Both(nTermCount, dRate);
+                TermCriteria pCriteria = TermCriteria.Both(nTermCount, dEpsilon);
                 List<Point3f[]> pListObjectPoints = new List<Point3f[]>();
                 List<Point2f[]> pListImagePoints = new List<Point2f[]>();
                 // Construct the object points in the chessboard
@@ -983,7 +1001,7 @@ namespace YoonFactory.CV
                 Cv2.CalibrateCamera(pListObjectPoints.ToArray(), pListImagePoints.ToArray(),
                     new Size(nImageWidth, nImageHeight),
                     pCameraMatrix, pDistCoefficient, out Vec3d[] pRotationVectors, out Vec3d[] pTransVector);
-                // Insert the YoonCalibration?
+                // Output the Calibration Parameter?
             }
         }
 
