@@ -69,5 +69,19 @@ namespace YoonFactory
 
             return pResult;
         }
+
+        public static T[] SelectFlag<T>(this T[] pSource, bool[] pFlags)
+        {
+            if (pFlags.Length != pSource.Length)
+                throw new ArgumentOutOfRangeException("[YOONFACTORY] Flag and Source is not same");
+            List<T> pResult = new List<T>();
+            for (int i = 0; i < pSource.Length; i++)
+            {
+                if (pFlags[i])
+                    pResult.Add(pSource[i]);
+            }
+
+            return pResult.ToArray();
+        }
     }
 }

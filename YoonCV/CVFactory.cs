@@ -861,60 +861,102 @@ namespace YoonFactory.CV
             public static YoonDataset FindPerspectiveTransform(YoonDataset pPointSet, YoonDataset pSourceInliers,
                 YoonDataset pObjectInliers)
             {
-                IYoonVector[] pVectors = pPointSet.Positions.ToArray();
-                Point2d[] pSourcePoints = new Point2d[pVectors.Length];
-                for (int iPos = 0; iPos < pSourcePoints.Length; iPos++)
+                // Bring-up the reference points
+                Point2d[] pReferencePoints = new Point2d[pPointSet.Count];
+                for (int iPos = 0; iPos < pReferencePoints.Length; iPos++)
                 {
-                    pSourcePoints[iPos] = pVectors[iPos].ToCVPoint2D();
+                    pReferencePoints[iPos] = pPointSet[iPos].Position.ToCVPoint2D();
                 }
-
-                Point2d[] pResultPoints = FindPerspectiveTransform(pSourceInliers, pObjectInliers, pSourcePoints);
+                // Bring-up the inliers points
+                if (pSourceInliers.Count != pObjectInliers.Count)
+                    throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Dataset length is not same");
+                Point2d[] pSourcePoints = new Point2d[pSourceInliers.Count];
+                Point2d[] pObjectPoints = new Point2d[pObjectInliers.Count];
+                for (int iPos = 0; iPos < pSourceInliers.Count; iPos++)
+                {
+                    pSourcePoints[iPos] = pSourceInliers[iPos].Position.ToCVPoint2D();
+                    pObjectPoints[iPos] = pObjectInliers[iPos].Position.ToCVPoint2D();
+                }
+                // Perspective Transform
+                Point2d[] pResultPoints = FindPerspectiveTransform(pSourcePoints, pObjectPoints, pSourcePoints);
                 YoonDataset pResultDataset = new YoonDataset();
                 for (int iLabel = 0; iLabel < pResultPoints.Length; iLabel++)
                 {
                     pResultDataset.Add(new YoonObject(iLabel, pResultPoints[iLabel].ToYoonVector()));
                 }
-
                 return pResultDataset;
             }
 
-            public static Point2d[] FindPerspectiveTransform(YoonDataset pSourceInliers, YoonDataset pObjectInliers,
-                params Point2d[] pPoints)
+            public static void FindEpiline(YoonDataset pSourceInliers, YoonDataset pObjectInliers, int nWhichImage = 0,
+                double dDistThreshold = 1.0, double dConfidence = 0.9)
             {
+                // Bring-up the inliers points
                 if (pSourceInliers.Count != pObjectInliers.Count)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Dataset length is not same");
                 Point2d[] pSourcePoints = new Point2d[pSourceInliers.Count];
-                Point2d[] pObjectPoints = new Point2d[pSourceInliers.Count];
-                for (int i = 0; i < pSourceInliers.Count; i++)
+                Point2d[] pObjectPoints = new Point2d[pObjectInliers.Count];
+                for (int iPos = 0; iPos < pSourceInliers.Count; iPos++)
                 {
-                    pSourcePoints[i] = pSourceInliers[i].Position.ToCVPoint2D();
-                    pObjectPoints[i] = pObjectInliers[i].Position.ToCVPoint2D();
+                    pSourcePoints[iPos] = pSourceInliers[iPos].Position.ToCVPoint2D();
+                    pObjectPoints[iPos] = pObjectInliers[iPos].Position.ToCVPoint2D();
                 }
 
+                // Find Epiline
+                Point3f[] pLinePoints = FindEpiline(pSourcePoints, pObjectPoints, nWhichImage, dDistThreshold, dConfidence); // a, b, c...
+            }
+
+            public static Point2d[] FindPerspectiveTransform(Point2d[] pSourcePoints, Point2d[] pObjectPoints,
+                params Point2d[] pReferencePoints)
+            {
+                if (pSourcePoints.Length != pSourcePoints.Length)
+                    throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Dataset length is not same");
+                if (pSourcePoints.Length < 4)
+                    throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Dataset length is too less");
                 Mat pHomography = Cv2.FindHomography(pSourcePoints, pObjectPoints, HomographyMethods.Ransac, 5.0);
                 if (pHomography == null)
                     throw new NullReferenceException("[YOONCV EXCEPTION] Homography Matrix is null");
-                return Cv2.PerspectiveTransform(pPoints, pHomography);
+                return Cv2.PerspectiveTransform(pReferencePoints, pHomography);
             }
 
-            public static void FindEpiline(YoonDataset pSourceInliers, YoonDataset pObjectInliers,
-                double dDistThreshold = 1.0, double dConfidence = 0.9)
+            public static Point3f[] FindEpiline(Point2d[] pSourcePoints, Point2d[] pObjectPoints,
+                int nWhichImage, double dDistThreshold, double dConfidence)
             {
-                if(pSourceInliers.Count != pObjectInliers.Count)
+                if (pSourcePoints.Length != pObjectPoints.Length)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Dataset length is not same");
-                Point2d[] pSourcePoints = new Point2d[pSourceInliers.Count];
-                Point2d[] pObjectPoints = new Point2d[pObjectInliers.Count];
-                for (int i = 0; i < pSourceInliers.Count; i++)
-                {
-                    pSourcePoints[i] = pSourceInliers[i].Position.ToCVPoint2D();
-                    pObjectPoints[i] = pObjectInliers[i].Position.ToCVPoint2D();
-                }
-
+                if (pSourcePoints.Length < 4)
+                    throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Dataset length is too less");
                 Mat pMask = new Mat();
                 Mat pFundamentalMat = Cv2.FindFundamentalMat(pSourcePoints, pObjectPoints, FundamentalMatMethods.Ransac,
                     dDistThreshold, dConfidence, pMask);
+                // Reconstruct the fundamental array
+                double[,] pFundamentalArray = new double[pFundamentalMat.Rows, pFundamentalMat.Cols];
+                for (int i = 0; i < pFundamentalMat.Rows; i++)
+                {
+                    for (int j = 0; j < pFundamentalMat.Cols; j++)
+                    {
+                        pFundamentalArray[i, j] = pFundamentalMat.Get<double>(i, j);
+                    }
+                }
+                // Reconstruct the flag array
+                bool[] pFlags = new bool[pMask.Rows];
+                for (int i = 0; i < pMask.Rows; i++)
+                {
+                    pFlags[i] = pMask.Get<bool>(i);
+                }
+                pSourcePoints = pSourcePoints.SelectFlag(pFlags);
+                pObjectPoints = pObjectPoints.SelectFlag(pFlags);
+                // Return the value a, b, c in (ax + by + c = 0)
+                switch (nWhichImage)
+                {
+                    case 0:
+                        return Cv2.ComputeCorrespondEpilines(pSourcePoints, 1, pFundamentalArray);
+                    case 1:
+                        return Cv2.ComputeCorrespondEpilines(pObjectPoints, 2, pFundamentalArray);
+                    default:
+                        throw new ArgumentException("[YOONCV EXCEPTION] Image Number Error");
+                }
             }
-            
+
             public static void ChessboardCalibration(Mat pSourceMatrix, int nRows, int nCols,
                 double nPartWith, double nPartHeight,
                 double dOffsetX = 0.0, double dOffsetY = 0.0, double dOffsetZ = 0.0,
