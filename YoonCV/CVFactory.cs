@@ -887,7 +887,7 @@ namespace YoonFactory.CV
                 return pResultDataset;
             }
 
-            public static void FindEpiline(YoonDataset pSourceInliers, YoonDataset pObjectInliers, int nWhichImage = 0,
+            public static YoonDataset FindEpiline(YoonDataset pSourceInliers, YoonDataset pObjectInliers, int nWhichImage = 0,
                 double dDistThreshold = 1.0, double dConfidence = 0.9)
             {
                 // Bring-up the inliers points
@@ -901,8 +901,19 @@ namespace YoonFactory.CV
                     pObjectPoints[iPos] = pObjectInliers[iPos].Position.ToCVPoint2D();
                 }
 
-                // Find Epiline
-                Point3f[] pLinePoints = FindEpiline(pSourcePoints, pObjectPoints, nWhichImage, dDistThreshold, dConfidence); // a, b, c...
+                // Find Epiline (ax + by + c = 0)
+                Mat pLineMat = FindEpiline(pSourcePoints, pObjectPoints, nWhichImage, dDistThreshold, dConfidence);
+                YoonDataset pResultDataset = new YoonDataset();
+                for (int iPos = 0; iPos < pLineMat.Rows; iPos++)
+                {
+                    double dA = pLineMat.Get<double>(iPos, 0);
+                    double dB = pLineMat.Get<double>(iPos, 1);
+                    double dC = pLineMat.Get<double>(iPos, 2);
+                    YoonLine2D pLine = new YoonLine2D(dA, -dB, dC);
+                    pResultDataset.Add(new YoonObject(iPos, pLine));
+                }
+
+                return pResultDataset;
             }
 
             public static Point2d[] FindPerspectiveTransform(Point2d[] pSourcePoints, Point2d[] pObjectPoints,
@@ -918,7 +929,7 @@ namespace YoonFactory.CV
                 return Cv2.PerspectiveTransform(pReferencePoints, pHomography);
             }
 
-            public static Point3f[] FindEpiline(Point2d[] pSourcePoints, Point2d[] pObjectPoints,
+            public static Mat FindEpiline(Point2d[] pSourcePoints, Point2d[] pObjectPoints,
                 int nWhichImage, double dDistThreshold, double dConfidence)
             {
                 if (pSourcePoints.Length != pObjectPoints.Length)
@@ -929,6 +940,8 @@ namespace YoonFactory.CV
                 Mat pFundamentalMat = Cv2.FindFundamentalMat(pSourcePoints, pObjectPoints, FundamentalMatMethods.Ransac,
                     dDistThreshold, dConfidence, pMask);
                 // Reconstruct the fundamental array
+                // Protect the OpenCVException (NativeMethods.calib3d_computeCorrespondEpilines_InputArray Method)
+                /*
                 double[,] pFundamentalArray = new double[pFundamentalMat.Rows, pFundamentalMat.Cols];
                 for (int i = 0; i < pFundamentalMat.Rows; i++)
                 {
@@ -937,24 +950,46 @@ namespace YoonFactory.CV
                         pFundamentalArray[i, j] = pFundamentalMat.Get<double>(i, j);
                     }
                 }
+                */
                 // Reconstruct the flag array
+                /*
                 bool[] pFlags = new bool[pMask.Rows];
                 for (int i = 0; i < pMask.Rows; i++)
                 {
                     pFlags[i] = pMask.Get<bool>(i);
                 }
+
                 pSourcePoints = pSourcePoints.SelectFlag(pFlags);
                 pObjectPoints = pObjectPoints.SelectFlag(pFlags);
+                */
+                // Reconstruct the point matrix
+                Mat pSourceMatrix = new Mat();
+                Mat pObjectMatrix = new Mat();
+                for (int iPoint = 0; iPoint < pSourcePoints.Length; iPoint++)
+                {
+                    if (!pMask.Get<bool>(iPoint)) continue;
+                    pSourceMatrix.PushBack(pSourcePoints[iPoint]);
+                    pObjectMatrix.PushBack(pObjectPoints[iPoint]);
+                }
                 // Return the value a, b, c in (ax + by + c = 0)
+                Mat pResultMat = new Mat();
                 switch (nWhichImage)
                 {
                     case 0:
-                        return Cv2.ComputeCorrespondEpilines(pSourcePoints, 1, pFundamentalArray);
+                        Cv2.ComputeCorrespondEpilines(pSourceMatrix, 1, pFundamentalMat, pResultMat);
+                        break;
+                    // Protect the OpenCVException (NativeMethods.calib3d_computeCorrespondEpilines_InputArray Method)
+                    //return Cv2.ComputeCorrespondEpilines(pSourcePoints, 1, pFundamentalArray);
                     case 1:
-                        return Cv2.ComputeCorrespondEpilines(pObjectPoints, 2, pFundamentalArray);
+                        Cv2.ComputeCorrespondEpilines(pObjectMatrix, 2, pFundamentalMat, pResultMat);
+                        break;
+                    // Protect the OpenCVException (NativeMethods.calib3d_computeCorrespondEpilines_InputArray Method)
+                    //return Cv2.ComputeCorrespondEpilines(pObjectPoints, 2, pFundamentalArray);
                     default:
                         throw new ArgumentException("[YOONCV EXCEPTION] Image Number Error");
                 }
+
+                return pResultMat;
             }
 
             public static void ChessboardCalibration(Mat pSourceMatrix, int nRows, int nCols,

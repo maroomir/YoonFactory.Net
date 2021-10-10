@@ -37,6 +37,16 @@ namespace YoonFactory.CV
                 _ => new Point2d()
             };
         }
+        
+        public static Point2f ToCVPoint2F(this IYoonVector pVector)
+        {
+            return pVector switch
+            {
+                YoonVector2N pVec2N => new Point2f(pVec2N.X, pVec2N.Y),
+                YoonVector2D pVec2D => new Point2f((float)pVec2D.X, (float)pVec2D.Y),
+                _ => new Point2f()
+            };
+        }
 
         public static Point3d ToCVPoint3D(this YoonVector3D pVector)
         {

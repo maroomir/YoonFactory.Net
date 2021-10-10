@@ -620,9 +620,37 @@ namespace YoonSample.TestImage
             }
             pTimer.Reset();
             pTimer.Start();
-            CVFactory.Calibration.FindEpiline(pDataset1, pDataset2, 0, 1, 0.9);
+            YoonDataset pLineSet1 = CVFactory.Calibration.FindEpiline(pDataset1, pDataset2, 0, 1, 0.9);
             pTimer.Stop();
-            _pClm.Write($"Get the Epiline, {pTimer.ElapsedMilliseconds:F2} ms");
+            _pClm.Write($"Find the {pLineSet1.Count:D} Epiline, {pTimer.ElapsedMilliseconds:F2} ms");
+            for (int i = 0; i < pLineSet1.Count; i++)
+            {
+                YoonLine2D pLine = (YoonLine2D) pLineSet1[i].Feature;
+                int nStartX = 0;
+                int nStartY = (int) (pLine.Y(nStartX));
+                int nEndX = 1024;
+                int nEndY = (int) (pLine.Y(nEndX));
+                if (nStartY > 0 && nEndY > 0)
+                    pPipelineImage1.DrawLine(new YoonLine2N(nStartX, nStartY, nEndX, nEndY), Color.Blue);
+            }
+            pPipelineImage1.ShowImage("Epiline");
+            pTimer.Reset();
+            pTimer.Start();
+            YoonDataset pLineSet2 = CVFactory.Calibration.FindEpiline(pDataset1, pDataset2, 1, 1, 0.9);
+            pTimer.Stop();
+            _pClm.Write($"Find the {pLineSet2.Count:D} Epiline, {pTimer.ElapsedMilliseconds:F2} ms");
+            for (int i = 0; i < pLineSet2.Count; i++)
+            {
+                YoonLine2D pLine = (YoonLine2D) pLineSet2[i].Feature;
+                int nStartX = 0;
+                int nStartY = (int) (pLine.Y(nStartX));
+                int nEndX = 1024;
+                int nEndY = (int) (pLine.Y(nEndX));
+                if (nStartY > 0 && nEndY > 0)
+                    pPipelineImage2.DrawLine(new YoonLine2N(nStartX, nStartY, nEndX, nEndY), Color.Red);
+            }
+
+            pPipelineImage2.ShowImage("Epiline");
         }
 
         static void ProcessAttach()

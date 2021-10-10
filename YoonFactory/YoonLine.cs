@@ -252,6 +252,17 @@ namespace YoonFactory
         {
             return new YoonLine2D(StartPos.X, StartPos.Y, EndPos.X, EndPos.Y);
         }
+        
+        public static YoonLine2D[] ToLine2Ns(YoonLine2N[] pLines)
+        {
+            YoonLine2D[] pResultLine = new YoonLine2D[pLines.Length];
+            for (int iLine = 0; iLine < pLines.Length; iLine++)
+            {
+                pResultLine[iLine] = pLines[iLine].ToLine2D();
+            }
+
+            return pResultLine;
+        }
 
         public static bool operator ==(YoonLine2N l1, YoonLine2N l2)
         {
@@ -340,13 +351,22 @@ namespace YoonFactory
             Slope = (dEndY - dStartY) / (dEndX == dStartX ? 0.00001 : dEndX - dStartX);
             Constant = dStartY - Slope * dStartX;
         }
-
+        
         public YoonLine2D(double slope, double constant)
         {
             Slope = slope;
             Constant = constant;
-            StartPos = new YoonVector2D(-1, Y(-1));
-            EndPos = new YoonVector2D(1, Y(1));
+            StartPos = new YoonVector2D(0, Y(0));
+            EndPos = new YoonVector2D(100, Y(100));
+        }
+        
+        public YoonLine2D(double dA, double dB, double dC) // AX + BY + C
+        {
+            // AX + BY + C => Y = -A/B X - C/B
+            Slope = - dA / dB;
+            Constant = - dC / dB;
+            StartPos = new YoonVector2D(0, Y(0));
+            EndPos = new YoonVector2D(100, Y(100));
         }
         
         public YoonLine2D(List<YoonVector2D> pList, eYoonDir2D nDirArrange = eYoonDir2D.None)
@@ -502,6 +522,17 @@ namespace YoonFactory
         public YoonLine2N ToLine2N()
         {
             return new YoonLine2N((int) StartPos.X, (int) StartPos.Y, (int) EndPos.X, (int) EndPos.Y);
+        }
+
+        public static YoonLine2N[] ToLine2Ns(YoonLine2D[] pLines)
+        {
+            YoonLine2N[] pResultLine = new YoonLine2N[pLines.Length];
+            for (int iLine = 0; iLine < pLines.Length; iLine++)
+            {
+                pResultLine[iLine] = pLines[iLine].ToLine2N();
+            }
+
+            return pResultLine;
         }
 
         public static bool operator ==(YoonLine2D l1, YoonLine2D l2)
