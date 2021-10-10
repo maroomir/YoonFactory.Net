@@ -218,6 +218,26 @@ namespace YoonFactory
             EndPos.Y = Y(width) > height ? height : Y(width);
         }
 
+        public IYoonLine FlipX(int x)
+        {
+            // Y = aX + b -> - Y = a(X - x) + b
+            return new YoonLine2N()
+            {
+                Slope = -Slope,
+                Constant = -Constant - Slope * x,
+            };
+        }
+        
+        public IYoonLine FlipY(int y)
+        {
+            // Y = aX + b -> y - y = -aX + b
+            return new YoonLine2N()
+            {
+                Slope = -Slope,
+                Constant = Constant + y
+            };
+        }
+
         public bool IsContain(IYoonVector pVector)
         {
             return pVector switch
@@ -508,6 +528,26 @@ namespace YoonFactory
             StartPos.Y = Y(0) > 0 ? Y(0) : 0;
             EndPos.X = X(height) > width ? width : X(height);
             EndPos.Y = Y(width) > height ? height : Y(width);
+        }
+
+        public IYoonLine FlipX(double x)
+        {
+            // Y = aX + b -> - Y = a(X - x) + b
+            return new YoonLine2D()
+            {
+                Slope = -Slope,
+                Constant = -Constant - Slope * x,
+            };
+        }
+        
+        public IYoonLine FlipY(double y)
+        {
+            // Y = aX + b -> y - y = -aX + b
+            return new YoonLine2D()
+            {
+                Slope = -Slope,
+                Constant = Constant + y
+            };
         }
 
         public bool IsContain(IYoonVector pVector)

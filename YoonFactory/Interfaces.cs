@@ -194,6 +194,8 @@ namespace YoonFactory
         IYoonVector2D<T> Intersection(IYoonLine pLine);
         void Fit(IYoonRect2D<T> pRect);
         void Fit(T width, T height);
+        IYoonLine FlipX(T x);
+        IYoonLine FlipY(T y);
     }
 
     public interface IYoonRect : IYoonFigure

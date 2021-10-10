@@ -910,8 +910,9 @@ namespace YoonFactory.CV
                     double dA = pLineMat.Get<double>(iPos, 0);
                     double dB = pLineMat.Get<double>(iPos, 1);
                     double dC = pLineMat.Get<double>(iPos, 2);
-                    YoonLine2D pLine = new YoonLine2D(dA, -dB, dC);
-                    pResultDataset.Add(new YoonObject(iPos, pLine));
+                    YoonLine2D pLine = new YoonLine2D(dA, dB, dC);
+                    // Change the cartesian to image reference (Zero = Top-Left)
+                    pResultDataset.Add(new YoonObject(iPos, pLine.FlipX(0)));
                 }
 
                 return pResultDataset;
@@ -976,13 +977,13 @@ namespace YoonFactory.CV
                 Mat pResultMat = new Mat();
                 if (bFindSource)
                 {
-                    Cv2.ComputeCorrespondEpilines(pSourceMatrix, 2, pFundamentalMat, pResultMat);
+                    Cv2.ComputeCorrespondEpilines(pObjectMatrix, 2, pFundamentalMat, pResultMat);
                     // Protect the OpenCVException (NativeMethods.calib3d_computeCorrespondEpilines_InputArray Method)
                     //return Cv2.ComputeCorrespondEpilines(pSourcePoints, 1, pFundamentalArray);
                 }
                 else
                 {
-                    Cv2.ComputeCorrespondEpilines(pObjectMatrix, 1, pFundamentalMat, pResultMat);
+                    Cv2.ComputeCorrespondEpilines(pSourceMatrix, 1, pFundamentalMat, pResultMat);
                     // Protect the OpenCVException (NativeMethods.calib3d_computeCorrespondEpilines_InputArray Method)
                     //return Cv2.ComputeCorrespondEpilines(pObjectPoints, 2, pFundamentalArray);
                 }

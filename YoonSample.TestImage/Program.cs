@@ -590,7 +590,7 @@ namespace YoonSample.TestImage
             pTimer.Start();
             CVFactory.FeatureMatch.SiftMatching(pPipelineImage1, pPipelineImage2, out YoonDataset pDataset1,
                 out YoonDataset pDataset2,
-                nOctaves, dContrashThresh, dEdgeThresh, dFilter, 0.8);
+                nOctaves, dContrashThresh, dEdgeThresh, dFilter, 0.7);
             pTimer.Stop();
             _pClm.Write(
                 $"Find {pDataset1.Count} objects, {pTimer.ElapsedMilliseconds:F2} ms");
@@ -605,6 +605,9 @@ namespace YoonSample.TestImage
                 pCombineImage.DrawLine(pPosition1, pPosition2, Color.Cyan, 1);
                 pCombineImage.DrawCross(pPosition1, Color.Red, 5, 1);
                 pCombineImage.DrawCross(pPosition2, Color.Red, 5, 1);
+                // Check the epiline
+                pPipelineImage1.DrawCross(pPosition1, Color.Red, 5, 1);
+                pPipelineImage2.DrawCross(pPosition2, Color.Blue, 5, 1);
             }
 
             pCombineImage.ShowImage("Combines");
@@ -620,7 +623,7 @@ namespace YoonSample.TestImage
             }
             pTimer.Reset();
             pTimer.Start();
-            YoonDataset pLineSet1 = CVFactory.Calibration.FindEpiline(pDataset1, pDataset2, true, 1, 0.9);
+            YoonDataset pLineSet1 = CVFactory.Calibration.FindEpiline(pDataset1, pDataset2, true, 0.1, 0.9);
             pTimer.Stop();
             _pClm.Write($"Find the {pLineSet1.Count:D} Epiline, {pTimer.ElapsedMilliseconds:F2} ms");
             for (int i = 0; i < pLineSet1.Count; i++)
@@ -632,7 +635,7 @@ namespace YoonSample.TestImage
             pPipelineImage1.ShowImage("Epiline");
             pTimer.Reset();
             pTimer.Start();
-            YoonDataset pLineSet2 = CVFactory.Calibration.FindEpiline(pDataset1, pDataset2, false, 1, 0.9);
+            YoonDataset pLineSet2 = CVFactory.Calibration.FindEpiline(pDataset1, pDataset2, false, 0.1, 0.9);
             pTimer.Stop();
             _pClm.Write($"Find the {pLineSet2.Count:D} Epiline, {pTimer.ElapsedMilliseconds:F2} ms");
             for (int i = 0; i < pLineSet2.Count; i++)
