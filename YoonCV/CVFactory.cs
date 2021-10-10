@@ -751,10 +751,11 @@ namespace YoonFactory.CV
 
             public static void SiftMatching(CVImage pSourceImage, CVImage pObjectImage,
                 out YoonDataset pSourceInliers, out YoonDataset pObjectInliers,
-                int nOctaves = 3, double dContrastThresh = 0.4, double dEdgeThresh = 10.0, double dFilterSigma = 2.0)
+                int nOctaves = 3, double dContrastThresh = 0.4, double dEdgeThresh = 10.0, double dFilterSigma = 2.0,
+                double dRateScore = 0.5)
             {
                 SiftMatching(pSourceImage.Matrix, pObjectImage.Matrix, out pSourceInliers, out pObjectInliers,
-                    nOctaves, dContrastThresh, dEdgeThresh, dFilterSigma);
+                    nOctaves, dContrastThresh, dEdgeThresh, dFilterSigma, dRateScore);
             }
 
             public static void SurfMatching(Mat pSourceMatrix, Mat pObjectMatrix,
@@ -887,8 +888,8 @@ namespace YoonFactory.CV
                 return pResultDataset;
             }
 
-            public static YoonDataset FindEpiline(YoonDataset pSourceInliers, YoonDataset pObjectInliers, int nWhichImage = 0,
-                double dDistThreshold = 1.0, double dConfidence = 0.9)
+            public static YoonDataset FindEpiline(YoonDataset pSourceInliers, YoonDataset pObjectInliers,
+                bool bFindSource = true, double dDistThreshold = 1.0, double dConfidence = 0.9)
             {
                 // Bring-up the inliers points
                 if (pSourceInliers.Count != pObjectInliers.Count)
@@ -902,7 +903,7 @@ namespace YoonFactory.CV
                 }
 
                 // Find Epiline (ax + by + c = 0)
-                Mat pLineMat = FindEpiline(pSourcePoints, pObjectPoints, nWhichImage, dDistThreshold, dConfidence);
+                Mat pLineMat = FindEpiline(pSourcePoints, pObjectPoints, bFindSource, dDistThreshold, dConfidence);
                 YoonDataset pResultDataset = new YoonDataset();
                 for (int iPos = 0; iPos < pLineMat.Rows; iPos++)
                 {
@@ -929,8 +930,8 @@ namespace YoonFactory.CV
                 return Cv2.PerspectiveTransform(pReferencePoints, pHomography);
             }
 
-            public static Mat FindEpiline(Point2d[] pSourcePoints, Point2d[] pObjectPoints,
-                int nWhichImage, double dDistThreshold, double dConfidence)
+            public static Mat FindEpiline(Point2d[] pSourcePoints, Point2d[] pObjectPoints, bool bFindSource,
+                double dDistThreshold, double dConfidence)
             {
                 if (pSourcePoints.Length != pObjectPoints.Length)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Dataset length is not same");
@@ -973,22 +974,18 @@ namespace YoonFactory.CV
                 }
                 // Return the value a, b, c in (ax + by + c = 0)
                 Mat pResultMat = new Mat();
-                switch (nWhichImage)
+                if (bFindSource)
                 {
-                    case 0:
-                        Cv2.ComputeCorrespondEpilines(pSourceMatrix, 1, pFundamentalMat, pResultMat);
-                        break;
+                    Cv2.ComputeCorrespondEpilines(pSourceMatrix, 2, pFundamentalMat, pResultMat);
                     // Protect the OpenCVException (NativeMethods.calib3d_computeCorrespondEpilines_InputArray Method)
                     //return Cv2.ComputeCorrespondEpilines(pSourcePoints, 1, pFundamentalArray);
-                    case 1:
-                        Cv2.ComputeCorrespondEpilines(pObjectMatrix, 2, pFundamentalMat, pResultMat);
-                        break;
+                }
+                else
+                {
+                    Cv2.ComputeCorrespondEpilines(pObjectMatrix, 1, pFundamentalMat, pResultMat);
                     // Protect the OpenCVException (NativeMethods.calib3d_computeCorrespondEpilines_InputArray Method)
                     //return Cv2.ComputeCorrespondEpilines(pObjectPoints, 2, pFundamentalArray);
-                    default:
-                        throw new ArgumentException("[YOONCV EXCEPTION] Image Number Error");
                 }
-
                 return pResultMat;
             }
 

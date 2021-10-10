@@ -198,6 +198,26 @@ namespace YoonFactory
             return pResultVector;
         }
 
+        public void Fit(IYoonRect2D<int> pRect)
+        {
+            int nStartX = Math.Min(pRect.Left, pRect.Right);
+            int nStartY = Math.Min(pRect.Top, pRect.Bottom);
+            int nEndX = Math.Max(pRect.Left, pRect.Right);
+            int nEndY = Math.Max(pRect.Top, pRect.Bottom);
+            StartPos.X = X(nStartY) > nStartX ? X(nStartY) : nStartX;
+            StartPos.Y = Y(nStartX) > nStartY ? Y(nStartX) : nStartY;
+            EndPos.X = X(nEndY) > nEndX ? nEndX : X(nEndY);
+            EndPos.Y = Y(nEndX) > nEndY ? nEndY : Y(nEndX);
+        }
+
+        public void Fit(int width, int height)
+        {
+            StartPos.X = X(0) > 0 ? X(0) : 0;
+            StartPos.Y = Y(0) > 0 ? Y(0) : 0;
+            EndPos.X = X(height) > width ? width : X(height);
+            EndPos.Y = Y(width) > height ? height : Y(width);
+        }
+
         public bool IsContain(IYoonVector pVector)
         {
             return pVector switch
@@ -467,6 +487,27 @@ namespace YoonFactory
             pResultVector.X = (int) (-(Constant - pLine.Constant) / (Slope - pLine.Slope));
             pResultVector.Y = Y(pResultVector.X);
             return pResultVector;
+        }
+
+
+        public void Fit(IYoonRect2D<double> pRect)
+        {
+            double nStartX = Math.Min(pRect.Left, pRect.Right);
+            double nStartY = Math.Min(pRect.Top, pRect.Bottom);
+            double nEndX = Math.Max(pRect.Left, pRect.Right);
+            double nEndY = Math.Max(pRect.Top, pRect.Bottom);
+            StartPos.X = X(nStartY) > nStartX ? X(nStartY) : nStartX;
+            StartPos.Y = Y(nStartX) > nStartY ? Y(nStartX) : nStartY;
+            EndPos.X = X(nEndY) > nEndX ? nEndX : X(nEndY);
+            EndPos.Y = Y(nEndX) > nEndY ? nEndY : Y(nEndX);
+        }
+
+        public void Fit(double width, double height)
+        {
+            StartPos.X = X(0) > 0 ? X(0) : 0;
+            StartPos.Y = Y(0) > 0 ? Y(0) : 0;
+            EndPos.X = X(height) > width ? width : X(height);
+            EndPos.Y = Y(width) > height ? height : Y(width);
         }
 
         public bool IsContain(IYoonVector pVector)
